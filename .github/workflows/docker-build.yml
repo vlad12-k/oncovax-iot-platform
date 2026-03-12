@@ -1,0 +1,16 @@
+name: Docker (stub)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  verify-compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify compose files exist
+        run: |
+          test -f infra/docker-compose.yml
+          test -f infra/docker-compose.dev.yml
