@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoVax Telemetry Message",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["device_id", "asset_type", "ts", "metric", "value", "unit"],
+  "properties": {
+    "device_id": { "type": "string", "minLength": 1 },
+    "asset_type": {
+      "type": "string",
+      "enum": ["coldstorage", "cleanroom", "bioreactor", "shipment"]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metric": { "type": "string", "minLength": 1 },
+    "value": { "type": "number" },
+    "unit": { "type": "string", "minLength": 1 },
+    "note": { "type": "string" }
+  }
+}
