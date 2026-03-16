@@ -49,3 +49,45 @@ simulator -> MQTT -> worker -> InfluxDB -> Grafana
 
 This scenario represents the implemented MVP telemetry baseline.
 Planned next steps include richer excursion logic, audit-event storage, and role-based monitoring views.
+
+---
+
+## Scenario 2: Excursion alert detection and persistence
+
+This scenario demonstrates the second MVP increment for the OncoVax monitoring platform.  
+In this iteration, the worker no longer acts only as a validation and persistence component. It also applies a threshold-based excursion rule to incoming cold-storage telemetry.
+
+When a temperature reading exceeds the configured threshold, the worker generates an alert event and writes that event into a dedicated `alerts` measurement in InfluxDB. This extends the platform from a monitoring-only pipeline into an event-aware monitoring workflow.
+
+In the current implementation, the excursion rule is based on the `temperature` metric and a configurable threshold value. During validation, injected temperature spikes at `10.5°C` triggered alert creation, which was then confirmed in both InfluxDB and Grafana.
+
+## What this increment adds
+
+- threshold-based excursion detection in the Python worker
+- alert event generation when cold-storage temperature exceeds the configured rule
+- alert persistence in the `alerts` measurement in InfluxDB
+- alert visibility in both InfluxDB Data Explorer and Grafana
+
+## Sprint 2 outputs
+
+### InfluxDB alerts graph
+<img width="1884" height="983" alt="1 influxdb_alerts_graph" src="https://github.com/user-attachments/assets/d2e16d22-9ee5-4fff-a45f-6b252cf76eb7" />
+
+
+### InfluxDB alerts raw data
+<img width="1911" height="990" alt="1 fig_influxdb_alerts_raw_data" src="https://github.com/user-attachments/assets/64264a5c-2248-4c1f-8470-b4033d310b22" />
+
+### Grafana excursion alert values
+<img width="1907" height="966" alt="fig_grafana_excursion_alert_values" src="https://github.com/user-attachments/assets/d7f668ba-9318-4efc-b6af-f286c429aa66" />
+
+
+
+
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB -> Grafana + alert event generation
+
+## Sprint 2 status
+
+This increment confirms that the platform can not only ingest and visualise telemetry, but also detect threshold breaches and persist alert events for future audit-trail and acknowledgement workflows.
