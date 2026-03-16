@@ -17,6 +17,7 @@ simulator -> MQTT -> worker -> InfluxDB -> Grafana
 - Python simulator
 - Python worker
 - InfluxDB
+- MongoDB
 - Grafana
 - Docker Compose
 - GitHub Actions / CodeQL / Dependabot
@@ -26,6 +27,9 @@ simulator -> MQTT -> worker -> InfluxDB -> Grafana
 - telemetry schema for structured message validation
 - Python simulator for publishing cold-storage temperature telemetry
 - Python worker for validating telemetry and writing to InfluxDB
+- threshold-based excursion alert detection
+- alert persistence in InfluxDB
+- audit-trail baseline in MongoDB
 - Grafana dashboard showing temperature data and excursion spikes
 - documented demo scenario in `demo/scenarios.md`
 
@@ -41,7 +45,6 @@ simulator -> MQTT -> worker -> InfluxDB -> Grafana
 ## Planned next steps
 
 - richer excursion logic
-- audit-event storage
 - role-based monitoring views
 - stronger integration with wider quality and laboratory workflows
 
