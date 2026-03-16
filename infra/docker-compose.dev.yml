@@ -24,6 +24,15 @@ services:
       - influxdb_data:/var/lib/influxdb2
     restart: unless-stopped
 
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
   nodered:
     image: nodered/node-red:3.1
     container_name: nodered
@@ -55,5 +64,6 @@ services:
 
 volumes:
   influxdb_data:
+  mongodb_data:
   nodered_data:
   grafana_data:
