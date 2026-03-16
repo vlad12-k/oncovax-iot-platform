@@ -91,3 +91,40 @@ simulator -> MQTT -> worker -> InfluxDB -> Grafana + alert event generation
 ## Sprint 2 status
 
 This increment confirms that the platform can not only ingest and visualise telemetry, but also detect threshold breaches and persist alert events for future audit-trail and acknowledgement workflows.
+
+---
+
+## Scenario 3: Audit trail baseline for excursion alerts
+
+This scenario demonstrates the third MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the system extends beyond alert generation and introduces a basic audit-trail layer. When the worker detects an excursion alert, it not only writes the alert to InfluxDB, but also creates a structured audit document in MongoDB.
+
+This provides the first baseline for future acknowledgement workflows, incident handling, and alert-history tracking.
+
+## What this increment adds
+
+- MongoDB added to the development stack
+- audit record creation for excursion alerts
+- structured audit fields including alert ID, status, threshold, device context, and acknowledgement placeholders
+- persistence of operational alert history outside the telemetry time-series path
+
+## Sprint 3 outputs
+
+### Worker log showing alert and audit write
+<img width="1918" height="1033" alt="fig_worker_alert_and_audit_log_terminal" src="https://github.com/user-attachments/assets/7e49f5df-8e7c-44c0-8f2f-f9be49f2906a" />
+
+
+### MongoDB audit record
+<img width="1914" height="1027" alt="fig_mongodb_audit_event_terminal" src="https://github.com/user-attachments/assets/74389bf8-a06c-4031-8bf8-322236adaf22" />
+
+### Docker stack including MongoDB
+<img width="1919" height="1028" alt="fig_docker_stack_with_mongodb_terminal" src="https://github.com/user-attachments/assets/6c0a0855-5c37-4842-86f8-03b9a2bc9b35" />
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana
+
+## Sprint 3 status
+
+This increment confirms that the platform can detect excursions, persist alerts to InfluxDB, and create audit-trail records in MongoDB as a baseline for future acknowledgement and incident workflows.
