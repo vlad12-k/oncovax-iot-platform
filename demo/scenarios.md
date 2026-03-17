@@ -128,3 +128,36 @@ simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana
 ## Sprint 3 status
 
 This increment confirms that the platform can detect excursions, persist alerts to InfluxDB, and create audit-trail records in MongoDB as a baseline for future acknowledgement and incident workflows.
+
+---
+
+## Scenario 4: Manual acknowledgement workflow baseline
+
+This scenario demonstrates the fourth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the system introduces a manual acknowledgement workflow for audit-trail records stored in MongoDB. A Python utility script can now locate a specific alert by its `alert_id` and update the audit record with acknowledgement metadata.
+
+This extends the prototype from alert creation and audit persistence into a basic operational workflow where an alert can be explicitly acknowledged by an operator.
+
+## What this increment adds
+
+- manual acknowledgement of audit records
+- update of `acknowledged` state in MongoDB
+- support for `acknowledged_by`, `acknowledged_at`, and `incident_note`
+- baseline operator action workflow for future API or UI-based acknowledgement features
+
+## Sprint 4 outputs
+
+### Acknowledge script success output
+![Acknowledge alert script terminal](screenshots/sprint_4_fig_acknowledge_alert_script_terminal.png)
+
+### MongoDB audit record after acknowledgement
+![MongoDB acknowledged audit event terminal](screenshots/sprint_4_fig_mongodb_acknowledged_audit_event_terminal.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana -> acknowledgement update
+
+## Sprint 4 status
+
+This increment confirms that the platform can not only detect and store excursion alerts, but also support a basic acknowledgement workflow for recorded operational events.
