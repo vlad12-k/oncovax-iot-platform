@@ -9,7 +9,7 @@ The current MVP focuses on a cold-storage telemetry pipeline and demonstrates ho
 
 ## MVP flow
 
-simulator -> MQTT -> worker -> InfluxDB -> Grafana
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana -> acknowledgement update
 
 ## Current stack
 
@@ -30,23 +30,33 @@ simulator -> MQTT -> worker -> InfluxDB -> Grafana
 - threshold-based excursion alert detection
 - alert persistence in InfluxDB
 - audit-trail baseline in MongoDB
+- manual acknowledgement workflow for MongoDB audit records
 - Grafana dashboard showing temperature data and excursion spikes
-- documented demo scenario in `demo/scenarios.md`
+- smoke test script for basic service readiness checks
+- documented demo scenarios in `demo/scenarios.md`
+
+## Quickstart
+
+### Start the development stack
+
 
 ## Project structure
 
 - `infra/` - development stack and environment configuration
 - `services/simulator/` - telemetry generator
-- `services/worker/` - telemetry validation and write path
+- `services/worker/` - telemetry validation, alerting, and audit write path
+- `services/tools/` - operational utility scripts such as alert acknowledgement
 - `schemas/` - telemetry message schema
 - `docs/` - architecture, runbook, threat model and supporting documentation
-- `demo/` - demo scenario and visual outputs
+- `demo/` - demo scenarios and visual outputs
+- `scripts/` - smoke and utility scripts
 
 ## Planned next steps
 
 - richer excursion logic
 - role-based monitoring views
 - stronger integration with wider quality and laboratory workflows
+- future API or UI workflow for alert acknowledgement
 
 ## Context
 
