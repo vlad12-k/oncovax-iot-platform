@@ -226,3 +226,41 @@ simulator -> MQTT -> Node-RED flow
 ## Sprint 6 status
 
 This increment confirms that Node-RED is operational within the platform and can be used as a practical routing and prototyping layer for live telemetry handling.
+
+---
+
+## Scenario 7: API baseline for alert retrieval and acknowledgement
+
+This scenario demonstrates the seventh MVP increment for the OncoVax monitoring platform.
+
+In this iteration, a lightweight FastAPI service is introduced as a service layer over the MongoDB audit store. The API provides basic operational endpoints for checking service health, retrieving stored alert records, and acknowledging alerts through an HTTP request.
+
+This extends the platform beyond script-based operations and establishes a clearer foundation for future UI, workflow automation, or role-based integration.
+
+## What this increment adds
+
+- FastAPI service for alert operations
+- `GET /health` endpoint for service readiness checks
+- `GET /alerts` endpoint for retrieving stored alert records
+- `POST /alerts/{alert_id}/acknowledge` endpoint for updating acknowledgement state through HTTP
+- service-layer baseline for future application integration
+
+## Sprint 7 outputs
+
+### API alert retrieval
+![API alert retrieval](screenshots/sprint_7_fig_api_alerts_get_terminal.png)
+
+### API acknowledge POST request
+![API acknowledge POST](screenshots/sprint_7_fig_api_acknowledge_post_terminal.png)
+
+### Alerts after API acknowledgement
+![API alerts after acknowledgement](screenshots/sprint_7_fig_api_alerts_after_ack_terminal.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+manual or API acknowledgement -> MongoDB audit record update
+
+## Sprint 7 status
+
+This increment confirms that the platform now includes a lightweight API layer for operational alert retrieval and acknowledgement, providing a stronger foundation for future interfaces and workflow extensions.
