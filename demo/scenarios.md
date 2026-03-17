@@ -81,9 +81,6 @@ In the current implementation, the excursion rule is based on the `temperature` 
 <img width="1907" height="966" alt="fig_grafana_excursion_alert_values" src="https://github.com/user-attachments/assets/d7f668ba-9318-4efc-b6af-f286c429aa66" />
 
 
-
-
-
 ## Updated MVP flow
 
 simulator -> MQTT -> worker -> InfluxDB -> Grafana + alert event generation
@@ -161,6 +158,39 @@ simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana -> acknowledgement 
 ## Sprint 4 status
 
 This increment confirms that the platform can not only detect and store excursion alerts, but also support a basic acknowledgement workflow for recorded operational events.
+
+---
+
+## Scenario 5: Operational readiness and repository polish
+
+This scenario demonstrates the fifth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the focus shifts from core feature delivery to operational clarity and repository usability. The repository was updated with a clearer `README.md`, an improved Quickstart section, and a smoke test script for validating that the main platform services are running and reachable.
+
+This increment improves the practical readiness of the prototype by making the stack easier to understand, launch, and verify during development and demonstration.
+
+## What this increment adds
+
+- improved repository documentation in `README.md`
+- Quickstart instructions for launching the development stack
+- smoke test script for validating service readiness
+- clearer platform presentation for demo, review, and portfolio use
+
+## Sprint 5 outputs
+
+### Smoke test script
+`scripts/smoke_test.sh`
+
+### Repository quickstart and documentation update
+`README.md`
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana -> acknowledgement update
+
+## Sprint 5 status
+
+This increment confirms that the platform is not only feature-complete at the MVP level, but also easier to run, validate, and present in a structured development workflow.
 
 ---
 
