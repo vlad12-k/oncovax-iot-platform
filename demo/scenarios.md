@@ -161,3 +161,38 @@ simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana -> acknowledgement 
 ## Sprint 4 status
 
 This increment confirms that the platform can not only detect and store excursion alerts, but also support a basic acknowledgement workflow for recorded operational events.
+
+---
+
+## Scenario 6: Node-RED flow baseline
+
+This scenario demonstrates the sixth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, Node-RED is used as a live flow-processing layer connected to the MQTT telemetry topic. The flow subscribes to incoming telemetry, parses JSON payloads, displays all messages in the debug panel, and routes high-temperature readings through a threshold-based switch node.
+
+This confirms that Node-RED is not only present in the development stack, but also actively connected to the telemetry pipeline as a prototyping and routing layer.
+
+## What this increment adds
+
+- active Node-RED participation in the telemetry flow
+- MQTT subscription to the `oncovax/telemetry` topic
+- JSON parsing inside Node-RED
+- threshold-based routing of excursion-style messages
+- debug visibility for live telemetry and high-temperature events
+
+## Sprint 6 outputs
+
+### Node-RED flow canvas
+![Node-RED flow canvas](screenshots/sprint_6_fig_nodered_flow_canvas.png)
+
+### Node-RED debug panel with telemetry messages
+![Node-RED debug messages](screenshots/sprint_6_fig_nodered_debug_messages.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+simulator -> MQTT -> Node-RED flow
+
+## Sprint 6 status
+
+This increment confirms that Node-RED is operational within the platform and can be used as a practical routing and prototyping layer for live telemetry handling.
