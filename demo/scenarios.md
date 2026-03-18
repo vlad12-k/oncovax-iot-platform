@@ -302,3 +302,40 @@ containerized API service -> MongoDB audit access and acknowledgement support
 ## Sprint 8 status
 
 This increment confirms that the API is now part of the containerized platform stack and can be validated through the same operational readiness workflow as the rest of the development environment.
+
+---
+
+## Scenario 9: Deployment readiness baseline
+
+This scenario demonstrates the ninth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the platform is prepared for a more deployment-ready configuration. A shared `.env.example` file is introduced to document core runtime settings, and the containerized API service is extended with a Docker healthcheck so that service readiness can be verified automatically as part of the stack lifecycle.
+
+This increment improves the operational maturity of the platform and provides a cleaner baseline for future hosted deployment work.
+
+## What this increment adds
+
+- `.env.example` for core platform configuration
+- API container healthcheck in Docker Compose
+- clearer readiness verification for the API service
+- stronger foundation for future deployment and hosting steps
+
+## Sprint 9 outputs
+
+### Environment example configuration
+![Environment example configuration](screenshots/sprint_9_fig_env_example_configuration.png)
+
+### Docker Compose API service with healthcheck configuration
+![API healthcheck configuration](screenshots/sprint_9_fig_api_healthcheck_configuration.png)
+
+### Running platform stack with containerized API in healthy state
+![API healthcheck healthy stack](screenshots/sprint_9_fig_api_healthcheck_healthy_stack.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+containerized API service with healthcheck -> MongoDB audit access and acknowledgement support
+
+## Sprint 9 status
+
+This increment confirms that the platform now includes a cleaner deployment-readiness baseline with documented environment configuration and automated API readiness checks.
