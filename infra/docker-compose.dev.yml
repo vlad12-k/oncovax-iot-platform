@@ -33,6 +33,21 @@ services:
       - mongodb_data:/data/db
     restart: unless-stopped
 
+  api:
+    build:
+      context: ..
+      dockerfile: services/api/Dockerfile
+    container_name: oncovax-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB=oncovax
+      - MONGO_COLLECTION=audit_events
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+
   nodered:
     image: nodered/node-red:3.1
     container_name: nodered

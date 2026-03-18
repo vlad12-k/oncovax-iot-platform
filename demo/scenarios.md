@@ -264,3 +264,41 @@ manual or API acknowledgement -> MongoDB audit record update
 ## Sprint 7 status
 
 This increment confirms that the platform now includes a lightweight API layer for operational alert retrieval and acknowledgement, providing a stronger foundation for future interfaces and workflow extensions.
+
+---
+
+## Scenario 8: Containerized API deployment baseline
+
+This scenario demonstrates the eighth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the FastAPI alert service is moved from a manually started local process into the Docker Compose development stack. A dedicated API container is now built and started alongside the existing platform services, allowing the API to behave as part of the platform runtime rather than as a separate ad hoc process.
+
+The smoke test was also extended to validate API health as part of the overall platform readiness check.
+
+## What this increment adds
+
+- Dockerfile for the FastAPI service
+- API service integrated into `docker-compose.dev.yml`
+- containerized API runtime on port `8000`
+- smoke test validation for API health
+- more production-like service orchestration for the development stack
+
+## Sprint 8 outputs
+
+### Docker stack with API container
+![Docker stack with API container](screenshots/sprint_8_fig_docker_stack_with_api_container.png)
+
+### Containerized API health
+![Containerized API health](screenshots/sprint_8_fig_containerized_api_health_terminal.png)
+
+### Smoke test with API check
+![Smoke test with API check](screenshots/sprint_8_fig_smoke_test_with_api_check_terminal.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+containerized API service -> MongoDB audit access and acknowledgement support
+
+## Sprint 8 status
+
+This increment confirms that the API is now part of the containerized platform stack and can be validated through the same operational readiness workflow as the rest of the development environment.

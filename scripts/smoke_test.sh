@@ -13,6 +13,10 @@ echo "[smoke] checking Grafana login page"
 curl -I -s http://localhost:3000/login | head -n 1
 
 echo
+echo "[smoke] checking API health"
+curl -s http://localhost:8000/health
+
+echo
 echo "[smoke] checking MongoDB container"
 docker exec mongodb mongosh --quiet --eval 'db.runCommand({ ping: 1 })'
 
