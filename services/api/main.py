@@ -1,8 +1,12 @@
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from pymongo import MongoClient
 
@@ -10,7 +14,18 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB = os.getenv("MONGO_DB", "oncovax")
 MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "audit_events")
 
-app = FastAPI(title="OncoVax API", version="0.2.0")
+BASE_DIR = Path(__file__).resolve().parents[2]
+WEB_DIR = BASE_DIR / "services" / "web"
+
+app = FastAPI(title="OncoVax API", version="0.4.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 mongo_client = MongoClient(MONGO_URI)
 collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
@@ -88,3 +103,11 @@ def acknowledge_alert(alert_id: str, body: AcknowledgeRequest):
 
     updated = collection.find_one({"alert_id": alert_id}, {"_id": 0})
     return {"message": "Alert acknowledged", "item": updated}
+
+
+@app.get("/")
+def dashboard():
+    return FileResponse(WEB_DIR / "index.html")
+
+
+app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
