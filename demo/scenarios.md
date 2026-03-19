@@ -339,3 +339,40 @@ containerized API service with healthcheck -> MongoDB audit access and acknowled
 ## Sprint 9 status
 
 This increment confirms that the platform now includes a cleaner deployment-readiness baseline with documented environment configuration and automated API readiness checks.
+
+---
+
+## Scenario 10: API service maturity baseline
+
+This scenario demonstrates the tenth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the API layer is extended beyond the initial alert retrieval and acknowledgement baseline. The FastAPI service now supports retrieval of a single alert by `alert_id`, filtered retrieval of alerts by acknowledgement state, and a summary endpoint for aggregate alert counts.
+
+This improves the practical usefulness of the service layer and provides a stronger foundation for future UI and operational workflow features.
+
+## What this increment adds
+
+- `GET /alerts/{alert_id}` for single alert retrieval
+- `GET /alerts?acknowledged=true|false` for filtered alert retrieval
+- `GET /summary` for aggregate alert counts
+- stronger operational API layer for future interface and service expansion
+
+## Sprint 10 outputs
+
+### API single alert retrieval by alert_id
+![API single alert retrieval by alert_id](screenshots/sprint_10_fig_api_single_alert_terminal.png)
+
+### API filtered retrieval of unacknowledged alerts
+![API filtered retrieval of unacknowledged alerts](screenshots/sprint_10_fig_api_filtered_unacknowledged_alerts_terminal.png)
+
+### API alert summary endpoint
+![API alert summary endpoint](screenshots/sprint_10_fig_api_summary_terminal.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+containerized API service -> alert retrieval, filtering, summary, and acknowledgement support
+
+## Sprint 10 status
+
+This increment confirms that the API has moved beyond a minimal baseline and now provides a more practical operational service layer for alert handling and future interface development.
