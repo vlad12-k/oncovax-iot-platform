@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from pymongo import MongoClient
 
@@ -10,7 +10,7 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB = os.getenv("MONGO_DB", "oncovax")
 MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "audit_events")
 
-app = FastAPI(title="OncoVax API", version="0.1.0")
+app = FastAPI(title="OncoVax API", version="0.2.0")
 
 mongo_client = MongoClient(MONGO_URI)
 collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
@@ -31,13 +31,41 @@ def health():
 
 
 @app.get("/alerts")
-def list_alerts(limit: int = 20):
+def list_alerts(
+    limit: int = 20,
+    acknowledged: Optional[bool] = Query(default=None)
+):
+    query = {}
+    if acknowledged is not None:
+        query["acknowledged"] = acknowledged
+
     docs = list(
-        collection.find({}, {"_id": 0})
+        collection.find(query, {"_id": 0})
         .sort("time", -1)
         .limit(limit)
     )
     return {"count": len(docs), "items": docs}
+
+
+@app.get("/alerts/{alert_id}")
+def get_alert(alert_id: str):
+    doc = collection.find_one({"alert_id": alert_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return doc
+
+
+@app.get("/summary")
+def alert_summary():
+    total = collection.count_documents({})
+    acknowledged = collection.count_documents({"acknowledged": True})
+    unacknowledged = collection.count_documents({"acknowledged": False})
+
+    return {
+        "total_alerts": total,
+        "acknowledged_alerts": acknowledged,
+        "unacknowledged_alerts": unacknowledged,
+    }
 
 
 @app.post("/alerts/{alert_id}/acknowledge")
