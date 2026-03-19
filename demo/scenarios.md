@@ -376,3 +376,42 @@ containerized API service -> alert retrieval, filtering, summary, and acknowledg
 ## Sprint 10 status
 
 This increment confirms that the API has moved beyond a minimal baseline and now provides a more practical operational service layer for alert handling and future interface development.
+
+---
+
+## Scenario 11: Lightweight operational UI baseline
+
+This scenario demonstrates the eleventh MVP increment for the OncoVax monitoring platform.
+
+In this iteration, a lightweight operational dashboard is introduced as a presentation layer over the existing API service. The dashboard is served through the FastAPI container itself, allowing the interface and API to operate from the same origin and avoiding cross-origin access issues in the Codespaces environment.
+
+The page presents alert summary cards, a live alert register, filtering by acknowledgement state, and client-side search over alert records.
+
+## What this increment adds
+
+- lightweight operational dashboard served by FastAPI
+- same-origin UI and API setup
+- summary cards for total, acknowledged, and unacknowledged alerts
+- alert table for operational review
+- filter control for acknowledgement state
+- search interaction for alert record inspection
+
+## Sprint 11 outputs
+
+### Operational dashboard main view
+![Operational dashboard main view](screenshots/sprint_11_fig_operational_dashboard_main_view.png)
+
+### Operational dashboard filtered view
+![Operational dashboard filtered view](screenshots/sprint_11_fig_operational_dashboard_filtered_view.png)
+
+### Operational dashboard search view
+![Operational dashboard search view](screenshots/sprint_11_fig_operational_dashboard_search_view.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+containerized FastAPI service -> same-origin operational dashboard + alert API
+
+## Sprint 11 status
+
+This increment confirms that the platform now includes a lightweight operational interface for reviewing alert state and summary information, creating a stronger foundation for future hosted deployment and user-facing workflow features.

@@ -6,6 +6,7 @@ COPY services/api/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY services/api /app/services/api
+COPY services/web /app/services/web
 
 ENV MONGO_URI=mongodb://mongodb:27017
 ENV MONGO_DB=oncovax
