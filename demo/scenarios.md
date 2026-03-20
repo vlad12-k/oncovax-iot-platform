@@ -415,3 +415,38 @@ containerized FastAPI service -> same-origin operational dashboard + alert API
 ## Sprint 11 status
 
 This increment confirms that the platform now includes a lightweight operational interface for reviewing alert state and summary information, creating a stronger foundation for future hosted deployment and user-facing workflow features.
+
+---
+
+## Scenario 12: MongoDB Atlas integration baseline
+
+This scenario demonstrates the twelfth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the audit data layer is extended beyond the local development MongoDB container and connected to a managed MongoDB Atlas deployment. Existing `audit_events` records are copied from the local development database into Atlas, and the FastAPI service is then tested against the hosted database connection.
+
+This confirms that the platform can operate against an external managed MongoDB service and establishes the first hosted database baseline for future deployment work.
+
+## What this increment adds
+
+- managed MongoDB Atlas cluster for hosted audit data
+- successful migration of local `audit_events` records into Atlas
+- Atlas-backed FastAPI test instance
+- verification of `/health`, `/summary`, and `/alerts` against Atlas data
+- stronger foundation for external deployment and hosted runtime integration
+
+## Sprint 12 outputs
+
+### Atlas-backed API summary and alerts retrieval
+![Atlas-backed API summary and alerts retrieval](screenshots/sprint_12_fig_atlas_api_summary_and_alerts_terminal.png)
+
+### MongoDB Atlas cluster view
+![MongoDB Atlas cluster view](screenshots/sprint_12_fig_atlas_cluster_or_collection_view.png)
+
+## Updated MVP flow
+
+simulator -> MQTT -> worker -> InfluxDB + MongoDB -> Grafana  
+FastAPI service -> MongoDB Atlas hosted audit data
+
+## Sprint 12 status
+
+This increment confirms that the OncoVax platform can now use MongoDB Atlas as an external managed audit data store, creating a practical baseline for cloud-hosted deployment work.
