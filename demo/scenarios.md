@@ -450,3 +450,37 @@ FastAPI service -> MongoDB Atlas hosted audit data
 ## Sprint 12 status
 
 This increment confirms that the OncoVax platform can now use MongoDB Atlas as an external managed audit data store, creating a practical baseline for cloud-hosted deployment work.
+
+---
+
+## Scenario 13: DigitalOcean hosted application baseline
+
+This scenario demonstrates the thirteenth MVP increment for the OncoVax monitoring platform.
+
+In this iteration, the application baseline is moved beyond local and Codespaces-only execution and deployed on a DigitalOcean Droplet. The FastAPI service and lightweight operational dashboard are hosted externally, while the application continues to read audit data from MongoDB Atlas.
+
+This confirms that the platform can operate as a hosted external service with a managed database backend and establishes the first public runtime baseline for the project.
+
+## What this increment adds
+
+- DigitalOcean Droplet as a hosted runtime environment
+- externally hosted FastAPI service
+- externally hosted operational dashboard
+- hosted application connected to MongoDB Atlas
+- public baseline for remote access and deployment validation
+
+## Sprint 13 outputs
+
+### DigitalOcean hosted API terminal proof
+![DigitalOcean hosted API terminal proof](screenshots/sprint_12_fig_digitalocean_hosted_api_terminal.png)
+
+### DigitalOcean hosted dashboard view
+![DigitalOcean hosted dashboard view](screenshots/sprint_12_fig_digitalocean_hosted_dashboard_view.png)
+
+## Updated MVP flow
+
+DigitalOcean-hosted FastAPI service + operational dashboard -> MongoDB Atlas hosted audit data
+
+## Sprint 13 status
+
+This increment confirms that the OncoVax platform now runs as a hosted external application on DigitalOcean with MongoDB Atlas as its managed audit data backend.
