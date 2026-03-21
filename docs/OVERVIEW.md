@@ -3,6 +3,7 @@
 ## What This Platform Does
 
 The OncoVax IoT Monitoring Platform is an event-driven telemetry pipeline and operational dashboard for regulated cold-storage monitoring.
+It represents a **production-like, release-candidate baseline** rather than a fully hardened production system.
 
 It ingests simulated device telemetry over MQTT, validates and stores readings in InfluxDB, detects threshold excursions, and persists excursion alerts as durable audit records in MongoDB. Operators can review, filter, and acknowledge alerts through a lightweight web dashboard served by a FastAPI service.
 
@@ -27,7 +28,7 @@ It ingests simulated device telemetry over MQTT, validates and stores readings i
 | MongoDB Atlas integration | ✅ Implemented | Atlas URI via `MONGO_URI` env var |
 | DigitalOcean hosted baseline | ✅ Implemented | Droplet + Atlas combination |
 | Containerised deployment | ✅ Implemented | Docker Compose |
-| CI/CD baseline | ✅ Implemented | GitHub Actions, CodeQL, Dependabot |
+| CI / code-quality baseline | ✅ Implemented | GitHub Actions, CodeQL, Dependabot |
 
 ---
 
@@ -35,7 +36,7 @@ It ingests simulated device telemetry over MQTT, validates and stores readings i
 
 - Not a full production-hardened multi-tenant platform
 - No user authentication or role-based access control (planned)
-- No TLS termination from within the application layer (nginx provides this in prod)
+- No TLS termination from within the application layer (nginx provides this in the production-like scaffold)
 - Not a regulatory submission package
 
 ---

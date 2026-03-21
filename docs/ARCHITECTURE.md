@@ -77,9 +77,11 @@ MongoDB / MongoDB Atlas
 
 - Language: Python, FastAPI
 - Serves operational dashboard at `GET /`
-- Provides REST API for alert retrieval and acknowledgement
+- Provides REST API for alert retrieval and acknowledgement (routes in `services/api/routes/`)
 - Reads from MongoDB `audit_events` collection via `pymongo`
-- All configuration via environment variables: `MONGO_URI`, `MONGO_DB`, `MONGO_COLLECTION`
+- Configuration via environment variables:
+  - `MONGO_URI`, `MONGO_DB`, `MONGO_COLLECTION`
+  - `CORS_ALLOWED_ORIGINS` (comma-separated allowlist; default is same-origin only)
 - Dockerised; health check at `GET /health`
 
 ### Dashboard (`services/web/`)

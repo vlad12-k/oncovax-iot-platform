@@ -2,10 +2,13 @@
 
 ## Overview
 
-This document describes how to deploy the OncoVax IoT Monitoring Platform in:
-- Local development (all services via Docker Compose)
-- DigitalOcean hosted baseline (API + Atlas)
-- Production-like configuration (nginx reverse proxy + prod compose)
+This guide covers three distinct deployment modes:
+
+1. **Local full-stack development** (all services on one machine via `docker-compose.dev.yml`).
+2. **Hosted baseline** on a DigitalOcean Droplet with **MongoDB Atlas** for audit data (API + dashboard hosted, Atlas-backed persistence).
+3. **Production-like deployment** using `docker-compose.prod.yml` with **nginx + TLS scaffold**.
+
+Each mode is intentionally scoped; none represent a fully hardened, audited production deployment.
 
 ---
 
@@ -15,11 +18,13 @@ This document describes how to deploy the OncoVax IoT Monitoring Platform in:
 - Git
 - `curl` available for smoke tests
 - For Atlas: a MongoDB Atlas cluster and connection string
-- For DO hosted: a DigitalOcean Droplet (Ubuntu 22.04 LTS recommended) with Docker installed
+- For hosted baseline: a DigitalOcean Droplet (Ubuntu 22.04 LTS recommended) with Docker installed
 
 ---
 
-## Local Development
+## 1) Local Full-Stack Development (Docker Compose Dev)
+
+This mode runs **all services locally**, including MongoDB and InfluxDB.
 
 ### 1. Clone the repository
 
@@ -77,9 +82,9 @@ The simulator publishes telemetry once per second and injects occasional excursi
 
 ---
 
-## DigitalOcean Hosted Baseline (API + MongoDB Atlas)
+## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas)
 
-This is the current hosted baseline: the FastAPI service runs on a DigitalOcean Droplet and uses MongoDB Atlas for the audit data store.
+This hosted baseline runs the **API + dashboard** on a Droplet and stores audit data in **MongoDB Atlas**. It does **not** require a local MongoDB container.
 
 ### 1. Provision the Droplet
 
@@ -102,14 +107,18 @@ cd oncovax-iot-platform
 cp infra/.env.example infra/.env
 # Edit infra/.env:
 # - Set MONGO_URI to your MongoDB Atlas SRV connection string
-# - Set INFLUX_TOKEN, passwords etc.
+# - Set INFLUX_TOKEN, passwords, etc.
 ```
 
-Start the base stack (API + dependencies):
+Start the base stack (API + core services):
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d --build
 ```
+
+**Notes:**
+- When `MONGO_URI` points to Atlas, the local `mongodb` container is optional and can be removed or ignored.
+- This hosted baseline focuses on the API + dashboard and Atlas-backed audit data. If you want to run the full ingestion pipeline on the Droplet, add the worker container (see the production-like stack below or extend the compose file).
 
 ### 4. Configure MongoDB Atlas
 
@@ -127,9 +136,9 @@ curl http://<droplet-ip>:8000/summary
 
 ---
 
-## Production-Like Deployment (nginx + TLS)
+## 3) Production-Like Deployment (nginx + TLS Scaffold)
 
-For a production-like setup with HTTPS, use `infra/docker-compose.prod.yml` and the included nginx configuration.
+For a production-like setup with HTTPS, use `infra/docker-compose.prod.yml` and the included nginx configuration. This stack is **TLS-ready** but not fully hardened for live production.
 
 ### 1. Configure your domain
 
@@ -167,7 +176,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out infra/nginx/certs/server.crt
 ```
 
-### 4. Start the prod stack
+### 4. Start the prod-like stack
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml up -d --build
@@ -190,6 +199,7 @@ See `infra/.env.example` for the full list with descriptions.
 | `MONGO_URI` | Yes | MongoDB connection string (local or Atlas) |
 | `MONGO_DB` | Yes | Database name (default: `oncovax`) |
 | `MONGO_COLLECTION` | Yes | Collection name (default: `audit_events`) |
+| `CORS_ALLOWED_ORIGINS` | Optional | Comma-separated CORS allowlist (default: same-origin only) |
 | `INFLUX_URL` | Yes (worker) | InfluxDB base URL |
 | `INFLUX_TOKEN` | Yes (worker) | InfluxDB API token |
 | `INFLUX_ORG` | Yes (worker) | InfluxDB organisation |
@@ -221,7 +231,9 @@ In all cases, `docker compose down` stops and removes the containers; they will 
 
 ```bash
 git pull origin main
-docker compose -f infra/docker-compose.prod.yml up -d --build
+# Use the compose file for the mode you are running:
+#   docker compose -f infra/docker-compose.yml up -d --build
+#   docker compose -f infra/docker-compose.prod.yml up -d --build
 ```
 
 ---

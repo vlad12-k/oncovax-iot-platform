@@ -92,11 +92,11 @@ External:
 
 **Description:** The FastAPI service and MQTT broker communicate without TLS inside the Docker network. If exposed directly to the internet, traffic is unencrypted.
 
-**Current mitigation:** `infra/docker-compose.prod.yml` is designed to put nginx as a reverse proxy in front of the API, handling TLS termination.
+**Current mitigation:** A production-like reverse-proxy/TLS scaffold exists (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`, documented in `docs/DEPLOYMENT.md`), but it has not been fully validated as hardened live production.
 
-**Residual risk:** Medium. TLS must be configured and certificates provisioned before production internet exposure.
+**Residual risk:** Medium. TLS must be configured and certificates provisioned before any internet-facing exposure.
 
-**Planned mitigation:** Use nginx + Let's Encrypt (certbot) for TLS termination. See `infra/nginx/nginx.conf`.
+**Planned mitigation:** Use nginx + Let's Encrypt (certbot) for TLS termination and validate hardening. See `infra/nginx/nginx.conf`.
 
 ---
 
