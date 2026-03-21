@@ -9,10 +9,35 @@ jobs:
   sanity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Basic repo checks
         run: |
           test -f README.md
           test -f SECURITY.md
           test -d docs
           test -d infra
+          test -f docs/ARCHITECTURE.md
+          test -f docs/OVERVIEW.md
+          test -f docs/RUNBOOK.md
+          test -f docs/THREAT_MODEL.md
+          test -f docs/DEPLOYMENT.md
+          test -f infra/.env.example
+          test -f infra/docker-compose.yml
+          test -f infra/docker-compose.dev.yml
+          test -f infra/docker-compose.prod.yml
+          test -f infra/nginx/nginx.conf
+          test -f services/api/main.py
+          test -f services/api/config.py
+          test -f services/api/models.py
+          test -f services/web/index.html
+          test -f services/web/styles.css
+          test -f services/web/app.js
+      - name: Python syntax check
+        run: |
+          python3 -m py_compile services/api/main.py
+          python3 -m py_compile services/api/config.py
+          python3 -m py_compile services/api/models.py
+          python3 -m py_compile services/api/routes/alerts.py
+          python3 -m py_compile services/api/routes/health.py
+          python3 -m py_compile services/worker/worker.py
+          python3 -m py_compile services/simulator/simulator.py

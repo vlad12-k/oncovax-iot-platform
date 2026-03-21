@@ -1,0 +1,98 @@
+# OncoVax IoT Platform – Production-like Docker Compose
+#
+# Intended for use on a DigitalOcean Droplet or similar Linux host.
+# Differences from docker-compose.dev.yml:
+#   - Grafana and Node-RED are NOT included (use dev stack for those)
+#   - nginx reverse proxy added (TLS-ready)
+#   - all credentials via env_file only (no hardcoded values)
+#   - API port not directly exposed (nginx handles ingress)
+#   - restart: always used for resilient restarts
+#
+# Prerequisites:
+#   1. Copy infra/.env.example to infra/.env and fill real values
+#   2. Provision TLS certificates (see docs/DEPLOYMENT.md)
+#   3. Update infra/nginx/nginx.conf with your domain name
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+    expose:
+      - "1883"
+    restart: always
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    expose:
+      - "8086"
+    env_file:
+      - .env
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    restart: always
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    expose:
+      - "27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: always
+
+  worker:
+    build:
+      context: ..
+      dockerfile: services/worker/Dockerfile
+    container_name: oncovax-worker
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - mosquitto
+      - influxdb
+      - mongodb
+
+  api:
+    build:
+      context: ..
+      dockerfile: services/api/Dockerfile
+    container_name: oncovax-api
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - mongodb
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: oncovax-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Mount TLS certificates from the host.
+      # Provision via Let's Encrypt (certbot) before starting.
+      # See docs/DEPLOYMENT.md for instructions.
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    restart: always
+    depends_on:
+      - api
+
+volumes:
+  mosquitto_data:
+  influxdb_data:
+  mongodb_data:

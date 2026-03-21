@@ -1,108 +1,58 @@
-import os
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Optional
+"""
+OncoVax FastAPI service – entry point.
 
-from fastapi import FastAPI, HTTPException, Query
+Routes are organised in:
+  services/api/routes/alerts.py  – alert retrieval and acknowledgement
+  services/api/routes/health.py  – health check
+"""
+
+from pathlib import Path
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 from pymongo import MongoClient
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-MONGO_DB = os.getenv("MONGO_DB", "oncovax")
-MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "audit_events")
+from services.api.config import (
+    MONGO_URI,
+    MONGO_DB,
+    MONGO_COLLECTION,
+    CORS_ALLOWED_ORIGINS,
+)
+from services.api.routes.alerts import router as alerts_router
+from services.api.routes.health import router as health_router
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 WEB_DIR = BASE_DIR / "services" / "web"
 
-app = FastAPI(title="OncoVax API", version="0.4.0")
+app = FastAPI(title="OncoVax API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
-mongo_client = MongoClient(MONGO_URI)
+# MongoClient with explicit connection and server-selection timeouts.
+# serverSelectionTimeoutMS – how long to wait when no server is reachable before raising.
+# connectTimeoutMS         – TCP-level connection attempt timeout.
+# socketTimeoutMS          – timeout for individual socket read/write operations.
+mongo_client = MongoClient(
+    MONGO_URI,
+    serverSelectionTimeoutMS=5_000,
+    connectTimeoutMS=5_000,
+    socketTimeoutMS=10_000,
+)
 collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
 
+# Inject the collection into the routers via app state
+app.state.collection = collection
 
-def now_iso():
-    return datetime.now(timezone.utc).isoformat()
-
-
-class AcknowledgeRequest(BaseModel):
-    acknowledged_by: str
-    incident_note: Optional[str] = None
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-
-@app.get("/alerts")
-def list_alerts(
-    limit: int = 20,
-    acknowledged: Optional[bool] = Query(default=None)
-):
-    query = {}
-    if acknowledged is not None:
-        query["acknowledged"] = acknowledged
-
-    docs = list(
-        collection.find(query, {"_id": 0})
-        .sort("time", -1)
-        .limit(limit)
-    )
-    return {"count": len(docs), "items": docs}
-
-
-@app.get("/alerts/{alert_id}")
-def get_alert(alert_id: str):
-    doc = collection.find_one({"alert_id": alert_id}, {"_id": 0})
-    if not doc:
-        raise HTTPException(status_code=404, detail="Alert not found")
-    return doc
-
-
-@app.get("/summary")
-def alert_summary():
-    total = collection.count_documents({})
-    acknowledged = collection.count_documents({"acknowledged": True})
-    unacknowledged = collection.count_documents({"acknowledged": False})
-
-    return {
-        "total_alerts": total,
-        "acknowledged_alerts": acknowledged,
-        "unacknowledged_alerts": unacknowledged,
-    }
-
-
-@app.post("/alerts/{alert_id}/acknowledge")
-def acknowledge_alert(alert_id: str, body: AcknowledgeRequest):
-    update_doc = {
-        "$set": {
-            "acknowledged": True,
-            "acknowledged_by": body.acknowledged_by,
-            "acknowledged_at": now_iso(),
-        }
-    }
-
-    if body.incident_note is not None:
-        update_doc["$set"]["incident_note"] = body.incident_note
-
-    result = collection.update_one({"alert_id": alert_id}, update_doc)
-
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Alert not found")
-
-    updated = collection.find_one({"alert_id": alert_id}, {"_id": 0})
-    return {"message": "Alert acknowledged", "item": updated}
+app.include_router(health_router)
+app.include_router(alerts_router)
 
 
 @app.get("/")
