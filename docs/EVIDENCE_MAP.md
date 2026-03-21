@@ -13,7 +13,7 @@ This document maps each platform capability to concrete implementation evidence 
 | Item | Location |
 |---|---|
 | JSON schema definition | `schemas/telemetry.schema.json` |
-| Worker validation code | `services/worker/worker.py` – `validate_message()` |
+| Worker validation code | `services/worker/worker.py` – `on_message()` (calls `jsonschema.validate`) |
 | Simulator message structure | `services/simulator/simulator.py` – `make_reading()` |
 
 ---
@@ -33,7 +33,7 @@ This document maps each platform capability to concrete implementation evidence 
 
 | Item | Location |
 |---|---|
-| Worker InfluxDB write | `services/worker/worker.py` – `write_influx()` |
+| Worker InfluxDB write | `services/worker/worker.py` – `write_telemetry_point()` |
 | InfluxDB container | `infra/docker-compose.dev.yml` – `influxdb` service |
 | ADR | `docs/ADR/0002-influxdb.md` |
 
@@ -43,10 +43,10 @@ This document maps each platform capability to concrete implementation evidence 
 
 | Item | Location |
 |---|---|
-| Threshold detection logic | `services/worker/worker.py` – `process_message()` |
+| Threshold detection logic | `services/worker/worker.py` – `evaluate_excursion()` |
 | Configurable threshold | `TEMP_THRESHOLD` env var (default: 8.0 °C) |
 | Consecutive breach config | `CONSECUTIVE_BREACH_REQUIRED` env var |
-| Alert InfluxDB write | `services/worker/worker.py` – `write_alert_to_influx()` |
+| Alert InfluxDB write | `services/worker/worker.py` – `write_alert_point()` |
 
 ---
 
@@ -66,11 +66,13 @@ This document maps each platform capability to concrete implementation evidence 
 | Item | Location |
 |---|---|
 | API entry point | `services/api/main.py` |
-| `GET /health` | `services/api/main.py` – `health()` |
-| `GET /summary` | `services/api/main.py` – `alert_summary()` |
-| `GET /alerts` | `services/api/main.py` – `list_alerts()` |
-| `GET /alerts/{id}` | `services/api/main.py` – `get_alert()` |
-| `POST /alerts/{id}/acknowledge` | `services/api/main.py` – `acknowledge_alert()` |
+| Config constants | `services/api/config.py` |
+| Pydantic models | `services/api/models.py` |
+| `GET /health` | `services/api/routes/health.py` – `health()` |
+| `GET /summary` | `services/api/routes/alerts.py` – `alert_summary()` |
+| `GET /alerts` | `services/api/routes/alerts.py` – `list_alerts()` |
+| `GET /alerts/{id}` | `services/api/routes/alerts.py` – `get_alert()` |
+| `POST /alerts/{id}/acknowledge` | `services/api/routes/alerts.py` – `acknowledge_alert()` |
 | API container | `services/api/Dockerfile` |
 | API requirements | `services/api/requirements.txt` |
 | Postman collection | `tools/postman_collection.json` |

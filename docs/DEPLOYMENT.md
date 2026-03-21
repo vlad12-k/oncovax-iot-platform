@@ -202,9 +202,18 @@ See `infra/.env.example` for the full list with descriptions.
 
 ## Restart Policy
 
-All services are configured with `restart: unless-stopped`. This means:
-- Services restart automatically after host reboot
-- Services do not restart after `docker compose down`
+Restart behavior differs between the dev/base and production compose files:
+
+- **Local / development (`docker-compose.yml`, `docker-compose.dev.yml`)**
+  - Services use `restart: unless-stopped`
+  - Containers restart automatically after host reboot
+  - Containers do not restart after `docker stop <container>` — they stay stopped until explicitly started again
+
+- **Production (`infra/docker-compose.prod.yml`)**
+  - Services use `restart: always`
+  - Containers restart automatically after host reboot and after any unexpected exit
+
+In all cases, `docker compose down` stops and removes the containers; they will not restart until you bring the stack up again.
 
 ---
 

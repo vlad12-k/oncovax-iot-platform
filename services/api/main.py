@@ -14,7 +14,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pymongo import MongoClient
 
-from services.api.config import MONGO_URI, MONGO_DB, MONGO_COLLECTION
+from services.api.config import (
+    MONGO_URI,
+    MONGO_DB,
+    MONGO_COLLECTION,
+    CORS_ALLOWED_ORIGINS,
+)
 from services.api.routes.alerts import router as alerts_router
 from services.api.routes.health import router as health_router
 
@@ -25,13 +30,22 @@ app = FastAPI(title="OncoVax API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
-mongo_client = MongoClient(MONGO_URI)
+# MongoClient with explicit connection and server-selection timeouts.
+# serverSelectionTimeoutMS – how long to wait when no server is reachable before raising.
+# connectTimeoutMS         – TCP-level connection attempt timeout.
+# socketTimeoutMS          – timeout for individual socket read/write operations.
+mongo_client = MongoClient(
+    MONGO_URI,
+    serverSelectionTimeoutMS=5_000,
+    connectTimeoutMS=5_000,
+    socketTimeoutMS=10_000,
+)
 collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
 
 # Inject the collection into the routers via app state

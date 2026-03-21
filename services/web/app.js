@@ -1,3 +1,4 @@
+// API_BASE is empty string – all fetch calls go to the same origin as the page.
 const API_BASE = "";
 
 const totalEl = document.getElementById("total-alerts");
@@ -9,6 +10,7 @@ const filterEl = document.getElementById("filter");
 const searchEl = document.getElementById("search");
 const refreshBtn = document.getElementById("refresh-btn");
 const lastRefreshEl = document.getElementById("last-refresh");
+const apiEndpointEl = document.getElementById("api-endpoint");
 const errorBox = document.getElementById("error-box");
 
 // Acknowledge modal
@@ -27,6 +29,11 @@ const detailCloseBtn = document.getElementById("detail-close");
 
 let currentAlerts = [];
 let selectedAlertId = null;
+
+// Show the real origin so the operator can see which API host is being used
+if (apiEndpointEl) {
+  apiEndpointEl.textContent = window.location.origin + " (same-origin)";
+}
 
 // ── UI helpers ─────────────────────────────────────────────────────────────
 
@@ -55,7 +62,8 @@ function escapeHtml(str) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
 
 // ── Table rendering ────────────────────────────────────────────────────────
@@ -87,9 +95,9 @@ function applyTableFilter() {
 
   alertsBody.innerHTML = filtered.map(item => {
     const isUnack = !item.acknowledged;
-    const ackBtnHtml = isUnack
-      ? `<button class="button button-success" style="padding:6px 10px;font-size:12px" onclick="openAckModal('${escapeHtml(item.alert_id || "")}')">Acknowledge</button>`
-      : `<button class="button" style="padding:6px 10px;font-size:12px" onclick="openDetailPanel('${escapeHtml(item.alert_id || "")}')">View</button>`;
+    const btnLabel = isUnack ? "Acknowledge" : "View";
+    const btnClass = isUnack ? "button button-success" : "button";
+    const btnAction = isUnack ? "ack" : "view";
 
     return `
       <tr data-alert-id="${escapeHtml(item.alert_id || "")}" style="cursor:pointer">
@@ -101,10 +109,23 @@ function applyTableFilter() {
         <td>${fmtAck(item.acknowledged)}</td>
         <td>${escapeHtml(item.device_id || "-")}</td>
         <td>${escapeHtml(item.asset_type || "-")}</td>
-        <td>${ackBtnHtml}</td>
+        <td><button class="${btnClass}" data-action="${btnAction}" data-alert-id="${escapeHtml(item.alert_id || "")}" style="padding:6px 10px;font-size:12px">${btnLabel}</button></td>
       </tr>
     `;
   }).join("");
+
+  // Attach listeners after rendering – no inline handlers
+  alertsBody.querySelectorAll("button[data-action]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = btn.dataset.alertId;
+      if (btn.dataset.action === "ack") {
+        openAckModal(id);
+      } else {
+        openDetailPanel(id);
+      }
+    });
+  });
 
   // Row click opens detail panel (not on button click)
   alertsBody.querySelectorAll("tr[data-alert-id]").forEach(row => {
@@ -147,10 +168,17 @@ function openDetailPanel(alertId) {
     </div>
     ${!item.acknowledged ? `
       <div style="margin-top:16px">
-        <button class="button button-success" onclick="openAckModal('${escapeHtml(item.alert_id || "")}')">Acknowledge this alert</button>
+        <button class="button button-success" id="detail-ack-btn" style="font-size:13px">Acknowledge this alert</button>
       </div>
     ` : ""}
   `;
+
+  if (!item.acknowledged) {
+    const ackBtn = document.getElementById("detail-ack-btn");
+    if (ackBtn) {
+      ackBtn.addEventListener("click", () => openAckModal(item.alert_id));
+    }
+  }
 
   detailPanel.classList.add("active");
   detailPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
