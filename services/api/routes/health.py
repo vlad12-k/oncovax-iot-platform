@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 router = APIRouter()
 
@@ -11,3 +11,8 @@ def health():
 @router.get("/public-health")
 def public_health():
     return {"status": "ok"}
+
+
+@router.head("/public-health")
+def public_health_head():
+    return Response(status_code=200)
