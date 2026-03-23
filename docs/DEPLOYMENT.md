@@ -54,6 +54,9 @@ docker compose -f infra/docker-compose.dev.yml up -d --build
 
 This starts: Mosquitto, InfluxDB, MongoDB, FastAPI, Node-RED, Grafana.
 
+Node-RED in this stack is **optional dev/demo tooling** for demo orchestration artifacts only.
+It is not required for ingestion correctness.
+
 ### 4. Verify services
 
 ```bash
@@ -188,6 +191,8 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 curl https://your-domain.example.com/health
 ```
 
+Production-like topology preserves direct `MQTT -> worker` ingestion authority and does not require Node-RED.
+
 ---
 
 ## Environment Variables Reference
@@ -207,6 +212,19 @@ See `infra/.env.example` for the full list with descriptions.
 | `MQTT_HOST` | Yes (worker/sim) | MQTT broker hostname |
 | `MQTT_PORT` | Yes (worker/sim) | MQTT broker port |
 | `TEMP_THRESHOLD` | Worker | Alert threshold in °C (default: 8.0) |
+
+---
+
+## Demo-Control Contract Deployment Note (Phase B2c)
+
+The Node-RED demo-control artifact (`flows/nodered/demo-control-flow.json`) is scoped to demo topics:
+
+- `oncovax/demo/control/scenario/select`
+- `oncovax/demo/control/mode/set`
+- `oncovax/demo/control/event/trigger`
+- `oncovax/demo/orchestration/status`
+
+Do not rewire canonical telemetry ingestion through Node-RED in this phase.
 
 ---
 

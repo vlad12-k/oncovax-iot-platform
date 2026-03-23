@@ -139,6 +139,49 @@ docker exec mosquitto mosquitto_pub \
 
 ---
 
+## 5A. Demo-Control Orchestration (Node-RED, optional)
+
+Node-RED demo orchestration is **dev/demo-only** and optional.
+It must not replace or rewire canonical telemetry ingestion.
+
+### Contract topics
+
+- Control topics:
+  - `oncovax/demo/control/scenario/select`
+  - `oncovax/demo/control/mode/set`
+  - `oncovax/demo/control/event/trigger`
+- Status topic:
+  - `oncovax/demo/orchestration/status`
+
+### Safe enable procedure
+
+1. Ensure baseline ingestion is healthy first (`MQTT -> worker`):
+   - `curl -s http://localhost:8000/health`
+   - verify worker logs show normal telemetry processing
+2. Start/keep Node-RED only in dev stack:
+   - `docker compose -f infra/docker-compose.dev.yml up -d nodered`
+3. Import flow artifact:
+   - `flows/nodered/demo-control-flow.json`
+4. Publish control commands only on `oncovax/demo/control/*` topics.
+5. Observe orchestration acknowledgements on `oncovax/demo/orchestration/status`.
+
+### Safe disable procedure
+
+1. Stop publishing demo-control commands.
+2. Stop Node-RED (optional service):
+   - `docker compose -f infra/docker-compose.dev.yml stop nodered`
+3. Re-check ingestion continuity:
+   - worker continues processing telemetry without Node-RED
+   - API health remains `{\"status\":\"ok\"}`
+
+### Safety rule
+
+Do not route telemetry through Node-RED in this phase. Keep canonical ingestion direct:
+
+- producer/simulator -> MQTT topic (e.g. `oncovax/telemetry`) -> worker
+
+---
+
 ## 6. Troubleshooting
 
 ### API returns 503 / cannot connect to MongoDB
@@ -253,6 +296,6 @@ test -f schemas/device_metadata.schema.json
 - Ensure `.env` and `infra/.env` are excluded from Git tracking.
 - Do not store real credentials in flow/dashboard export artifacts.
 
-### Phase A note
+### Phase note
 
-This phase does not alter runtime services, routes, worker logic, simulator logic, nginx behavior, or production compose behavior.
+This phase does not alter worker logic, telemetry schema, API routes, nginx behavior, or production compose behavior.

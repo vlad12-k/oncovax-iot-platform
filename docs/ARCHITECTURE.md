@@ -91,6 +91,19 @@ MongoDB / MongoDB Atlas
 - Communicates with the API via same-origin `fetch()` calls
 - Files: `index.html`, `styles.css`, `app.js`
 
+### Node-RED demo orchestration (`flows/nodered/`)
+
+- Scope: **dev/demo-only** optional orchestration artifact layer
+- Export artifact: `flows/nodered/demo-control-flow.json`
+- Approved control topics:
+  - `oncovax/demo/control/scenario/select`
+  - `oncovax/demo/control/mode/set`
+  - `oncovax/demo/control/event/trigger`
+- Approved status topic:
+  - `oncovax/demo/orchestration/status`
+- Purpose: receive demo control commands, validate basic shape, emit orchestration status
+- Non-goal: Node-RED is not required for ingestion correctness and does not replace direct worker ingestion
+
 ---
 
 ## Data Layers
@@ -120,7 +133,7 @@ MongoDB / MongoDB Atlas
 | MongoDB   | 27017 | Local dev only (Atlas in prod)|
 | FastAPI   | 8000  | API + dashboard                |
 | Grafana   | 3000  | Visualisation (dev only)      |
-| Node-RED  | 1880  | Flow editor (dev only)        |
+| Node-RED  | 1880  | Demo-control flow editor/runtime (dev/demo only) |
 
 ---
 
@@ -138,8 +151,32 @@ MongoDB / MongoDB Atlas
 - **Hosted baseline**: DigitalOcean Droplet + MongoDB Atlas
 - **Production-like**: see `infra/docker-compose.prod.yml` + `infra/nginx/`
 
+Authoritative ingestion path remains direct MQTT telemetry to worker. Optional Node-RED demo orchestration uses `oncovax/demo/**` topics only and does not alter worker ingestion wiring.
+
 See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step deployment instructions.
 
+
+---
+
+## Phase B2c Demo-Control Orchestration Boundary
+
+Node-RED is an optional **dev/demo-only** orchestration surface for demo control topics.
+
+- Control topics:
+  - `oncovax/demo/control/scenario/select`
+  - `oncovax/demo/control/mode/set`
+  - `oncovax/demo/control/event/trigger`
+- Status topic:
+  - `oncovax/demo/orchestration/status`
+
+The exported flow artifact is `flows/nodered/demo-control-flow.json`.
+It validates basic command shape and emits orchestration status events on the demo status topic.
+
+This does **not** change ingestion authority:
+
+- Authoritative ingestion path remains direct `MQTT -> worker`.
+- Worker validation and persistence logic remain unchanged.
+- No runtime rewiring to make Node-RED mandatory for ingestion correctness.
 
 ---
 

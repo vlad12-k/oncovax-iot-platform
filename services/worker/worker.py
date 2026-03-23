@@ -12,6 +12,8 @@ from pymongo import MongoClient
 MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "oncovax/telemetry")
+MQTT_TOPICS = os.getenv("MQTT_TOPICS", "")
+MQTT_SIMULATOR_COMPAT_TOPIC = os.getenv("MQTT_SIMULATOR_COMPAT_TOPIC", "")
 
 INFLUX_URL = os.getenv("INFLUX_URL", "http://localhost:8086")
 INFLUX_ORG = os.getenv("INFLUX_ORG", "oncovax")
@@ -26,13 +28,113 @@ SCHEMA_PATH = Path(os.getenv("SCHEMA_PATH", "schemas/telemetry.schema.json"))
 
 TEMP_THRESHOLD = float(os.getenv("TEMP_THRESHOLD", "8.0"))
 CONSECUTIVE_BREACH_REQUIRED = int(os.getenv("CONSECUTIVE_BREACH_REQUIRED", "1"))
+ALERT_DEDUP_COOLDOWN_SECONDS = int(os.getenv("ALERT_DEDUP_COOLDOWN_SECONDS", "300"))
 
 schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 breach_state = {}
+last_alert_emitted_at = {}
+ASSET_TYPE_ALIASES = {
+    "vaccine fridge": "coldstorage",
+    "clinic freezer": "coldstorage",
+    "warehouse cold room": "coldstorage",
+    "transport box": "shipment",
+}
+
+
+def normalize_asset_type(asset_type):
+    if asset_type is None:
+        return asset_type
+    normalized = ASSET_TYPE_ALIASES.get(str(asset_type).strip().lower())
+    if normalized:
+        return normalized
+    return asset_type
+
+
+def build_subscribe_topics():
+    topics = [MQTT_TOPIC]
+    if MQTT_TOPICS.strip():
+        topics.extend([topic.strip() for topic in MQTT_TOPICS.split(",") if topic.strip()])
+    if MQTT_SIMULATOR_COMPAT_TOPIC.strip():
+        topics.append(MQTT_SIMULATOR_COMPAT_TOPIC.strip())
+    deduped = []
+    for topic in topics:
+        if topic not in deduped:
+            deduped.append(topic)
+    return deduped
 
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
+
+
+def build_simulator_note(payload: dict):
+    note_fields = {}
+    for key in (
+        "status",
+        "power_state",
+        "network_status",
+        "compressor_state",
+        "site",
+        "zone",
+        "fleet_group",
+        "firmware_version",
+        "location",
+    ):
+        value = payload.get(key)
+        if value is not None:
+            note_fields[key] = value
+    if not note_fields:
+        return None
+    return json.dumps(note_fields, separators=(",", ":"), sort_keys=True)
+
+
+def to_canonical_records(payload: dict):
+    canonical_required = {"device_id", "asset_type", "ts", "metric", "value", "unit"}
+    if canonical_required.issubset(payload.keys()):
+        canonical = dict(payload)
+        canonical["asset_type"] = normalize_asset_type(canonical["asset_type"])
+        return [canonical]
+
+    simulator_required = {"timestamp", "device_id", "asset_type"}
+    if not simulator_required.issubset(payload.keys()):
+        raise ValueError("Unsupported telemetry payload format")
+
+    note = build_simulator_note(payload)
+    asset_type = normalize_asset_type(payload["asset_type"])
+    metric_defs = (
+        ("temperature", "temperature", "C", float),
+        ("humidity", "humidity", "%", float),
+        ("battery", "battery", "%", float),
+        ("door_open", "door_open", "state", lambda value: 1.0 if bool(value) else 0.0),
+        ("open_duration_seconds", "open_duration_seconds", "seconds", float),
+        ("signal_strength", "signal_strength", "dBm", float),
+        ("ambient_temperature", "ambient_temperature", "C", float),
+        ("setpoint_temperature", "setpoint_temperature", "C", float),
+    )
+
+    records = []
+    for source_key, metric, unit, converter in metric_defs:
+        if source_key not in payload:
+            continue
+        raw_value = payload[source_key]
+        if raw_value is None:
+            continue
+        record = {
+            "device_id": payload["device_id"],
+            "asset_type": asset_type,
+            "ts": payload["timestamp"],
+            "metric": metric,
+            "value": converter(raw_value),
+            "unit": unit,
+        }
+        if note is not None:
+            record["note"] = note
+        records.append(record)
+
+    if not records:
+        raise ValueError("Simulator payload does not contain supported metric fields")
+
+    return records
 
 
 def write_telemetry_point(write_api, data: dict):
@@ -126,36 +228,61 @@ def evaluate_excursion(data: dict):
     return None
 
 
+def should_emit_alert(alert: dict):
+    if ALERT_DEDUP_COOLDOWN_SECONDS <= 0:
+        return True
+
+    key = (alert["device_id"], alert["metric"])
+    now_ts = datetime.now(timezone.utc).timestamp()
+    last_emitted = last_alert_emitted_at.get(key)
+
+    if last_emitted is not None and (now_ts - last_emitted) < ALERT_DEDUP_COOLDOWN_SECONDS:
+        return False
+
+    last_alert_emitted_at[key] = now_ts
+    return True
+
+
 def on_message(client, userdata, msg):
     write_api = userdata["write_api"]
     audit_collection = userdata["audit_collection"]
 
     try:
         payload = json.loads(msg.payload.decode("utf-8"))
-        validate(instance=payload, schema=schema)
+        records = to_canonical_records(payload)
+        for record in records:
+            validate(instance=record, schema=schema)
+            write_telemetry_point(write_api, record)
+            print(f"[worker] wrote telemetry: {record}")
 
-        write_telemetry_point(write_api, payload)
-        print(f"[worker] wrote telemetry: {payload}")
-
-        alert = evaluate_excursion(payload)
-        if alert:
-            write_alert_point(write_api, alert)
-            write_audit_record(audit_collection, alert)
-            print(f"[alert] {alert}")
-            print(f"[audit] stored alert_id={alert['device_id']}-{alert['metric']}-{alert['ts']}")
+            alert = evaluate_excursion(record)
+            if alert:
+                if not should_emit_alert(alert):
+                    print(
+                        f"[alert] suppressed duplicate for "
+                        f"{alert['device_id']}:{alert['metric']} "
+                        f"(cooldown={ALERT_DEDUP_COOLDOWN_SECONDS}s)"
+                    )
+                    continue
+                write_alert_point(write_api, alert)
+                write_audit_record(audit_collection, alert)
+                print(f"[alert] {alert}")
+                print(f"[audit] stored alert_id={alert['device_id']}-{alert['metric']}-{alert['ts']}")
 
     except Exception as e:
         print(f"[worker] error: {e}")
 
 
 def main():
-    print(f"[worker] mqtt://{MQTT_HOST}:{MQTT_PORT} topic={MQTT_TOPIC}")
+    subscribe_topics = build_subscribe_topics()
+    print(f"[worker] mqtt://{MQTT_HOST}:{MQTT_PORT} topics={subscribe_topics}")
     print(f"[worker] influx: {INFLUX_URL} org={INFLUX_ORG} bucket={INFLUX_BUCKET}")
     print(f"[worker] mongo: {MONGO_URI} db={MONGO_DB} collection={MONGO_COLLECTION}")
     print(
         f"[worker] excursion rule: temperature > {TEMP_THRESHOLD} "
         f"for {CONSECUTIVE_BREACH_REQUIRED} consecutive readings"
     )
+    print(f"[worker] alert dedup cooldown: {ALERT_DEDUP_COOLDOWN_SECONDS}s")
 
     influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = influx.write_api(write_options=SYNCHRONOUS)
@@ -170,7 +297,8 @@ def main():
     })
     client.on_message = on_message
     client.connect(MQTT_HOST, MQTT_PORT, 60)
-    client.subscribe(MQTT_TOPIC)
+    for topic in subscribe_topics:
+        client.subscribe(topic)
     client.loop_forever()
 
 
