@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoVax Audit Event",
+  "type": "object",
+  "description": "Placeholder audit event schema for documentation/contract alignment",
+  "required": ["event_type", "time"],
+  "properties": {
+    "event_type": { "type": "string", "minLength": 1 },
+    "time": { "type": "string", "format": "date-time" },
+    "actor": { "type": ["string", "null"] },
+    "details": { "type": ["object", "null"] }
+  },
+  "additionalProperties": true
+}

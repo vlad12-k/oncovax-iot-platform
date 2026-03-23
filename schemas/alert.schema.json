@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoVax Alert",
+  "type": "object",
+  "description": "Placeholder alert schema for documentation/contract alignment",
+  "required": ["alert_id", "event_type", "time", "device_id", "status"],
+  "properties": {
+    "alert_id": { "type": "string", "minLength": 1 },
+    "event_type": { "type": "string", "minLength": 1 },
+    "time": { "type": "string", "format": "date-time" },
+    "device_id": { "type": "string", "minLength": 1 },
+    "asset_type": { "type": "string" },
+    "status": { "type": "string", "minLength": 1 },
+    "message": { "type": "string" }
+  },
+  "additionalProperties": true
+}

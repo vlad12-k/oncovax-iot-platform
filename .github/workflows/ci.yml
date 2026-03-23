@@ -21,6 +21,20 @@ jobs:
           test -f docs/RUNBOOK.md
           test -f docs/THREAT_MODEL.md
           test -f docs/DEPLOYMENT.md
+          test -f docs/PRODUCTION_HARDENING_DAY1_DAY5.md
+          test -f docs/DATA_FLOW.md
+          test -f docs/DEMO_SCENARIOS.md
+          test -f docs/RECOVERY_AND_ROLLBACK.md
+          test -f docs/KNOWN_LIMITATIONS.md
+          test -f flows/README.md
+          test -d flows/nodered
+          test -f grafana/README.md
+          test -d grafana/dashboards
+          test -f schemas/telemetry.schema.json
+          test -f schemas/alert.schema.json
+          test -f schemas/audit_event.schema.json
+          test -f schemas/device_metadata.schema.json
+          test -d services/simulator/scenarios
           test -f infra/.env.example
           test -f infra/docker-compose.yml
           test -f infra/docker-compose.dev.yml

@@ -227,3 +227,32 @@ Key variables:
 | `MQTT_HOST` | `mosquitto` | MQTT broker hostname |
 | `MQTT_PORT` | `1883` | MQTT broker port |
 | `TEMP_THRESHOLD` | `8.0` | Alert temperature threshold (°C) |
+
+
+---
+
+## 10. Documentation and Artifact Hygiene
+
+### Validate required docs and placeholders
+
+```bash
+test -f docs/PRODUCTION_HARDENING_DAY1_DAY5.md
+test -f docs/DATA_FLOW.md
+test -f docs/DEMO_SCENARIOS.md
+test -f docs/RECOVERY_AND_ROLLBACK.md
+test -f docs/KNOWN_LIMITATIONS.md
+test -f flows/README.md
+test -f grafana/README.md
+test -f schemas/alert.schema.json
+test -f schemas/audit_event.schema.json
+test -f schemas/device_metadata.schema.json
+```
+
+### Secret safety checks
+
+- Ensure `.env` and `infra/.env` are excluded from Git tracking.
+- Do not store real credentials in flow/dashboard export artifacts.
+
+### Phase A note
+
+This phase does not alter runtime services, routes, worker logic, simulator logic, nginx behavior, or production compose behavior.

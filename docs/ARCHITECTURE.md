@@ -139,3 +139,17 @@ MongoDB / MongoDB Atlas
 - **Production-like**: see `infra/docker-compose.prod.yml` + `infra/nginx/`
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step deployment instructions.
+
+
+---
+
+## Phase A Repository Completion Artifacts
+
+The following additive repository structures are intentionally introduced to support future operational exports without changing runtime behavior:
+
+- `flows/` and `flows/nodered/` for Node-RED flow exports
+- `grafana/dashboards/` for Grafana dashboard JSON exports
+- `services/simulator/scenarios/` for scenario templates
+- `schemas/alert.schema.json`, `schemas/audit_event.schema.json`, `schemas/device_metadata.schema.json` as contract placeholders
+
+These artifacts are documentation and structure scaffolding only for this phase.
