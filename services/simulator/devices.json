@@ -1,0 +1,359 @@
+{
+  "devices": [
+    {
+      "device_id": "vf-001",
+      "asset_type": "vaccine fridge",
+      "site": "NYC Clinic A",
+      "zone": "immunization-room-1",
+      "fleet_group": "metro-east-clinics",
+      "firmware_version": "1.8.4",
+      "status": "active",
+      "setpoint_temperature_c": 4.0,
+      "location": { "lat": 40.748817, "lon": -73.985428 },
+      "profile": {
+        "temperature_c": { "base": 4.1, "jitter": 0.4 },
+        "ambient_temperature_c": { "base": 22.0, "jitter": 1.8 },
+        "humidity_pct": { "base": 52.0, "jitter": 4.0 },
+        "battery": { "initial": 98.0, "min": 12.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.08 },
+        "door_open_probability": 0.05,
+        "signal_strength_dbm": { "base": -62.0, "jitter": 5.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 },
+        "power_loss_probability": 0.004,
+        "network_drop_probability": 0.02
+      }
+    },
+    {
+      "device_id": "vf-002",
+      "asset_type": "vaccine fridge",
+      "site": "NYC Clinic A",
+      "zone": "immunization-room-2",
+      "fleet_group": "metro-east-clinics",
+      "firmware_version": "1.8.4",
+      "status": "active",
+      "setpoint_temperature_c": 4.0,
+      "location": { "lat": 40.748711, "lon": -73.985201 },
+      "profile": {
+        "temperature_c": { "base": 3.9, "jitter": 0.5 },
+        "ambient_temperature_c": { "base": 22.5, "jitter": 1.6 },
+        "humidity_pct": { "base": 50.0, "jitter": 5.0 },
+        "battery": { "initial": 97.0, "min": 12.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.09 },
+        "door_open_probability": 0.07,
+        "signal_strength_dbm": { "base": -64.0, "jitter": 6.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 },
+        "power_loss_probability": 0.005,
+        "network_drop_probability": 0.02
+      }
+    },
+    {
+      "device_id": "vf-003",
+      "asset_type": "vaccine fridge",
+      "site": "Boston Clinic C",
+      "zone": "vaccination-lab",
+      "fleet_group": "north-atlantic-clinics",
+      "firmware_version": "1.8.2",
+      "status": "active",
+      "setpoint_temperature_c": 4.2,
+      "location": { "lat": 42.360134, "lon": -71.05888 },
+      "profile": {
+        "temperature_c": { "base": 4.2, "jitter": 0.3 },
+        "ambient_temperature_c": { "base": 21.0, "jitter": 1.4 },
+        "humidity_pct": { "base": 49.0, "jitter": 5.5 },
+        "battery": { "initial": 94.0, "min": 10.0, "max": 100.0, "drain_min": 0.03, "drain_max": 0.08 },
+        "door_open_probability": 0.06,
+        "signal_strength_dbm": { "base": -60.0, "jitter": 5.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 },
+        "power_loss_probability": 0.004,
+        "network_drop_probability": 0.02
+      }
+    },
+    {
+      "device_id": "vf-004",
+      "asset_type": "vaccine fridge",
+      "site": "Chicago Clinic D",
+      "zone": "pediatric-wing",
+      "fleet_group": "midwest-clinics",
+      "firmware_version": "1.8.1",
+      "status": "maintenance",
+      "setpoint_temperature_c": 4.0,
+      "location": { "lat": 41.878113, "lon": -87.629799 },
+      "profile": {
+        "temperature_c": { "base": 4.4, "jitter": 0.6 },
+        "ambient_temperature_c": { "base": 23.0, "jitter": 2.2 },
+        "humidity_pct": { "base": 53.0, "jitter": 6.0 },
+        "battery": { "initial": 90.0, "min": 10.0, "max": 100.0, "drain_min": 0.03, "drain_max": 0.1 },
+        "door_open_probability": 0.09,
+        "signal_strength_dbm": { "base": -68.0, "jitter": 8.0 },
+        "location_drift": { "lat": 0.00003, "lon": 0.00003 },
+        "power_loss_probability": 0.007,
+        "network_drop_probability": 0.03
+      }
+    },
+
+    {
+      "device_id": "tb-011",
+      "asset_type": "transport box",
+      "site": "Route NYC->JFK",
+      "zone": "delivery-van-1",
+      "fleet_group": "urban-last-mile",
+      "firmware_version": "2.0.3",
+      "status": "in_transit",
+      "setpoint_temperature_c": 5.0,
+      "location": { "lat": 40.73061, "lon": -73.935242 },
+      "profile": {
+        "temperature_c": { "base": 5.3, "jitter": 1.1 },
+        "ambient_temperature_c": { "base": 27.0, "jitter": 4.0 },
+        "humidity_pct": { "base": 58.0, "jitter": 8.0 },
+        "battery": { "initial": 84.0, "min": 5.0, "max": 100.0, "drain_min": 0.06, "drain_max": 0.21 },
+        "door_open_probability": 0.12,
+        "signal_strength_dbm": { "base": -74.0, "jitter": 9.0 },
+        "location_drift": { "lat": 0.0012, "lon": 0.0012 },
+        "power_loss_probability": 0.0,
+        "network_drop_probability": 0.06
+      }
+    },
+    {
+      "device_id": "tb-012",
+      "asset_type": "transport box",
+      "site": "Route BOS->Cambridge",
+      "zone": "courier-bike-4",
+      "fleet_group": "urban-last-mile",
+      "firmware_version": "2.0.3",
+      "status": "in_transit",
+      "setpoint_temperature_c": 5.0,
+      "location": { "lat": 42.360082, "lon": -71.05888 },
+      "profile": {
+        "temperature_c": { "base": 5.1, "jitter": 1.3 },
+        "ambient_temperature_c": { "base": 25.5, "jitter": 5.0 },
+        "humidity_pct": { "base": 60.0, "jitter": 8.5 },
+        "battery": { "initial": 78.0, "min": 5.0, "max": 100.0, "drain_min": 0.07, "drain_max": 0.25 },
+        "door_open_probability": 0.15,
+        "signal_strength_dbm": { "base": -80.0, "jitter": 11.0 },
+        "location_drift": { "lat": 0.0014, "lon": 0.0014 },
+        "power_loss_probability": 0.0,
+        "network_drop_probability": 0.08
+      }
+    },
+    {
+      "device_id": "tb-013",
+      "asset_type": "transport box",
+      "site": "Route CHI->Naperville",
+      "zone": "delivery-van-3",
+      "fleet_group": "suburban-distribution",
+      "firmware_version": "2.0.1",
+      "status": "in_transit",
+      "setpoint_temperature_c": 4.8,
+      "location": { "lat": 41.85003, "lon": -87.65005 },
+      "profile": {
+        "temperature_c": { "base": 5.0, "jitter": 1.2 },
+        "ambient_temperature_c": { "base": 26.0, "jitter": 4.5 },
+        "humidity_pct": { "base": 57.0, "jitter": 8.0 },
+        "battery": { "initial": 82.0, "min": 5.0, "max": 100.0, "drain_min": 0.06, "drain_max": 0.22 },
+        "door_open_probability": 0.11,
+        "signal_strength_dbm": { "base": -76.0, "jitter": 10.0 },
+        "location_drift": { "lat": 0.0013, "lon": 0.0013 },
+        "power_loss_probability": 0.0,
+        "network_drop_probability": 0.07
+      }
+    },
+    {
+      "device_id": "tb-014",
+      "asset_type": "transport box",
+      "site": "Route LA->Pasadena",
+      "zone": "reefer-truck-2",
+      "fleet_group": "west-coast-logistics",
+      "firmware_version": "2.0.4",
+      "status": "charging",
+      "setpoint_temperature_c": 5.0,
+      "location": { "lat": 34.052235, "lon": -118.243683 },
+      "profile": {
+        "temperature_c": { "base": 5.4, "jitter": 1.4 },
+        "ambient_temperature_c": { "base": 29.0, "jitter": 5.2 },
+        "humidity_pct": { "base": 61.0, "jitter": 9.0 },
+        "battery": { "initial": 76.0, "min": 5.0, "max": 100.0, "drain_min": 0.08, "drain_max": 0.28 },
+        "door_open_probability": 0.16,
+        "signal_strength_dbm": { "base": -82.0, "jitter": 12.0 },
+        "location_drift": { "lat": 0.0016, "lon": 0.0016 },
+        "power_loss_probability": 0.0,
+        "network_drop_probability": 0.09
+      }
+    },
+
+    {
+      "device_id": "cf-021",
+      "asset_type": "clinic freezer",
+      "site": "NYC Clinic B",
+      "zone": "storage-basement",
+      "fleet_group": "metro-east-clinics",
+      "firmware_version": "3.1.0",
+      "status": "active",
+      "setpoint_temperature_c": -20.0,
+      "location": { "lat": 40.712776, "lon": -74.005974 },
+      "profile": {
+        "temperature_c": { "base": -19.8, "jitter": 0.9 },
+        "ambient_temperature_c": { "base": 20.0, "jitter": 2.0 },
+        "humidity_pct": { "base": 38.0, "jitter": 4.5 },
+        "battery": { "initial": 96.0, "min": 10.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.08 },
+        "door_open_probability": 0.03,
+        "signal_strength_dbm": { "base": -66.0, "jitter": 6.0 },
+        "location_drift": { "lat": 0.00001, "lon": 0.00001 },
+        "power_loss_probability": 0.005,
+        "network_drop_probability": 0.015
+      }
+    },
+    {
+      "device_id": "cf-022",
+      "asset_type": "clinic freezer",
+      "site": "Boston Clinic C",
+      "zone": "specimen-room",
+      "fleet_group": "north-atlantic-clinics",
+      "firmware_version": "3.1.0",
+      "status": "active",
+      "setpoint_temperature_c": -18.5,
+      "location": { "lat": 42.361145, "lon": -71.057083 },
+      "profile": {
+        "temperature_c": { "base": -18.7, "jitter": 0.8 },
+        "ambient_temperature_c": { "base": 19.0, "jitter": 1.7 },
+        "humidity_pct": { "base": 40.0, "jitter": 4.0 },
+        "battery": { "initial": 95.0, "min": 10.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.08 },
+        "door_open_probability": 0.04,
+        "signal_strength_dbm": { "base": -64.0, "jitter": 5.0 },
+        "location_drift": { "lat": 0.00001, "lon": 0.00001 },
+        "power_loss_probability": 0.004,
+        "network_drop_probability": 0.015
+      }
+    },
+    {
+      "device_id": "cf-023",
+      "asset_type": "clinic freezer",
+      "site": "Chicago Clinic D",
+      "zone": "oncology-lab",
+      "fleet_group": "midwest-clinics",
+      "firmware_version": "3.0.9",
+      "status": "active",
+      "setpoint_temperature_c": -19.0,
+      "location": { "lat": 41.881832, "lon": -87.623177 },
+      "profile": {
+        "temperature_c": { "base": -18.9, "jitter": 1.0 },
+        "ambient_temperature_c": { "base": 20.5, "jitter": 2.2 },
+        "humidity_pct": { "base": 37.0, "jitter": 5.0 },
+        "battery": { "initial": 91.0, "min": 10.0, "max": 100.0, "drain_min": 0.03, "drain_max": 0.09 },
+        "door_open_probability": 0.05,
+        "signal_strength_dbm": { "base": -70.0, "jitter": 7.0 },
+        "location_drift": { "lat": 0.00001, "lon": 0.00001 },
+        "power_loss_probability": 0.006,
+        "network_drop_probability": 0.02
+      }
+    },
+    {
+      "device_id": "cf-024",
+      "asset_type": "clinic freezer",
+      "site": "LA Clinic E",
+      "zone": "vaccination-lab",
+      "fleet_group": "west-coast-clinics",
+      "firmware_version": "3.1.1",
+      "status": "active",
+      "setpoint_temperature_c": -20.0,
+      "location": { "lat": 34.040713, "lon": -118.246769 },
+      "profile": {
+        "temperature_c": { "base": -19.6, "jitter": 1.1 },
+        "ambient_temperature_c": { "base": 22.0, "jitter": 2.5 },
+        "humidity_pct": { "base": 39.0, "jitter": 5.0 },
+        "battery": { "initial": 89.0, "min": 10.0, "max": 100.0, "drain_min": 0.03, "drain_max": 0.09 },
+        "door_open_probability": 0.04,
+        "signal_strength_dbm": { "base": -68.0, "jitter": 6.0 },
+        "location_drift": { "lat": 0.00001, "lon": 0.00001 },
+        "power_loss_probability": 0.006,
+        "network_drop_probability": 0.02
+      }
+    },
+
+    {
+      "device_id": "wc-031",
+      "asset_type": "warehouse cold room",
+      "site": "NJ Distribution Hub",
+      "zone": "aisle-a",
+      "fleet_group": "east-regional-warehouses",
+      "firmware_version": "4.2.7",
+      "status": "active",
+      "setpoint_temperature_c": 2.5,
+      "location": { "lat": 40.735657, "lon": -74.172363 },
+      "profile": {
+        "temperature_c": { "base": 2.4, "jitter": 0.6 },
+        "ambient_temperature_c": { "base": 18.5, "jitter": 1.5 },
+        "humidity_pct": { "base": 61.0, "jitter": 6.0 },
+        "battery": { "initial": 93.0, "min": 14.0, "max": 100.0, "drain_min": 0.01, "drain_max": 0.05 },
+        "door_open_probability": 0.08,
+        "signal_strength_dbm": { "base": -59.0, "jitter": 4.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 },
+        "power_loss_probability": 0.003,
+        "network_drop_probability": 0.015
+      }
+    },
+    {
+      "device_id": "wc-032",
+      "asset_type": "warehouse cold room",
+      "site": "NJ Distribution Hub",
+      "zone": "aisle-b",
+      "fleet_group": "east-regional-warehouses",
+      "firmware_version": "4.2.7",
+      "status": "active",
+      "setpoint_temperature_c": 2.2,
+      "location": { "lat": 40.735881, "lon": -74.172104 },
+      "profile": {
+        "temperature_c": { "base": 2.3, "jitter": 0.7 },
+        "ambient_temperature_c": { "base": 18.8, "jitter": 1.7 },
+        "humidity_pct": { "base": 60.0, "jitter": 6.0 },
+        "battery": { "initial": 92.0, "min": 14.0, "max": 100.0, "drain_min": 0.01, "drain_max": 0.05 },
+        "door_open_probability": 0.09,
+        "signal_strength_dbm": { "base": -61.0, "jitter": 5.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 },
+        "power_loss_probability": 0.004,
+        "network_drop_probability": 0.015
+      }
+    },
+    {
+      "device_id": "wc-033",
+      "asset_type": "warehouse cold room",
+      "site": "Chicago Regional Warehouse",
+      "zone": "loading-bay-2",
+      "fleet_group": "midwest-warehouses",
+      "firmware_version": "4.2.5",
+      "status": "active",
+      "setpoint_temperature_c": 3.0,
+      "location": { "lat": 41.881, "lon": -87.627 },
+      "profile": {
+        "temperature_c": { "base": 2.9, "jitter": 0.8 },
+        "ambient_temperature_c": { "base": 19.5, "jitter": 1.8 },
+        "humidity_pct": { "base": 63.0, "jitter": 7.0 },
+        "battery": { "initial": 90.0, "min": 14.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.06 },
+        "door_open_probability": 0.1,
+        "signal_strength_dbm": { "base": -63.0, "jitter": 6.0 },
+        "location_drift": { "lat": 0.00003, "lon": 0.00003 },
+        "power_loss_probability": 0.004,
+        "network_drop_probability": 0.02
+      }
+    },
+    {
+      "device_id": "wc-034",
+      "asset_type": "warehouse cold room",
+      "site": "LA Regional Warehouse",
+      "zone": "dispatch-lane",
+      "fleet_group": "west-coast-warehouses",
+      "firmware_version": "4.2.8",
+      "status": "active",
+      "setpoint_temperature_c": 2.7,
+      "location": { "lat": 34.043017, "lon": -118.267254 },
+      "profile": {
+        "temperature_c": { "base": 2.8, "jitter": 0.7 },
+        "ambient_temperature_c": { "base": 21.5, "jitter": 2.0 },
+        "humidity_pct": { "base": 62.0, "jitter": 6.0 },
+        "battery": { "initial": 88.0, "min": 14.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.06 },
+        "door_open_probability": 0.11,
+        "signal_strength_dbm": { "base": -65.0, "jitter": 6.0 },
+        "location_drift": { "lat": 0.00003, "lon": 0.00003 },
+        "power_loss_probability": 0.005,
+        "network_drop_probability": 0.02
+      }
+    }
+  ]
+}
