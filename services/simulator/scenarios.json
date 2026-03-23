@@ -1,18 +1,20 @@
 {
   "default_scenario": "normal",
+  "demo_default_scenario": "demo-friendly",
   "scenarios": {
     "normal": {
-      "description": "Steady-state telemetry for all devices."
+      "description": "Steady-state telemetry for all devices with realistic drift."
     },
     "cold-chain breach": {
-      "description": "Intermittent high temperature excursions.",
+      "description": "Intermittent high temperature excursions across the fleet.",
       "breach_probability": 0.35,
-      "temperature_increase_c": 9.0
+      "temperature_increase_c": 8.5,
+      "ambient_increase_c": 2.1
     },
     "unstable battery": {
       "description": "Accelerated battery drain and noisy connectivity.",
-      "extra_drain_range": [0.4, 1.5],
-      "signal_noise_range": [-18.0, 6.0],
+      "extra_drain_range": [0.4, 1.6],
+      "signal_noise_range": [-18.0, 7.0],
       "low_battery_threshold": 30.0
     },
     "offline/recovery": {
@@ -21,11 +23,44 @@
       "recovery_cycles": 6,
       "publish_offline_status": false,
       "recovery_signal_boost": 10.0,
-      "recovery_battery_boost": 1.1
+      "recovery_battery_boost": 1.2
     },
     "multi-device burst": {
       "description": "Publish multiple samples for each device per loop cycle.",
       "burst_count": 4
+    },
+    "transport instability": {
+      "description": "Transport boxes show stronger swings from movement and handling.",
+      "temperature_swing_range": [-3.2, 5.8],
+      "humidity_swing_range": [-9.0, 13.5],
+      "signal_noise_range": [-22.0, 9.0],
+      "door_open_probability": 0.35
+    },
+    "prolonged door-open incident": {
+      "description": "Sustained door-open events causing thermal and humidity rise.",
+      "incident_probability": 0.2,
+      "incident_cycles_range": [3, 7],
+      "temperature_rise_c": 2.8,
+      "humidity_rise_pct": 6.5
+    },
+    "repeated breach pattern": {
+      "description": "Predictable breach/normal cadence suitable for escalation logic demos.",
+      "breach_cycles": 2,
+      "normal_cycles": 3,
+      "temperature_increase_c": 7.5,
+      "ambient_increase_c": 1.8
+    },
+    "demo-friendly": {
+      "description": "Guaranteed visible events in short demo windows.",
+      "burst_count": 3,
+      "door_open_every_n_cycles": 2,
+      "breach_every_n_cycles": 3,
+      "battery_drop_every_n_cycles": 4,
+      "offline_every_n_cycles": 5,
+      "door_event_temp_rise_c": 2.0,
+      "breach_temp_increase_c": 6.0,
+      "battery_drop_c": 4.0,
+      "publish_offline_status": true
     }
   }
 }
