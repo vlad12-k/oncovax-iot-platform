@@ -297,15 +297,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mqtt-topic", default=os.getenv("MQTT_TOPIC", "oncovax/telemetry/simulator"))
     parser.add_argument("--devices-file", type=Path, default=base_dir / "devices.json")
     parser.add_argument("--scenarios-file", type=Path, default=base_dir / "scenarios.json")
-    parser.add_argument("--scenario", default=None, help="Scenario mode to run")
+    parser.add_argument("--scenario", default=(os.getenv("SIM_SCENARIO") or None), help="Scenario mode to run")
     parser.add_argument(
         "--profile",
         choices=["standard", "demo"],
-        default="standard",
+        default=os.getenv("SIM_PROFILE", "standard"),
         help="Use demo profile to force visible events in short windows",
     )
-    parser.add_argument("--interval-seconds", type=float, default=1.0)
-    parser.add_argument("--seed", type=int, default=None, help="Deterministic random seed")
+    parser.add_argument("--interval-seconds", type=float, default=float(os.getenv("SIM_INTERVAL_SECONDS", "1.0")))
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=(int(os.getenv("SIM_SEED")) if os.getenv("SIM_SEED") else None),
+        help="Deterministic random seed",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print payloads without MQTT publish")
     parser.add_argument(
         "--runtime-control-topic",
