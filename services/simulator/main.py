@@ -196,15 +196,17 @@ def main() -> None:
                     continue
 
                 for _ in range(out["burst_count"]):
-                    payload = json.dumps(out["payload"], separators=(",", ":"))
+                    burst_payload = dict(out["payload"])
+                    burst_payload["timestamp"] = now_iso()
+                    payload = json.dumps(burst_payload, separators=(",", ":"))
                     if args.dry_run:
                         LOGGER.info("dry-run payload=%s", payload)
                     else:
                         client.publish(args.mqtt_topic, payload, qos=0)
                         LOGGER.info(
                             "published device=%s status=%s topic=%s",
-                            out["payload"]["device_id"],
-                            out["payload"]["status"],
+                            burst_payload["device_id"],
+                            burst_payload["status"],
                             args.mqtt_topic,
                         )
             STOP_EVENT.wait(args.interval_seconds)

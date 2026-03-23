@@ -48,9 +48,8 @@ Scenarios are configured in `scenarios.json`, and devices/profiles are configure
 From repository root:
 
 ```bash
-cd /home/runner/work/oncovax-iot-platform/oncovax-iot-platform
-python3 -m pip install -r /home/runner/work/oncovax-iot-platform/oncovax-iot-platform/services/simulator/requirements.txt
-python3 /home/runner/work/oncovax-iot-platform/oncovax-iot-platform/services/simulator/main.py --dry-run --seed 42
+python3 -m pip install -r ./services/simulator/requirements.txt
+python3 ./services/simulator/main.py --dry-run --seed 42
 ```
 
 Dry-run mode logs payloads without publishing anything.
@@ -58,7 +57,7 @@ Dry-run mode logs payloads without publishing anything.
 To publish to local/dev MQTT only:
 
 ```bash
-python3 /home/runner/work/oncovax-iot-platform/oncovax-iot-platform/services/simulator/main.py \
+python3 ./services/simulator/main.py \
   --mqtt-host localhost \
   --mqtt-port 1883 \
   --mqtt-topic oncovax/telemetry/simulator \
