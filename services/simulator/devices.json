@@ -1,0 +1,68 @@
+{
+  "devices": [
+    {
+      "device_id": "vf-001",
+      "asset_type": "vaccine fridge",
+      "location": {
+        "lat": 40.748817,
+        "lon": -73.985428
+      },
+      "profile": {
+        "temperature_c": { "base": 4.0, "jitter": 0.3 },
+        "humidity_pct": { "base": 52.0, "jitter": 4.0 },
+        "battery": { "initial": 98.0, "min": 10.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.08 },
+        "door_open_probability": 0.05,
+        "signal_strength_dbm": { "base": -62.0, "jitter": 5.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 }
+      }
+    },
+    {
+      "device_id": "tb-017",
+      "asset_type": "transport box",
+      "location": {
+        "lat": 40.73061,
+        "lon": -73.935242
+      },
+      "profile": {
+        "temperature_c": { "base": 5.2, "jitter": 1.0 },
+        "humidity_pct": { "base": 58.0, "jitter": 7.0 },
+        "battery": { "initial": 83.0, "min": 5.0, "max": 100.0, "drain_min": 0.05, "drain_max": 0.2 },
+        "door_open_probability": 0.12,
+        "signal_strength_dbm": { "base": -74.0, "jitter": 8.0 },
+        "location_drift": { "lat": 0.0008, "lon": 0.0008 }
+      }
+    },
+    {
+      "device_id": "cf-009",
+      "asset_type": "clinic freezer",
+      "location": {
+        "lat": 34.052235,
+        "lon": -118.243683
+      },
+      "profile": {
+        "temperature_c": { "base": -18.0, "jitter": 0.8 },
+        "humidity_pct": { "base": 38.0, "jitter": 5.0 },
+        "battery": { "initial": 95.0, "min": 10.0, "max": 100.0, "drain_min": 0.02, "drain_max": 0.09 },
+        "door_open_probability": 0.03,
+        "signal_strength_dbm": { "base": -66.0, "jitter": 6.0 },
+        "location_drift": { "lat": 0.00001, "lon": 0.00001 }
+      }
+    },
+    {
+      "device_id": "wc-003",
+      "asset_type": "warehouse cold room",
+      "location": {
+        "lat": 41.878113,
+        "lon": -87.629799
+      },
+      "profile": {
+        "temperature_c": { "base": 2.5, "jitter": 0.5 },
+        "humidity_pct": { "base": 61.0, "jitter": 6.0 },
+        "battery": { "initial": 92.0, "min": 15.0, "max": 100.0, "drain_min": 0.01, "drain_max": 0.05 },
+        "door_open_probability": 0.08,
+        "signal_strength_dbm": { "base": -59.0, "jitter": 4.0 },
+        "location_drift": { "lat": 0.00002, "lon": 0.00002 }
+      }
+    }
+  ]
+}

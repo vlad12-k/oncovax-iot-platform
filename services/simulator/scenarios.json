@@ -1,0 +1,31 @@
+{
+  "default_scenario": "normal",
+  "scenarios": {
+    "normal": {
+      "description": "Steady-state telemetry for all devices."
+    },
+    "cold-chain breach": {
+      "description": "Intermittent high temperature excursions.",
+      "breach_probability": 0.35,
+      "temperature_increase_c": 9.0
+    },
+    "unstable battery": {
+      "description": "Accelerated battery drain and noisy connectivity.",
+      "extra_drain_range": [0.4, 1.5],
+      "signal_noise_range": [-18.0, 6.0],
+      "low_battery_threshold": 30.0
+    },
+    "offline/recovery": {
+      "description": "Periodic offline windows followed by recovery windows.",
+      "offline_cycles": 4,
+      "recovery_cycles": 6,
+      "publish_offline_status": false,
+      "recovery_signal_boost": 10.0,
+      "recovery_battery_boost": 1.1
+    },
+    "multi-device burst": {
+      "description": "Publish multiple samples for each device per loop cycle.",
+      "burst_count": 4
+    }
+  }
+}
