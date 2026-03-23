@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OncoVax Device Metadata",
+  "type": "object",
+  "description": "Placeholder device metadata schema for documentation/contract alignment",
+  "required": ["device_id", "asset_type"],
+  "properties": {
+    "device_id": { "type": "string", "minLength": 1 },
+    "asset_type": { "type": "string", "minLength": 1 },
+    "site": { "type": "string" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "status": { "type": "string" }
+  },
+  "additionalProperties": true
+}

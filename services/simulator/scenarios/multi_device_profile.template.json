@@ -1,0 +1,15 @@
+{
+  "version": "0.1",
+  "description": "Placeholder template for future multi-device telemetry scenarios",
+  "devices": [
+    {
+      "device_id": "fridge-001",
+      "asset_type": "vaccine_fridge",
+      "location": {
+        "site": "clinic-a",
+        "lat": 0.0,
+        "lon": 0.0
+      }
+    }
+  ]
+}

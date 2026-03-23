@@ -1,53 +1,38 @@
 # OncoVax IoT Monitoring Platform
 
-Event-driven IoT monitoring platform for regulated cold-storage environments. This repository represents a **production-like, release-candidate baseline** rather than a fully hardened production system.
+Event-driven IoT monitoring platform for regulated cold-storage environments. This repository is maintained as a **production-like operations baseline** and is evolved incrementally with deployment safety guardrails.
 
-## Release-candidate overview
+## What this repository demonstrates
 
-The platform demonstrates a complete telemetry-to-alert workflow:
+- MQTT-based telemetry ingestion pipeline
+- Worker-side validation and alert event generation
+- Time-series storage in InfluxDB
+- Audit/event persistence in MongoDB / MongoDB Atlas
+- FastAPI operational endpoints and lightweight dashboard
+- Docker Compose dev and production-like deployment layouts
+- Nginx ingress with protected routes and public uptime probe
 
+## Deployment safety commitments
+
+This repository intentionally preserves the existing production-safe behavior:
+
+- `/public-health` remains available for unauthenticated uptime checks
+- Private routes remain protected through ingress auth controls
+- Production reverse-proxy and compose topology are additive-first
+- Secrets are never committed to source control
+
+## Current architecture flow
+
+```text
+Simulator -> MQTT -> Worker -> InfluxDB (telemetry + alerts)
+                           -> MongoDB/Atlas (audit + alert lifecycle)
+                                        ^
+                                      FastAPI
+                                        ^
+                                   Web dashboard
 ```
-Simulator → MQTT → Worker → InfluxDB (telemetry + alerts)
-                         → MongoDB / Atlas (audit records)
-                               ↑
-                          FastAPI API
-                               ↑
-                      Operational Dashboard
-```
 
-## Current capabilities
-
-- Telemetry schema validation (`schemas/telemetry.schema.json`)
-- Python simulator publishing MQTT telemetry
-- Python worker validating telemetry, detecting excursions, and writing:
-  - InfluxDB time-series data
-  - MongoDB audit-trail records
-- FastAPI REST API:
-  - `GET /health`, `GET /summary`, `GET /alerts`, `GET /alerts/{id}`
-  - `POST /alerts/{id}/acknowledge`
-- Lightweight HTML/CSS/JS dashboard served by the API
-- MongoDB Atlas integration baseline (via `MONGO_URI`)
-- DigitalOcean hosted baseline (API + dashboard)
-- Docker Compose dev/base/prod-like stacks
-- CI / code-quality baseline (GitHub Actions, CodeQL, Dependabot)
-- Smoke test script for basic readiness checks
-
-## Environments
-
-- **Local full-stack development** (`infra/docker-compose.dev.yml`)
-  - Runs Mosquitto, InfluxDB, MongoDB, FastAPI, Grafana, and Node-RED
-  - Suitable for end-to-end demos with simulated telemetry
-
-- **Hosted baseline (DigitalOcean + MongoDB Atlas)**
-  - FastAPI + dashboard hosted on a Droplet
-  - Audit data stored in Atlas (`MONGO_URI`)
-  - Local MongoDB container is not required in this mode
-
-- **Production-like deployment (nginx + TLS)**
-  - `infra/docker-compose.prod.yml` adds nginx reverse proxy and TLS scaffold
-  - Requires real certificates and further hardening before live production
-
-## Local development quickstart
+## Quickstart (local dev stack)
 
 ```bash
 docker compose -f infra/docker-compose.dev.yml up -d --build
@@ -56,30 +41,41 @@ docker compose -f infra/docker-compose.dev.yml up -d --build
 
 ## Repository structure
 
-```
-infra/                  Docker Compose configs, nginx, env examples
+```text
+infra/                  Compose and ingress configuration
 services/
-  simulator/            Telemetry publisher
-  worker/               Telemetry consumer + excursion detection
   api/                  FastAPI service
-  web/                  Dashboard frontend
-  tools/                Utility scripts
-schemas/                Telemetry JSON schema
-scripts/                Smoke tests and utilities
-docs/                   Architecture, runbook, threat model, deployment docs
-demo/                   Scenario screenshots and write-ups
+  worker/               Telemetry consumer and alert logic
+  simulator/            Telemetry publisher
+  web/                  Dashboard frontend assets
+schemas/                Message and record schema files
+docs/                   Architecture, runbooks, hardening and operations guides
+flows/                  Node-RED export placeholders/artifacts
+grafana/                Dashboard export placeholders/artifacts
 ```
 
-## Current limitations
-
-- No authentication or role-based access control
-- TLS termination is scaffolded but not fully hardened
-- Lightweight UI only (no full operational web app)
-- Hosted baseline does not represent a complete production deployment
-
-## Documentation
+## Operations and delivery docs
 
 - [docs/OVERVIEW.md](docs/OVERVIEW.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/DATA_FLOW.md](docs/DATA_FLOW.md)
+- [docs/RUNBOOK.md](docs/RUNBOOK.md)
+- [docs/PRODUCTION_HARDENING_DAY1_DAY5.md](docs/PRODUCTION_HARDENING_DAY1_DAY5.md)
+- [docs/DEMO_SCENARIOS.md](docs/DEMO_SCENARIOS.md)
+- [docs/RECOVERY_AND_ROLLBACK.md](docs/RECOVERY_AND_ROLLBACK.md)
+- [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
+
+## Artifact placeholders introduced in Phase A
+
+- `flows/` for future Node-RED exports
+- `grafana/dashboards/` for future Grafana dashboard exports
+- `services/simulator/scenarios/` for simulator scenario templates
+- Additional schema placeholders for alert/audit/device metadata contracts
+
+## Important notes
+
+- Do not commit `.env` files or live credentials.
+- Preserve ingress and auth behavior when making runtime changes.
+- Prefer additive updates and explicit documentation over destructive rewrites.
