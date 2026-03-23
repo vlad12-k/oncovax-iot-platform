@@ -135,3 +135,16 @@ If you want existing worker ingestion, point topic to the worker-consumed topic 
 ```
 
 That routing choice is operational and should be made intentionally per environment.
+
+For Phase B2a compatibility, the safest demo approach is:
+
+1. Keep simulator default topic (`oncovax/telemetry/simulator`)
+2. Run worker with explicit compatibility subscription enabled:
+
+```bash
+MQTT_TOPIC=oncovax/telemetry \
+MQTT_SIMULATOR_COMPAT_TOPIC=oncovax/telemetry/simulator \
+python3 -m services.worker.worker
+```
+
+This preserves legacy ingestion topic behavior while allowing simulator-driven ingestion in a controlled way.
