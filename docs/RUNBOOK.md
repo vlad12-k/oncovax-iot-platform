@@ -180,6 +180,52 @@ Do not route telemetry through Node-RED in this phase. Keep canonical ingestion 
 
 - producer/simulator -> MQTT topic (e.g. `oncovax/telemetry`) -> worker
 
+### D2 runtime control live verification
+
+Start dev stack with adapter + simulator:
+
+```bash
+docker compose -f infra/docker-compose.dev.yml up -d --build mosquitto simulator orchestration-adapter
+```
+
+Observe orchestration status:
+
+```bash
+docker exec mosquitto mosquitto_sub -t oncovax/demo/orchestration/status -v
+```
+
+Observe simulator telemetry:
+
+```bash
+docker exec mosquitto mosquitto_sub -t oncovax/telemetry/simulator -v
+```
+
+Publish persistent scenario change:
+
+```bash
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/scenario/select -m '{"command_id":"cmd-s1","issued_at":"2026-03-23T20:00:00Z","scenario":"demo-friendly"}'
+```
+
+Publish persistent mode/profile change:
+
+```bash
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/mode/set -m '{"command_id":"cmd-m1","issued_at":"2026-03-23T20:00:05Z","enabled":false}'
+```
+
+Publish temporary overrides:
+
+```bash
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-e1","issued_at":"2026-03-23T20:00:10Z","event_type":"burst_pulse","data":{"duration_cycles":3,"burst_count":6}}'
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-e2","issued_at":"2026-03-23T20:00:12Z","event_type":"breach_pulse","data":{"duration_cycles":3,"temperature_increase_c":9}}'
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-e3","issued_at":"2026-03-23T20:00:14Z","event_type":"offline_pulse","data":{"duration_cycles":3}}'
+```
+
+Reset runtime to startup defaults and clear temporary overrides:
+
+```bash
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-r1","issued_at":"2026-03-23T20:00:20Z","event_type":"reset_runtime"}'
+```
+
 ---
 
 ## 6. Troubleshooting

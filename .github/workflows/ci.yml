@@ -55,3 +55,6 @@ jobs:
           python3 -m py_compile services/api/routes/health.py
           python3 -m py_compile services/worker/worker.py
           python3 -m py_compile services/simulator/simulator.py
+          python3 -m py_compile services/simulator/main.py
+          python3 -m py_compile services/simulator/runtime_control.py
+          python3 -m py_compile services/orchestration_adapter/main.py

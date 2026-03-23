@@ -67,6 +67,34 @@ services:
       - mosquitto
       - influxdb
 
+  simulator:
+    build:
+      context: ..
+      dockerfile: services/simulator/Dockerfile
+    container_name: oncovax-simulator
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=oncovax/telemetry/simulator
+      - SIM_RUNTIME_CONTROL_TOPIC=oncovax/demo/internal/simulator/runtime/control
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+
+  orchestration-adapter:
+    build:
+      context: ..
+      dockerfile: services/orchestration_adapter/Dockerfile
+    container_name: oncovax-orchestration-adapter
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - ORCHESTRATION_STATUS_TOPIC=oncovax/demo/orchestration/status
+      - SIM_RUNTIME_CONTROL_TOPIC=oncovax/demo/internal/simulator/runtime/control
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+
   grafana:
     image: grafana/grafana:10.4.0
     container_name: grafana

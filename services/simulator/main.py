@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 import random
 import signal
 from dataclasses import dataclass
@@ -11,6 +12,8 @@ from typing import Any
 
 import paho.mqtt.client as mqtt
 
+from runtime_control import RuntimeController
+
 
 LOGGER = logging.getLogger("oncovax-simulator")
 STOP_EVENT = Event()
@@ -18,6 +21,7 @@ DEMO_PROFILE_DOOR_CYCLE = 2
 DEMO_PROFILE_TEMP_SPIKE_CYCLE = 3
 DEMO_PROFILE_TEMP_SPIKE_C = 2.0
 DEMO_PROFILE_MIN_BURST_COUNT = 2
+DEFAULT_RUNTIME_CONTROL_TOPIC = "oncovax/demo/internal/simulator/runtime/control"
 
 
 @dataclass
@@ -260,12 +264,37 @@ def handle_signal(signum: int, _frame: Any) -> None:
     STOP_EVENT.set()
 
 
+def apply_runtime_override(out: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    event_type = override["event_type"]
+    payload = out["payload"]
+
+    if event_type == "burst_pulse":
+        params = override.get("params", {})
+        burst_count = params.get("burst_count", 5)
+        if isinstance(burst_count, int) and burst_count > 0:
+            out["burst_count"] = max(out["burst_count"], burst_count)
+        payload["status"] = "burst"
+    elif event_type == "breach_pulse":
+        params = override.get("params", {})
+        temperature_increase_c = params.get("temperature_increase_c", 8.0)
+        if isinstance(temperature_increase_c, (int, float)):
+            payload["temperature"] = round(float(payload["temperature"]) + float(temperature_increase_c), 3)
+        payload["status"] = "cold_chain_breach"
+    elif event_type == "offline_pulse":
+        payload["network_status"] = "offline"
+        payload["signal_strength"] = -120.0
+        payload["status"] = "offline"
+        out["should_publish"] = True
+
+    return out
+
+
 def parse_args() -> argparse.Namespace:
     base_dir = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(description="OncoVax telemetry simulator")
-    parser.add_argument("--mqtt-host", default="localhost")
-    parser.add_argument("--mqtt-port", type=int, default=1883)
-    parser.add_argument("--mqtt-topic", default="oncovax/telemetry/simulator")
+    parser.add_argument("--mqtt-host", default=os.getenv("MQTT_HOST", "localhost"))
+    parser.add_argument("--mqtt-port", type=int, default=int(os.getenv("MQTT_PORT", "1883")))
+    parser.add_argument("--mqtt-topic", default=os.getenv("MQTT_TOPIC", "oncovax/telemetry/simulator"))
     parser.add_argument("--devices-file", type=Path, default=base_dir / "devices.json")
     parser.add_argument("--scenarios-file", type=Path, default=base_dir / "scenarios.json")
     parser.add_argument("--scenario", default=None, help="Scenario mode to run")
@@ -278,6 +307,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--interval-seconds", type=float, default=1.0)
     parser.add_argument("--seed", type=int, default=None, help="Deterministic random seed")
     parser.add_argument("--dry-run", action="store_true", help="Print payloads without MQTT publish")
+    parser.add_argument(
+        "--runtime-control-topic",
+        default=os.getenv("SIM_RUNTIME_CONTROL_TOPIC", DEFAULT_RUNTIME_CONTROL_TOPIC),
+        help="Internal runtime-control topic consumed by simulator",
+    )
     return parser.parse_args()
 
 
@@ -294,12 +328,14 @@ def main() -> None:
 
     default_scenario = scenarios_config.get("default_scenario", "normal")
     demo_default_scenario = scenarios_config.get("demo_default_scenario", "demo-friendly")
-    scenario_name = args.scenario or (demo_default_scenario if args.profile == "demo" else default_scenario)
+    startup_scenario = args.scenario or (demo_default_scenario if args.profile == "demo" else default_scenario)
+    startup_profile = args.profile
+    controller = RuntimeController(startup_scenario=startup_scenario, startup_profile=startup_profile)
 
-    scenario = scenarios_config["scenarios"].get(scenario_name)
+    scenario = scenarios_config["scenarios"].get(startup_scenario)
     if scenario is None:
         available = ", ".join(sorted(scenarios_config["scenarios"].keys()))
-        raise ValueError(f"Unknown scenario '{scenario_name}'. Available: {available}")
+        raise ValueError(f"Unknown scenario '{startup_scenario}'. Available: {available}")
 
     states: dict[str, DeviceState] = {}
     for device in devices_config["devices"]:
@@ -311,17 +347,62 @@ def main() -> None:
         )
 
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+
+    def on_control_message(_client: mqtt.Client, _userdata: Any, msg: Any) -> None:
+        try:
+            body = json.loads(msg.payload.decode("utf-8"))
+            action = body.get("action")
+            if action == "set_scenario":
+                scenario_name = body.get("scenario")
+                if scenario_name not in scenarios_config["scenarios"]:
+                    LOGGER.warning("Ignoring unknown scenario in runtime control: %s", scenario_name)
+                    return
+                controller.set_scenario(scenario_name)
+                LOGGER.info("runtime control applied: set_scenario=%s", scenario_name)
+            elif action == "set_profile":
+                profile = body.get("profile")
+                if profile not in {"standard", "demo"}:
+                    LOGGER.warning("Ignoring unknown profile in runtime control: %s", profile)
+                    return
+                controller.set_profile(profile)
+                LOGGER.info("runtime control applied: set_profile=%s", profile)
+            elif action == "apply_temporary_override":
+                event_type = body.get("event_type")
+                duration_cycles = body.get("duration_cycles")
+                params = body.get("params", {})
+                if not isinstance(event_type, str) or not isinstance(duration_cycles, int):
+                    LOGGER.warning("Invalid override payload: %s", body)
+                    return
+                controller.apply_temporary_override(
+                    event_type, duration_cycles, params if isinstance(params, dict) else {}
+                )
+                LOGGER.info(
+                    "runtime control applied: temporary_override event_type=%s duration_cycles=%s",
+                    event_type,
+                    duration_cycles,
+                )
+            elif action == "reset_runtime":
+                controller.reset_runtime()
+                LOGGER.info("runtime control applied: reset_runtime")
+            else:
+                LOGGER.warning("Ignoring unsupported runtime action=%s", action)
+        except Exception as exc:
+            LOGGER.warning("Failed to process runtime control message: %s", exc)
+
+    client.on_message = on_control_message
     if not args.dry_run:
         client.connect(args.mqtt_host, args.mqtt_port, 60)
+        client.subscribe(args.runtime_control_topic, qos=0)
         client.loop_start()
+        LOGGER.info("subscribed runtime control topic=%s", args.runtime_control_topic)
 
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 
     LOGGER.info(
         "Starting simulator: scenario=%s profile=%s devices=%d topic=%s seed=%s dry_run=%s",
-        scenario_name,
-        args.profile,
+        startup_scenario,
+        startup_profile,
         len(states),
         args.mqtt_topic,
         args.seed,
@@ -330,9 +411,19 @@ def main() -> None:
 
     try:
         while not STOP_EVENT.is_set():
+            runtime_state = controller.snapshot()
+            scenario_name = runtime_state["scenario"]
+            profile_name = runtime_state["profile"]
+            scenario = scenarios_config["scenarios"].get(scenario_name)
+            if scenario is None:
+                LOGGER.warning("runtime scenario not found; using startup scenario=%s", startup_scenario)
+                scenario_name = startup_scenario
+                scenario = scenarios_config["scenarios"][scenario_name]
             for device in devices_config["devices"]:
                 state = states[device["device_id"]]
-                out = build_payload(rng, device, state, scenario_name, scenario, args.profile)
+                out = build_payload(rng, device, state, scenario_name, scenario, profile_name)
+                if runtime_state["temporary_override"] is not None:
+                    out = apply_runtime_override(out, runtime_state["temporary_override"])
                 if not out["should_publish"]:
                     LOGGER.info("device=%s status=offline (skipped publish)", device["device_id"])
                     continue
@@ -351,6 +442,7 @@ def main() -> None:
                             burst_payload["status"],
                             args.mqtt_topic,
                         )
+            controller.tick_cycle()
             STOP_EVENT.wait(args.interval_seconds)
     finally:
         if not args.dry_run:
