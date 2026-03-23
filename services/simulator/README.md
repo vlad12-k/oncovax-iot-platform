@@ -90,17 +90,6 @@ Use the `demo` profile to force visible events quickly, even on otherwise calm s
 - Default scenario for demo profile: `demo-friendly`
 - Behavior includes frequent door activity, periodic thermal spikes, and increased burst density.
 
-## Configuration via environment variables
-
-`main.py` supports optional environment-variable defaults for runtime configuration when CLI flags are omitted:
-
-- `SIM_SCENARIO` — startup scenario override (for example `demo-friendly`)
-- `SIM_PROFILE` — startup profile (`standard` or `demo`)
-- `SIM_INTERVAL_SECONDS` — publish loop interval in seconds
-- `SIM_SEED` — deterministic random seed
-
-CLI arguments still take precedence over environment variables.
-
 ## Running safely
 
 From repository root:
