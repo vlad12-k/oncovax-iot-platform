@@ -104,6 +104,25 @@ MongoDB / MongoDB Atlas
 - Purpose: receive demo control commands, validate basic shape, emit orchestration status
 - Non-goal: Node-RED is not required for ingestion correctness and does not replace direct worker ingestion
 
+### D2 runtime control mapping (dev/demo-only)
+
+An additive orchestration adapter service subscribes to the same approved demo-control topics and maps accepted commands to the simulator's internal runtime-control topic:
+
+- Internal runtime-control topic:
+  - `oncovax/demo/internal/simulator/runtime/control`
+- Locked `event_type` values:
+  - `burst_pulse`
+  - `breach_pulse`
+  - `offline_pulse`
+  - `reset_runtime`
+
+Runtime semantics:
+
+- `scenario/select` → persistent simulator scenario change
+- `mode/set` (`enabled=true|false`) → persistent simulator profile change (`demo`/`standard`)
+- `burst_pulse` / `breach_pulse` / `offline_pulse` → temporary override for `duration_cycles` with automatic expiry
+- `reset_runtime` → clear temporary overrides and restore startup scenario/profile defaults
+
 ---
 
 ## Data Layers
