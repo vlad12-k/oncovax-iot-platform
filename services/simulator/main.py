@@ -14,6 +14,10 @@ import paho.mqtt.client as mqtt
 
 LOGGER = logging.getLogger("oncovax-simulator")
 STOP_EVENT = Event()
+DEMO_PROFILE_DOOR_CYCLE = 2
+DEMO_PROFILE_TEMP_SPIKE_CYCLE = 3
+DEMO_PROFILE_TEMP_SPIKE_C = 2.0
+DEMO_PROFILE_MIN_BURST_COUNT = 2
 
 
 @dataclass
@@ -186,7 +190,7 @@ def build_payload(
             status = "cold_chain_breach"
         if state.cycle % battery_cycle == 0:
             state.battery = clamp(
-                state.battery - scenario.get("battery_drop_c", 4.0),
+                state.battery - scenario.get("battery_drop_pct", 4.0),
                 profile["battery"]["min"],
                 profile["battery"]["max"],
             )
@@ -208,13 +212,13 @@ def build_payload(
 
     if profile_name == "demo":
         # Guarantee visible events in short windows regardless of selected scenario.
-        if state.cycle % 2 == 0:
+        if state.cycle % DEMO_PROFILE_DOOR_CYCLE == 0:
             door_open = True
             status = status if status != "normal" else "demo_door_activity"
-        if state.cycle % 3 == 0:
-            temperature += 2.0
+        if state.cycle % DEMO_PROFILE_TEMP_SPIKE_CYCLE == 0:
+            temperature += DEMO_PROFILE_TEMP_SPIKE_C
             status = status if status != "normal" else "demo_temp_spike"
-        burst_count = max(burst_count, 2)
+        burst_count = max(burst_count, DEMO_PROFILE_MIN_BURST_COUNT)
 
     open_duration_seconds = _door_open_next_duration(rng, state, door_open)
     compressor_state = _compressor_state(device["asset_type"], power_state, temperature, setpoint_temperature)
@@ -294,7 +298,8 @@ def main() -> None:
 
     scenario = scenarios_config["scenarios"].get(scenario_name)
     if scenario is None:
-        raise ValueError(f"Unknown scenario '{scenario_name}'. Available: {', '.join(scenarios_config['scenarios'])}")
+        available = ", ".join(sorted(scenarios_config["scenarios"].keys()))
+        raise ValueError(f"Unknown scenario '{scenario_name}'. Available: {available}")
 
     states: dict[str, DeviceState] = {}
     for device in devices_config["devices"]:

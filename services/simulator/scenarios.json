@@ -59,7 +59,7 @@
       "offline_every_n_cycles": 5,
       "door_event_temp_rise_c": 2.0,
       "breach_temp_increase_c": 6.0,
-      "battery_drop_c": 4.0,
+      "battery_drop_pct": 4.0,
       "publish_offline_status": true
     }
   }
