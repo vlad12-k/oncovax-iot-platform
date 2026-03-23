@@ -3,7 +3,8 @@ import sys
 from pathlib import Path
 
 
-MODULE_PATH = Path("/home/runner/work/oncovax-iot-platform/oncovax-iot-platform/services/simulator/runtime_control.py")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+MODULE_PATH = REPO_ROOT / "services" / "simulator" / "runtime_control.py"
 spec = importlib.util.spec_from_file_location("runtime_control", MODULE_PATH)
 runtime_control = importlib.util.module_from_spec(spec)
 assert spec is not None and spec.loader is not None
