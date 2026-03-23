@@ -148,3 +148,9 @@ python3 -m services.worker.worker
 ```
 
 This preserves legacy ingestion topic behavior while allowing simulator-driven ingestion in a controlled way.
+
+## Demo-control contract reference (B2c)
+
+For Node-RED demo-control MQTT contract details (topics and required command fields), see:
+
+- `flows/nodered/README.md`

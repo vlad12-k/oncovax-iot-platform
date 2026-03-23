@@ -296,45 +296,6 @@ test -f schemas/device_metadata.schema.json
 - Ensure `.env` and `infra/.env` are excluded from Git tracking.
 - Do not store real credentials in flow/dashboard export artifacts.
 
-### Node-RED demo-control safe enable/disable (Phase B2c)
-
-Node-RED orchestration is optional and **dev/demo-only**. It must not be required for ingestion correctness.
-
-#### Enable (dev/demo only)
-
-1. Start the dev stack:
-
-```bash
-docker compose -f infra/docker-compose.dev.yml up -d --build
-```
-
-2. Import `flows/nodered/demo-control-flow.json` in Node-RED (`http://localhost:1880`).
-3. Deploy the flow.
-4. Verify Node-RED is handling only demo-control topics:
-   - `oncovax/demo/control/scenario/select`
-   - `oncovax/demo/control/mode/set`
-   - `oncovax/demo/control/event/trigger`
-5. Verify status events are emitted on:
-   - `oncovax/demo/orchestration/status`
-
-#### Disable
-
-Any of the following keeps ingestion authoritative and intact:
-
-- Stop Node-RED container only:
-
-```bash
-docker compose -f infra/docker-compose.dev.yml stop nodered
-```
-
-- Remove/disable the imported demo-control flow in Node-RED and redeploy.
-
-#### Safety guardrails
-
-- Do **not** route demo-control topics to `oncovax/telemetry`.
-- Do **not** modify worker subscription/wiring as part of demo-control operation.
-- Keep worker path (`MQTT -> worker -> InfluxDB/MongoDB`) as the source of truth.
-
 ### Phase note
 
 This phase does not alter worker logic, telemetry schema, API routes, nginx behavior, or production compose behavior.

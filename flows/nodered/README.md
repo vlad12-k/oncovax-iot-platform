@@ -30,8 +30,8 @@ All command payloads are expected to be JSON object payloads (or JSON strings pa
 Plus command-specific required fields:
 
 - `scenario/select`: `scenario` (string)
-- `mode/set`: `mode` (string), optional `enabled` (boolean), optional `profile` (string)
-- `event/trigger`: `event` (string), optional `data` (object)
+- `mode/set`: `enabled` (boolean, required)
+- `event/trigger`: `event_type` (string, required), optional `data` (object)
 
 ## Status payload behavior
 
