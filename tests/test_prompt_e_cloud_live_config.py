@@ -15,10 +15,11 @@ class PromptECloudLiveConfigTests(unittest.TestCase):
         compose_text = (REPO_ROOT / "infra" / "docker-compose.prod.yml").read_text()
         self.assertIn("./nginx/.htpasswd:/etc/nginx/conf.d/.htpasswd:ro", compose_text)
 
-    def test_nginx_uses_domain_placeholder(self):
+    def test_nginx_uses_live_domain_wiring(self):
         nginx_text = (REPO_ROOT / "infra" / "nginx" / "nginx.conf").read_text()
-        self.assertIn("server_name your-domain.example.com", nginx_text)
-        self.assertIn("/etc/letsencrypt/live/your-domain.example.com/fullchain.pem", nginx_text)
+        self.assertIn("server_name oncovax.live www.oncovax.live;", nginx_text)
+        self.assertIn("/etc/letsencrypt/live/oncovax.live/fullchain.pem", nginx_text)
+        self.assertIn("/etc/letsencrypt/live/oncovax.live/privkey.pem", nginx_text)
 
 
 if __name__ == "__main__":

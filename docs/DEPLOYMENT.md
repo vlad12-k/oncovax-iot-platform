@@ -85,7 +85,7 @@ The simulator publishes telemetry once per second and injects occasional excursi
 
 ---
 
-## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas)
+## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas optional)
 
 This hosted baseline runs the **core live pipeline** on a Droplet:
 
@@ -93,7 +93,8 @@ This hosted baseline runs the **core live pipeline** on a Droplet:
 - `worker` for telemetry ingestion and alert/audit generation
 - `api` + dashboard UI
 - `influxdb` for telemetry storage
-- `mongodb` (local) or MongoDB Atlas (via `MONGO_URI`) for audit events
+- `mongodb` (local, started by default in base compose) for audit events
+- optional MongoDB Atlas target via `MONGO_URI`
 
 ### 1. Provision the Droplet
 
@@ -126,7 +127,9 @@ docker compose -f infra/docker-compose.yml up -d --build
 ```
 
 **Notes:**
-- When `MONGO_URI` points to Atlas, the local `mongodb` container is optional and can be removed or ignored.
+- In the default base path (`infra/docker-compose.yml`), local `mongodb` still starts and `api`/`worker` still declare `depends_on: mongodb`.
+- Atlas can still be used by setting `MONGO_URI` to an Atlas connection string.
+- An Atlas-only runtime (without local `mongodb`) requires a separate compose variant or override; it is not the default base compose path.
 
 ### 4. Configure MongoDB Atlas
 
@@ -154,7 +157,13 @@ Point your domain's A record to the Droplet's public IP.
 
 ### 2. Configure nginx
 
-Edit `infra/nginx/nginx.conf` and replace `your-domain.example.com` with your actual domain.
+`infra/nginx/nginx.conf` in this repository represents the live OncoVax wiring:
+
+- `server_name oncovax.live www.oncovax.live;`
+- `ssl_certificate /etc/letsencrypt/live/oncovax.live/fullchain.pem;`
+- `ssl_certificate_key /etc/letsencrypt/live/oncovax.live/privkey.pem;`
+
+If you deploy to a different domain, update server_name and both certificate paths together.
 
 ### 2a. Configure Basic Auth credentials
 
