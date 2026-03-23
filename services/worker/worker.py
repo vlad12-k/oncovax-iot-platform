@@ -28,9 +28,11 @@ SCHEMA_PATH = Path(os.getenv("SCHEMA_PATH", "schemas/telemetry.schema.json"))
 
 TEMP_THRESHOLD = float(os.getenv("TEMP_THRESHOLD", "8.0"))
 CONSECUTIVE_BREACH_REQUIRED = int(os.getenv("CONSECUTIVE_BREACH_REQUIRED", "1"))
+ALERT_DEDUP_COOLDOWN_SECONDS = int(os.getenv("ALERT_DEDUP_COOLDOWN_SECONDS", "300"))
 
 schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 breach_state = {}
+last_alert_emitted_at = {}
 ASSET_TYPE_ALIASES = {
     "vaccine fridge": "coldstorage",
     "clinic freezer": "coldstorage",
@@ -226,6 +228,21 @@ def evaluate_excursion(data: dict):
     return None
 
 
+def should_emit_alert(alert: dict):
+    if ALERT_DEDUP_COOLDOWN_SECONDS <= 0:
+        return True
+
+    key = (alert["device_id"], alert["metric"])
+    now_ts = datetime.now(timezone.utc).timestamp()
+    last_emitted = last_alert_emitted_at.get(key)
+
+    if last_emitted is not None and (now_ts - last_emitted) < ALERT_DEDUP_COOLDOWN_SECONDS:
+        return False
+
+    last_alert_emitted_at[key] = now_ts
+    return True
+
+
 def on_message(client, userdata, msg):
     write_api = userdata["write_api"]
     audit_collection = userdata["audit_collection"]
@@ -240,6 +257,13 @@ def on_message(client, userdata, msg):
 
             alert = evaluate_excursion(record)
             if alert:
+                if not should_emit_alert(alert):
+                    print(
+                        f"[alert] suppressed duplicate for "
+                        f"{alert['device_id']}:{alert['metric']} "
+                        f"(cooldown={ALERT_DEDUP_COOLDOWN_SECONDS}s)"
+                    )
+                    continue
                 write_alert_point(write_api, alert)
                 write_audit_record(audit_collection, alert)
                 print(f"[alert] {alert}")
@@ -258,6 +282,7 @@ def main():
         f"[worker] excursion rule: temperature > {TEMP_THRESHOLD} "
         f"for {CONSECUTIVE_BREACH_REQUIRED} consecutive readings"
     )
+    print(f"[worker] alert dedup cooldown: {ALERT_DEDUP_COOLDOWN_SECONDS}s")
 
     influx = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = influx.write_api(write_options=SYNCHRONOUS)
