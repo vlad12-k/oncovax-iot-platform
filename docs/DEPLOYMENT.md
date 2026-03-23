@@ -54,6 +54,8 @@ docker compose -f infra/docker-compose.dev.yml up -d --build
 
 This starts: Mosquitto, InfluxDB, MongoDB, FastAPI, Node-RED, Grafana.
 
+**Important:** Node-RED in this repository is **dev/demo-only** and optional. It hosts demo orchestration artifacts (for example `flows/nodered/demo-control-flow.json`) and is not required for core ingestion correctness.
+
 ### 4. Verify services
 
 ```bash
@@ -79,6 +81,23 @@ docker compose -f infra/docker-compose.dev.yml up simulator
 ```
 
 The simulator publishes telemetry once per second and injects occasional excursion spikes.
+
+### 7. Demo-control flow (optional, dev/demo only)
+
+If you need demo orchestration controls, import:
+
+- `flows/nodered/demo-control-flow.json`
+
+This flow uses only the approved demo topics:
+
+- Control subscribe:
+  - `oncovax/demo/control/scenario/select`
+  - `oncovax/demo/control/mode/set`
+  - `oncovax/demo/control/event/trigger`
+- Status publish:
+  - `oncovax/demo/orchestration/status`
+
+Do not rewire telemetry ingestion to depend on Node-RED. Authoritative ingestion remains direct MQTT telemetry to worker.
 
 ---
 

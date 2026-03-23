@@ -91,6 +91,19 @@ MongoDB / MongoDB Atlas
 - Communicates with the API via same-origin `fetch()` calls
 - Files: `index.html`, `styles.css`, `app.js`
 
+### Node-RED demo orchestration (`flows/nodered/`)
+
+- Scope: **dev/demo-only** optional orchestration artifact layer
+- Export artifact: `flows/nodered/demo-control-flow.json`
+- Approved control topics:
+  - `oncovax/demo/control/scenario/select`
+  - `oncovax/demo/control/mode/set`
+  - `oncovax/demo/control/event/trigger`
+- Approved status topic:
+  - `oncovax/demo/orchestration/status`
+- Purpose: receive demo control commands, validate basic shape, emit orchestration status
+- Non-goal: Node-RED is not required for ingestion correctness and does not replace direct worker ingestion
+
 ---
 
 ## Data Layers
@@ -120,7 +133,7 @@ MongoDB / MongoDB Atlas
 | MongoDB   | 27017 | Local dev only (Atlas in prod)|
 | FastAPI   | 8000  | API + dashboard                |
 | Grafana   | 3000  | Visualisation (dev only)      |
-| Node-RED  | 1880  | Flow editor (dev only)        |
+| Node-RED  | 1880  | Demo-control flow editor/runtime (dev/demo only) |
 
 ---
 
@@ -137,6 +150,8 @@ MongoDB / MongoDB Atlas
 - **Local dev**: `docker compose -f infra/docker-compose.dev.yml up -d`
 - **Hosted baseline**: DigitalOcean Droplet + MongoDB Atlas
 - **Production-like**: see `infra/docker-compose.prod.yml` + `infra/nginx/`
+
+Authoritative ingestion path remains direct MQTT telemetry to worker. Optional Node-RED demo orchestration uses `oncovax/demo/**` topics only and does not alter worker ingestion wiring.
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step deployment instructions.
 

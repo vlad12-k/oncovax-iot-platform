@@ -1,0 +1,242 @@
+[
+  {
+    "id": "9f84d81f54d4892a",
+    "type": "tab",
+    "label": "OncoVax Demo Control",
+    "disabled": false,
+    "info": "Demo-only orchestration contract flow.\n\nSubscribes:\n- oncovax/demo/control/scenario/select\n- oncovax/demo/control/mode/set\n- oncovax/demo/control/event/trigger\n\nPublishes:\n- oncovax/demo/orchestration/status"
+  },
+  {
+    "id": "8bb9e77b2c44f4b0",
+    "type": "mqtt-broker",
+    "name": "oncovax-mosquitto-dev",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "de1ea4b8df7641cf",
+    "type": "mqtt in",
+    "z": "9f84d81f54d4892a",
+    "name": "control/scenario/select",
+    "topic": "oncovax/demo/control/scenario/select",
+    "qos": "1",
+    "datatype": "auto",
+    "broker": "8bb9e77b2c44f4b0",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 210,
+    "y": 120,
+    "wires": [
+      [
+        "31db9b6db67af66f"
+      ]
+    ]
+  },
+  {
+    "id": "35cc2f5f90272fca",
+    "type": "mqtt in",
+    "z": "9f84d81f54d4892a",
+    "name": "control/mode/set",
+    "topic": "oncovax/demo/control/mode/set",
+    "qos": "1",
+    "datatype": "auto",
+    "broker": "8bb9e77b2c44f4b0",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 200,
+    "y": 180,
+    "wires": [
+      [
+        "31db9b6db67af66f"
+      ]
+    ]
+  },
+  {
+    "id": "5f67a8043f7faafb",
+    "type": "mqtt in",
+    "z": "9f84d81f54d4892a",
+    "name": "control/event/trigger",
+    "topic": "oncovax/demo/control/event/trigger",
+    "qos": "1",
+    "datatype": "auto",
+    "broker": "8bb9e77b2c44f4b0",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 210,
+    "y": 240,
+    "wires": [
+      [
+        "31db9b6db67af66f"
+      ]
+    ]
+  },
+  {
+    "id": "31db9b6db67af66f",
+    "type": "function",
+    "z": "9f84d81f54d4892a",
+    "name": "normalize + route metadata",
+    "func": "const actionByTopic = {\n  'oncovax/demo/control/scenario/select': 'scenario/select',\n  'oncovax/demo/control/mode/set': 'mode/set',\n  'oncovax/demo/control/event/trigger': 'event/trigger'\n};\n\nconst incomingTopic = msg.topic;\nconst action = actionByTopic[incomingTopic] || 'unknown';\nlet payload = msg.payload;\n\nif (typeof payload === 'string') {\n  try {\n    payload = JSON.parse(payload);\n  } catch (err) {\n    return {\n      topic: incomingTopic,\n      payload: {\n        validation_error: 'payload must be valid JSON object',\n        raw_payload: msg.payload\n      },\n      _meta: { action },\n      _controlTopic: incomingTopic\n    };\n  }\n}\n\nif (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {\n  return {\n    topic: incomingTopic,\n    payload: {\n      validation_error: 'payload must be an object',\n      raw_payload: payload\n    },\n    _meta: { action },\n    _controlTopic: incomingTopic\n  };\n}\n\nmsg.payload = payload;\nmsg._meta = { action };\nmsg._controlTopic = incomingTopic;\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 500,
+    "y": 180,
+    "wires": [
+      [
+        "2cd39f3366fd42be"
+      ]
+    ]
+  },
+  {
+    "id": "2cd39f3366fd42be",
+    "type": "function",
+    "z": "9f84d81f54d4892a",
+    "name": "validate command shape",
+    "func": "const body = msg.payload || {};\nconst topic = msg.topic;\n\nconst commonRequired = ['contract_version', 'command_id', 'issued_at', 'issued_by'];\nconst missing = commonRequired.filter((k) => typeof body[k] !== 'string' || body[k].trim() === '');\n\nif (missing.length > 0) {\n  msg.validation = {\n    ok: false,\n    reason: `missing required fields: ${missing.join(', ')}`\n  };\n  return [null, msg];\n}\n\nif (topic === 'oncovax/demo/control/scenario/select' && (typeof body.scenario !== 'string' || body.scenario.trim() === '')) {\n  msg.validation = { ok: false, reason: 'scenario must be a non-empty string' };\n  return [null, msg];\n}\n\nif (topic === 'oncovax/demo/control/mode/set' && typeof body.enabled !== 'boolean') {\n  msg.validation = { ok: false, reason: 'enabled must be boolean for mode/set' };\n  return [null, msg];\n}\n\nif (topic === 'oncovax/demo/control/event/trigger' && (typeof body.event !== 'string' || body.event.trim() === '')) {\n  msg.validation = { ok: false, reason: 'event must be a non-empty string for event/trigger' };\n  return [null, msg];\n}\n\nmsg.validation = { ok: true };\nreturn [msg, null];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 760,
+    "y": 180,
+    "wires": [
+      [
+        "2f4a09073df4f0ad",
+        "5bd53f024a4f9936"
+      ],
+      [
+        "752d7102fd9e7cb6",
+        "26b28ca1851acc19"
+      ]
+    ]
+  },
+  {
+    "id": "2f4a09073df4f0ad",
+    "type": "function",
+    "z": "9f84d81f54d4892a",
+    "name": "build accepted status",
+    "func": "const payload = msg.payload;\nconst now = new Date().toISOString();\n\nmsg.topic = 'oncovax/demo/orchestration/status';\nmsg.payload = {\n  contract_version: payload.contract_version,\n  command_id: payload.command_id,\n  status: 'accepted',\n  control_topic: msg._controlTopic || 'unknown',\n  processed_at: now,\n  details: {\n    action: msg._meta?.action || 'unknown',\n    scenario: payload.scenario,\n    enabled: payload.enabled,\n    event: payload.event\n  }\n};\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1050,
+    "y": 140,
+    "wires": [
+      [
+        "8bdf03fdb44d8eec",
+        "5bd53f024a4f9936"
+      ]
+    ]
+  },
+  {
+    "id": "752d7102fd9e7cb6",
+    "type": "function",
+    "z": "9f84d81f54d4892a",
+    "name": "build rejected status",
+    "func": "const payload = msg.payload || {};\nconst now = new Date().toISOString();\n\nmsg.topic = 'oncovax/demo/orchestration/status';\nmsg.payload = {\n  contract_version: typeof payload.contract_version === 'string' ? payload.contract_version : '1.0',\n  command_id: typeof payload.command_id === 'string' ? payload.command_id : 'unknown',\n  status: 'rejected',\n  control_topic: msg._controlTopic || 'unknown',\n  processed_at: now,\n  reason: msg.validation?.reason || payload.validation_error || 'invalid command shape',\n  details: {\n    action: msg._meta?.action || 'unknown'\n  }\n};\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1040,
+    "y": 220,
+    "wires": [
+      [
+        "8bdf03fdb44d8eec",
+        "26b28ca1851acc19"
+      ]
+    ]
+  },
+  {
+    "id": "8bdf03fdb44d8eec",
+    "type": "mqtt out",
+    "z": "9f84d81f54d4892a",
+    "name": "publish orchestration status",
+    "topic": "",
+    "qos": "1",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "8bb9e77b2c44f4b0",
+    "x": 1320,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "5bd53f024a4f9936",
+    "type": "debug",
+    "z": "9f84d81f54d4892a",
+    "name": "accepted command",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1320,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "26b28ca1851acc19",
+    "type": "debug",
+    "z": "9f84d81f54d4892a",
+    "name": "rejected command",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 220,
+    "wires": []
+  }
+]
