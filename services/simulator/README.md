@@ -98,7 +98,6 @@ Use the `demo` profile to force visible events quickly, even on otherwise calm s
 - `SIM_PROFILE` — startup profile (`standard` or `demo`)
 - `SIM_INTERVAL_SECONDS` — publish loop interval in seconds
 - `SIM_SEED` — deterministic random seed
-- `SIM_RUNTIME_CONTROL_TOPIC` — simulator internal runtime-control topic
 
 CLI arguments still take precedence over environment variables.
 

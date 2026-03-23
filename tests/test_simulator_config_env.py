@@ -4,6 +4,8 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SIM_MODULE_PATH = REPO_ROOT / "services" / "simulator" / "main.py"
@@ -13,7 +15,8 @@ RUNTIME_MODULE_PATH = REPO_ROOT / "services" / "simulator" / "runtime_control.py
 def _load_simulator_main_module():
     runtime_spec = importlib.util.spec_from_file_location("runtime_control", RUNTIME_MODULE_PATH)
     runtime_module = importlib.util.module_from_spec(runtime_spec)
-    assert runtime_spec is not None and runtime_spec.loader is not None
+    assert runtime_spec is not None, "runtime_control spec must be created"
+    assert runtime_spec.loader is not None, "runtime_control spec loader must be present"
     sys.modules[runtime_spec.name] = runtime_module
     runtime_spec.loader.exec_module(runtime_module)
 
@@ -39,13 +42,14 @@ def _load_simulator_main_module():
 
     spec = importlib.util.spec_from_file_location("simulator_main", SIM_MODULE_PATH)
     module = importlib.util.module_from_spec(spec)
-    assert spec is not None and spec.loader is not None
+    assert spec is not None, "simulator main spec must be created"
+    assert spec.loader is not None, "simulator main spec loader must be present"
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
 
-def test_parse_args_reads_simulator_env_defaults(monkeypatch):
+def test_parse_args_uses_env_defaults(monkeypatch):
     simulator_main = _load_simulator_main_module()
     monkeypatch.setenv("SIM_SCENARIO", "demo-friendly")
     monkeypatch.setenv("SIM_PROFILE", "demo")
@@ -61,13 +65,35 @@ def test_parse_args_reads_simulator_env_defaults(monkeypatch):
     assert args.seed == 42
 
 
-def test_parse_args_treats_empty_env_scenario_as_none(monkeypatch):
+def test_parse_args_treats_empty_env_values_as_defaults_or_none(monkeypatch):
     simulator_main = _load_simulator_main_module()
     monkeypatch.setenv("SIM_SCENARIO", "")
+    monkeypatch.setenv("SIM_PROFILE", "")
+    monkeypatch.setenv("SIM_INTERVAL_SECONDS", "")
     monkeypatch.delenv("SIM_SEED", raising=False)
     monkeypatch.setattr(sys, "argv", ["simulator"])
 
     args = simulator_main.parse_args()
 
     assert args.scenario is None
+    assert args.profile == "standard"
+    assert args.interval_seconds == 1.0
     assert args.seed is None
+
+
+def test_parse_args_invalid_interval_env_raises_clear_error(monkeypatch):
+    simulator_main = _load_simulator_main_module()
+    monkeypatch.setenv("SIM_INTERVAL_SECONDS", "not-a-float")
+    monkeypatch.setattr(sys, "argv", ["simulator"])
+
+    with pytest.raises(ValueError, match="SIM_INTERVAL_SECONDS must be a valid float value"):
+        simulator_main.parse_args()
+
+
+def test_parse_args_invalid_seed_env_raises_clear_error(monkeypatch):
+    simulator_main = _load_simulator_main_module()
+    monkeypatch.setenv("SIM_SEED", "not-an-int")
+    monkeypatch.setattr(sys, "argv", ["simulator"])
+
+    with pytest.raises(ValueError, match="SIM_SEED must be a valid integer value"):
+        simulator_main.parse_args()

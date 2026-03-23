@@ -47,6 +47,26 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw in (None, ""):
+        return default
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a valid float value") from exc
+
+
+def _env_int_optional(name: str) -> int | None:
+    raw = os.getenv(name)
+    if raw in (None, ""):
+        return None
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a valid integer value") from exc
+
+
 def _door_open_next_duration(rng: random.Random, state: DeviceState, is_open: bool) -> int:
     if is_open:
         if state.open_duration_seconds <= 0:
@@ -297,18 +317,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mqtt-topic", default=os.getenv("MQTT_TOPIC", "oncovax/telemetry/simulator"))
     parser.add_argument("--devices-file", type=Path, default=base_dir / "devices.json")
     parser.add_argument("--scenarios-file", type=Path, default=base_dir / "scenarios.json")
-    parser.add_argument("--scenario", default=(os.getenv("SIM_SCENARIO") or None), help="Scenario mode to run")
+    parser.add_argument("--scenario", default=os.getenv("SIM_SCENARIO") or None, help="Scenario mode to run")
     parser.add_argument(
         "--profile",
         choices=["standard", "demo"],
-        default=os.getenv("SIM_PROFILE", "standard"),
+        default=(os.getenv("SIM_PROFILE") or "standard"),
         help="Use demo profile to force visible events in short windows",
     )
-    parser.add_argument("--interval-seconds", type=float, default=float(os.getenv("SIM_INTERVAL_SECONDS", "1.0")))
+    parser.add_argument("--interval-seconds", type=float, default=_env_float("SIM_INTERVAL_SECONDS", 1.0))
     parser.add_argument(
         "--seed",
         type=int,
-        default=(int(os.getenv("SIM_SEED")) if os.getenv("SIM_SEED") else None),
+        default=_env_int_optional("SIM_SEED"),
         help="Deterministic random seed",
     )
     parser.add_argument("--dry-run", action="store_true", help="Print payloads without MQTT publish")
