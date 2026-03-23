@@ -39,8 +39,10 @@ ASSET_TYPE_ALIASES = {
 }
 
 
-def normalize_asset_type(asset_type: str):
-    normalized = ASSET_TYPE_ALIASES.get(asset_type.strip().lower())
+def normalize_asset_type(asset_type):
+    if asset_type is None:
+        return asset_type
+    normalized = ASSET_TYPE_ALIASES.get(str(asset_type).strip().lower())
     if normalized:
         return normalized
     return asset_type
@@ -88,7 +90,7 @@ def to_canonical_records(payload: dict):
     canonical_required = {"device_id", "asset_type", "ts", "metric", "value", "unit"}
     if canonical_required.issubset(payload.keys()):
         canonical = dict(payload)
-        canonical["asset_type"] = normalize_asset_type(str(canonical["asset_type"]))
+        canonical["asset_type"] = normalize_asset_type(canonical["asset_type"])
         return [canonical]
 
     simulator_required = {"timestamp", "device_id", "asset_type"}
@@ -96,13 +98,13 @@ def to_canonical_records(payload: dict):
         raise ValueError("Unsupported telemetry payload format")
 
     note = build_simulator_note(payload)
-    asset_type = normalize_asset_type(str(payload["asset_type"]))
+    asset_type = normalize_asset_type(payload["asset_type"])
     metric_defs = (
         ("temperature", "temperature", "C", float),
         ("humidity", "humidity", "%", float),
         ("battery", "battery", "%", float),
-        ("door_open", "door_open", "bool", lambda value: 1.0 if bool(value) else 0.0),
-        ("open_duration_seconds", "open_duration_seconds", "s", float),
+        ("door_open", "door_open", "state", lambda value: 1.0 if bool(value) else 0.0),
+        ("open_duration_seconds", "open_duration_seconds", "seconds", float),
         ("signal_strength", "signal_strength", "dBm", float),
         ("ambient_temperature", "ambient_temperature", "C", float),
         ("setpoint_temperature", "setpoint_temperature", "C", float),
@@ -112,7 +114,7 @@ def to_canonical_records(payload: dict):
     for source_key, metric, unit, converter in metric_defs:
         if source_key not in payload:
             continue
-        raw_value = payload.get(source_key)
+        raw_value = payload[source_key]
         if raw_value is None:
             continue
         record = {
