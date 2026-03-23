@@ -87,7 +87,13 @@ The simulator publishes telemetry once per second and injects occasional excursi
 
 ## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas)
 
-This hosted baseline runs the **API + dashboard** on a Droplet and stores audit data in **MongoDB Atlas**. It does **not** require a local MongoDB container.
+This hosted baseline runs the **core live pipeline** on a Droplet:
+
+- `mosquitto` for MQTT transport
+- `worker` for telemetry ingestion and alert/audit generation
+- `api` + dashboard UI
+- `influxdb` for telemetry storage
+- `mongodb` (local) or MongoDB Atlas (via `MONGO_URI`) for audit events
 
 ### 1. Provision the Droplet
 
@@ -113,7 +119,7 @@ cp infra/.env.example infra/.env
 # - Set INFLUX_TOKEN, passwords, etc.
 ```
 
-Start the base stack (API + core services):
+Start the base stack:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d --build
@@ -121,7 +127,6 @@ docker compose -f infra/docker-compose.yml up -d --build
 
 **Notes:**
 - When `MONGO_URI` points to Atlas, the local `mongodb` container is optional and can be removed or ignored.
-- This hosted baseline focuses on the API + dashboard and Atlas-backed audit data. If you want to run the full ingestion pipeline on the Droplet, add the worker container (see the production-like stack below or extend the compose file).
 
 ### 4. Configure MongoDB Atlas
 
@@ -150,6 +155,18 @@ Point your domain's A record to the Droplet's public IP.
 ### 2. Configure nginx
 
 Edit `infra/nginx/nginx.conf` and replace `your-domain.example.com` with your actual domain.
+
+### 2a. Configure Basic Auth credentials
+
+This production-like stack protects `location /` and acknowledge endpoints with HTTP Basic Auth.
+Generate the password file on the host:
+
+```bash
+sudo apt install apache2-utils
+htpasswd -c ./infra/nginx/.htpasswd oncovax-operator
+```
+
+The file is mounted by `infra/docker-compose.prod.yml` at `/etc/nginx/conf.d/.htpasswd`.
 
 ### 3. Provision TLS certificates
 
@@ -188,7 +205,8 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ### 5. Verify
 
 ```bash
-curl https://your-domain.example.com/health
+curl -s https://your-domain.example.com/public-health
+curl -s -u oncovax-operator:<password> https://your-domain.example.com/summary
 ```
 
 Production-like topology preserves direct `MQTT -> worker` ingestion authority and does not require Node-RED.

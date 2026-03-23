@@ -53,6 +53,19 @@ services:
       retries: 5
       start_period: 10s
 
+  worker:
+    build:
+      context: ..
+      dockerfile: services/worker/Dockerfile
+    container_name: oncovax-worker
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+      - mongodb
+
 volumes:
   influxdb_data:
   mongodb_data:
