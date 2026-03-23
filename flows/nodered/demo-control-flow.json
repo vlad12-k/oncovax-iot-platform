@@ -1,15 +1,15 @@
 [
   {
-    "id": "9f84d81f54d4892a",
+    "id": "tab_demo_control_b2c",
     "type": "tab",
-    "label": "OncoVax Demo Control",
+    "label": "OncoVax Demo Control (B2c)",
     "disabled": false,
-    "info": "Demo-only orchestration contract flow.\n\nSubscribes:\n- oncovax/demo/control/scenario/select\n- oncovax/demo/control/mode/set\n- oncovax/demo/control/event/trigger\n\nPublishes:\n- oncovax/demo/orchestration/status"
+    "info": "Optional dev/demo-only orchestration flow. Ingestion authority remains MQTT -> worker."
   },
   {
-    "id": "8bb9e77b2c44f4b0",
+    "id": "mqtt_broker_demo_control",
     "type": "mqtt-broker",
-    "name": "oncovax-mosquitto-dev",
+    "name": "mosquitto-dev",
     "broker": "mosquitto",
     "port": "1883",
     "clientid": "",
@@ -23,220 +23,166 @@
     "birthQos": "0",
     "birthRetain": "false",
     "birthPayload": "",
-    "birthMsg": {},
     "closeTopic": "",
     "closeQos": "0",
     "closeRetain": "false",
     "closePayload": "",
-    "closeMsg": {},
     "willTopic": "",
     "willQos": "0",
     "willRetain": "false",
     "willPayload": "",
-    "willMsg": {},
     "userProps": "",
     "sessionExpiry": ""
   },
   {
-    "id": "de1ea4b8df7641cf",
+    "id": "in_scenario_select",
     "type": "mqtt in",
-    "z": "9f84d81f54d4892a",
+    "z": "tab_demo_control_b2c",
     "name": "control/scenario/select",
     "topic": "oncovax/demo/control/scenario/select",
     "qos": "1",
-    "datatype": "auto",
-    "broker": "8bb9e77b2c44f4b0",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_demo_control",
     "nl": false,
     "rap": true,
     "rh": 0,
     "inputs": 0,
-    "x": 210,
+    "x": 170,
     "y": 120,
-    "wires": [
-      [
-        "31db9b6db67af66f"
-      ]
-    ]
+    "wires": [["fn_validate_scenario"]]
   },
   {
-    "id": "35cc2f5f90272fca",
+    "id": "in_mode_set",
     "type": "mqtt in",
-    "z": "9f84d81f54d4892a",
+    "z": "tab_demo_control_b2c",
     "name": "control/mode/set",
     "topic": "oncovax/demo/control/mode/set",
     "qos": "1",
-    "datatype": "auto",
-    "broker": "8bb9e77b2c44f4b0",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_demo_control",
     "nl": false,
     "rap": true,
     "rh": 0,
     "inputs": 0,
-    "x": 200,
-    "y": 180,
-    "wires": [
-      [
-        "31db9b6db67af66f"
-      ]
-    ]
+    "x": 150,
+    "y": 220,
+    "wires": [["fn_validate_mode"]]
   },
   {
-    "id": "5f67a8043f7faafb",
+    "id": "in_event_trigger",
     "type": "mqtt in",
-    "z": "9f84d81f54d4892a",
+    "z": "tab_demo_control_b2c",
     "name": "control/event/trigger",
     "topic": "oncovax/demo/control/event/trigger",
     "qos": "1",
-    "datatype": "auto",
-    "broker": "8bb9e77b2c44f4b0",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_demo_control",
     "nl": false,
     "rap": true,
     "rh": 0,
     "inputs": 0,
-    "x": 210,
-    "y": 240,
-    "wires": [
-      [
-        "31db9b6db67af66f"
-      ]
-    ]
+    "x": 160,
+    "y": 320,
+    "wires": [["fn_validate_event"]]
   },
   {
-    "id": "31db9b6db67af66f",
+    "id": "fn_validate_scenario",
     "type": "function",
-    "z": "9f84d81f54d4892a",
-    "name": "normalize + route metadata",
-    "func": "const actionByTopic = {\n  'oncovax/demo/control/scenario/select': 'scenario/select',\n  'oncovax/demo/control/mode/set': 'mode/set',\n  'oncovax/demo/control/event/trigger': 'event/trigger'\n};\n\nconst incomingTopic = msg.topic;\nconst action = actionByTopic[incomingTopic] || 'unknown';\nlet payload = msg.payload;\n\nif (typeof payload === 'string') {\n  try {\n    payload = JSON.parse(payload);\n  } catch (err) {\n    return {\n      topic: incomingTopic,\n      payload: {\n        validation_error: 'payload must be valid JSON object',\n        raw_payload: msg.payload\n      },\n      _meta: { action },\n      _controlTopic: incomingTopic\n    };\n  }\n}\n\nif (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {\n  return {\n    topic: incomingTopic,\n    payload: {\n      validation_error: 'payload must be an object',\n      raw_payload: payload\n    },\n    _meta: { action },\n    _controlTopic: incomingTopic\n  };\n}\n\nmsg.payload = payload;\nmsg._meta = { action };\nmsg._controlTopic = incomingTopic;\nreturn msg;",
-    "outputs": 1,
-    "timeout": "",
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 500,
-    "y": 180,
-    "wires": [
-      [
-        "2cd39f3366fd42be"
-      ]
-    ]
-  },
-  {
-    "id": "2cd39f3366fd42be",
-    "type": "function",
-    "z": "9f84d81f54d4892a",
-    "name": "validate command shape",
-    "func": "const body = msg.payload || {};\nconst topic = msg.topic;\n\nconst commonRequired = ['contract_version', 'command_id', 'issued_at', 'issued_by'];\nconst missing = commonRequired.filter((k) => typeof body[k] !== 'string' || body[k].trim() === '');\n\nif (missing.length > 0) {\n  msg.validation = {\n    ok: false,\n    reason: `missing required fields: ${missing.join(', ')}`\n  };\n  return [null, msg];\n}\n\nif (topic === 'oncovax/demo/control/scenario/select' && (typeof body.scenario !== 'string' || body.scenario.trim() === '')) {\n  msg.validation = { ok: false, reason: 'scenario must be a non-empty string' };\n  return [null, msg];\n}\n\nif (topic === 'oncovax/demo/control/mode/set' && typeof body.enabled !== 'boolean') {\n  msg.validation = { ok: false, reason: 'enabled must be boolean for mode/set' };\n  return [null, msg];\n}\n\nif (topic === 'oncovax/demo/control/event/trigger' && (typeof body.event !== 'string' || body.event.trim() === '')) {\n  msg.validation = { ok: false, reason: 'event must be a non-empty string for event/trigger' };\n  return [null, msg];\n}\n\nmsg.validation = { ok: true };\nreturn [msg, null];",
+    "z": "tab_demo_control_b2c",
+    "name": "validate scenario/select",
+    "func": "const now = new Date().toISOString();\n\nfunction normalizePayload(payload) {\n  if (Buffer.isBuffer(payload)) {\n    payload = payload.toString('utf8');\n  }\n  if (typeof payload === 'string') {\n    return JSON.parse(payload);\n  }\n  if (payload && typeof payload === 'object') {\n    return payload;\n  }\n  throw new Error('payload must be JSON object or JSON string');\n}\n\nlet body;\ntry {\n  body = normalizePayload(msg.payload);\n} catch (err) {\n  const rejected = {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'scenario/select',\n      reason: err.message,\n      received_at: now\n    }\n  };\n  return [null, rejected];\n}\n\nconst required = ['command_id', 'issued_at', 'scenario'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null || body[key] === '');\nif (missing.length > 0) {\n  return [null, {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'scenario/select',\n      reason: `missing fields: ${missing.join(', ')}`,\n      received_at: now,\n      command_id: body.command_id || null\n    }\n  }];\n}\n\nconst accepted = {\n  topic: 'oncovax/demo/orchestration/status',\n  payload: {\n    contract_version: '1.0',\n    status: 'accepted',\n    source_topic: msg.topic,\n    command_type: 'scenario/select',\n    command_id: body.command_id,\n    issued_at: body.issued_at,\n    scenario: body.scenario,\n    received_at: now\n  }\n};\nreturn [accepted, null];",
     "outputs": 2,
     "timeout": "",
     "noerr": 0,
     "initialize": "",
     "finalize": "",
     "libs": [],
-    "x": 760,
-    "y": 180,
-    "wires": [
-      [
-        "2f4a09073df4f0ad",
-        "5bd53f024a4f9936"
-      ],
-      [
-        "752d7102fd9e7cb6",
-        "26b28ca1851acc19"
-      ]
-    ]
+    "x": 430,
+    "y": 120,
+    "wires": [["out_orchestration_status", "debug_accepted"], ["out_orchestration_status", "debug_rejected"]]
   },
   {
-    "id": "2f4a09073df4f0ad",
+    "id": "fn_validate_mode",
     "type": "function",
-    "z": "9f84d81f54d4892a",
-    "name": "build accepted status",
-    "func": "const payload = msg.payload;\nconst now = new Date().toISOString();\n\nmsg.topic = 'oncovax/demo/orchestration/status';\nmsg.payload = {\n  contract_version: payload.contract_version,\n  command_id: payload.command_id,\n  status: 'accepted',\n  control_topic: msg._controlTopic || 'unknown',\n  processed_at: now,\n  details: {\n    action: msg._meta?.action || 'unknown',\n    scenario: payload.scenario,\n    enabled: payload.enabled,\n    event: payload.event\n  }\n};\n\nreturn msg;",
-    "outputs": 1,
+    "z": "tab_demo_control_b2c",
+    "name": "validate mode/set",
+    "func": "const now = new Date().toISOString();\n\nfunction normalizePayload(payload) {\n  if (Buffer.isBuffer(payload)) {\n    payload = payload.toString('utf8');\n  }\n  if (typeof payload === 'string') {\n    return JSON.parse(payload);\n  }\n  if (payload && typeof payload === 'object') {\n    return payload;\n  }\n  throw new Error('payload must be JSON object or JSON string');\n}\n\nlet body;\ntry {\n  body = normalizePayload(msg.payload);\n} catch (err) {\n  return [null, {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'mode/set',\n      reason: err.message,\n      received_at: now\n    }\n  }];\n}\n\nconst required = ['command_id', 'issued_at', 'mode'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null || body[key] === '');\nif (missing.length > 0) {\n  return [null, {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'mode/set',\n      reason: `missing fields: ${missing.join(', ')}`,\n      received_at: now,\n      command_id: body.command_id || null\n    }\n  }];\n}\n\nif (body.enabled !== undefined && typeof body.enabled !== 'boolean') {\n  return [null, {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'mode/set',\n      command_id: body.command_id,\n      reason: 'enabled must be boolean when provided',\n      received_at: now\n    }\n  }];\n}\n\nreturn [{\n  topic: 'oncovax/demo/orchestration/status',\n  payload: {\n    contract_version: '1.0',\n    status: 'accepted',\n    source_topic: msg.topic,\n    command_type: 'mode/set',\n    command_id: body.command_id,\n    issued_at: body.issued_at,\n    mode: body.mode,\n    enabled: body.enabled,\n    profile: body.profile,\n    received_at: now\n  }\n}, null];",
+    "outputs": 2,
     "timeout": "",
     "noerr": 0,
     "initialize": "",
     "finalize": "",
     "libs": [],
-    "x": 1050,
-    "y": 140,
-    "wires": [
-      [
-        "8bdf03fdb44d8eec",
-        "5bd53f024a4f9936"
-      ]
-    ]
-  },
-  {
-    "id": "752d7102fd9e7cb6",
-    "type": "function",
-    "z": "9f84d81f54d4892a",
-    "name": "build rejected status",
-    "func": "const payload = msg.payload || {};\nconst now = new Date().toISOString();\n\nmsg.topic = 'oncovax/demo/orchestration/status';\nmsg.payload = {\n  contract_version: typeof payload.contract_version === 'string' ? payload.contract_version : '1.0',\n  command_id: typeof payload.command_id === 'string' ? payload.command_id : 'unknown',\n  status: 'rejected',\n  control_topic: msg._controlTopic || 'unknown',\n  processed_at: now,\n  reason: msg.validation?.reason || payload.validation_error || 'invalid command shape',\n  details: {\n    action: msg._meta?.action || 'unknown'\n  }\n};\n\nreturn msg;",
-    "outputs": 1,
-    "timeout": "",
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 1040,
+    "x": 400,
     "y": 220,
-    "wires": [
-      [
-        "8bdf03fdb44d8eec",
-        "26b28ca1851acc19"
-      ]
-    ]
+    "wires": [["out_orchestration_status", "debug_accepted"], ["out_orchestration_status", "debug_rejected"]]
   },
   {
-    "id": "8bdf03fdb44d8eec",
+    "id": "fn_validate_event",
+    "type": "function",
+    "z": "tab_demo_control_b2c",
+    "name": "validate event/trigger",
+    "func": "const now = new Date().toISOString();\n\nfunction normalizePayload(payload) {\n  if (Buffer.isBuffer(payload)) {\n    payload = payload.toString('utf8');\n  }\n  if (typeof payload === 'string') {\n    return JSON.parse(payload);\n  }\n  if (payload && typeof payload === 'object') {\n    return payload;\n  }\n  throw new Error('payload must be JSON object or JSON string');\n}\n\nlet body;\ntry {\n  body = normalizePayload(msg.payload);\n} catch (err) {\n  return [null, {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'event/trigger',\n      reason: err.message,\n      received_at: now\n    }\n  }];\n}\n\nconst required = ['command_id', 'issued_at', 'event'];\nconst missing = required.filter((key) => body[key] === undefined || body[key] === null || body[key] === '');\nif (missing.length > 0) {\n  return [null, {\n    topic: 'oncovax/demo/orchestration/status',\n    payload: {\n      contract_version: '1.0',\n      status: 'rejected',\n      source_topic: msg.topic,\n      command_type: 'event/trigger',\n      reason: `missing fields: ${missing.join(', ')}`,\n      received_at: now,\n      command_id: body.command_id || null\n    }\n  }];\n}\n\nreturn [{\n  topic: 'oncovax/demo/orchestration/status',\n  payload: {\n    contract_version: '1.0',\n    status: 'accepted',\n    source_topic: msg.topic,\n    command_type: 'event/trigger',\n    command_id: body.command_id,\n    issued_at: body.issued_at,\n    event: body.event,\n    data: body.data,\n    received_at: now\n  }\n}, null];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 320,
+    "wires": [["out_orchestration_status", "debug_accepted"], ["out_orchestration_status", "debug_rejected"]]
+  },
+  {
+    "id": "out_orchestration_status",
     "type": "mqtt out",
-    "z": "9f84d81f54d4892a",
-    "name": "publish orchestration status",
-    "topic": "",
+    "z": "tab_demo_control_b2c",
+    "name": "orchestration/status",
+    "topic": "oncovax/demo/orchestration/status",
     "qos": "1",
     "retain": "false",
     "respTopic": "",
-    "contentType": "",
+    "contentType": "application/json",
     "userProps": "",
     "correl": "",
     "expiry": "",
-    "broker": "8bb9e77b2c44f4b0",
-    "x": 1320,
-    "y": 180,
-    "wires": []
-  },
-  {
-    "id": "5bd53f024a4f9936",
-    "type": "debug",
-    "z": "9f84d81f54d4892a",
-    "name": "accepted command",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 1320,
-    "y": 140,
-    "wires": []
-  },
-  {
-    "id": "26b28ca1851acc19",
-    "type": "debug",
-    "z": "9f84d81f54d4892a",
-    "name": "rejected command",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 1310,
+    "broker": "mqtt_broker_demo_control",
+    "x": 750,
     "y": 220,
+    "wires": []
+  },
+  {
+    "id": "debug_accepted",
+    "type": "debug",
+    "z": "tab_demo_control_b2c",
+    "name": "accepted status",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 730,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "debug_rejected",
+    "type": "debug",
+    "z": "tab_demo_control_b2c",
+    "name": "rejected status",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 730,
+    "y": 320,
     "wires": []
   }
 ]

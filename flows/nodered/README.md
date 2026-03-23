@@ -1,42 +1,54 @@
 # Node-RED Demo Control Flow (Phase B2c)
 
-This directory contains **optional, dev/demo-only** Node-RED flow exports.
+This directory contains an **optional, dev/demo-only** Node-RED flow artifact for demo orchestration controls.
 
-## Demo-control contract flow
+## Artifact
 
-- File: `demo-control-flow.json`
-- Scope: orchestration control/status for demos only
-- Runtime role: receives approved demo control messages, validates basic command shape, and publishes orchestration status events
+- `demo-control-flow.json`
 
-### Approved control topics (subscribe)
+Import into Node-RED via **Menu → Import → Clipboard/File**.
+
+## Approved demo-control MQTT contract
+
+### Control topics (subscribed by flow)
 
 - `oncovax/demo/control/scenario/select`
 - `oncovax/demo/control/mode/set`
 - `oncovax/demo/control/event/trigger`
 
-### Approved status topic (publish)
+### Status topic (published by flow)
 
 - `oncovax/demo/orchestration/status`
 
-## Contract expectations
+## Command payload shape (basic)
 
-All control messages are JSON objects and include:
+All command payloads are expected to be JSON object payloads (or JSON strings parseable into objects) with:
 
-- `contract_version` (string)
-- `command_id` (string)
-- `issued_at` (string timestamp)
-- `issued_by` (string)
+- `command_id` (string, required)
+- `issued_at` (string timestamp, required)
 
-Topic-specific required fields:
+Plus command-specific required fields:
 
-- `oncovax/demo/control/scenario/select`: `scenario` (string)
-- `oncovax/demo/control/mode/set`: `enabled` (boolean)
-- `oncovax/demo/control/event/trigger`: `event` (string)
+- `scenario/select`: `scenario` (string)
+- `mode/set`: `mode` (string), optional `enabled` (boolean), optional `profile` (string)
+- `event/trigger`: `event` (string), optional `data` (object)
 
-The flow emits `accepted` or `rejected` status payloads on `oncovax/demo/orchestration/status`.
+## Status payload behavior
+
+The flow emits a status object to `oncovax/demo/orchestration/status` for each command:
+
+- `status`: `accepted` or `rejected`
+- `source_topic`
+- `command_type`
+- `command_id` when available
+- `reason` when rejected
+- `received_at`
+- `contract_version` (`1.0`)
 
 ## Safety boundary
 
-- This flow does **not** rewire ingestion and does **not** replace worker processing.
-- Authoritative ingestion remains direct MQTT telemetry to worker (`oncovax/telemetry` and explicitly configured worker-compatible topics).
-- Production correctness must not depend on Node-RED.
+This flow **does not** change canonical ingestion routing and is not required for ingestion correctness.
+
+- Authoritative ingestion path remains: `MQTT -> worker`.
+- Canonical telemetry topics remain separate from demo-control topics.
+- This flow is intentionally constrained to `oncovax/demo/**` topics.

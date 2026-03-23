@@ -158,6 +158,28 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step deployment instructions.
 
 ---
 
+## Phase B2c Demo-Control Orchestration Boundary
+
+Node-RED is an optional **dev/demo-only** orchestration surface for demo control topics.
+
+- Control topics:
+  - `oncovax/demo/control/scenario/select`
+  - `oncovax/demo/control/mode/set`
+  - `oncovax/demo/control/event/trigger`
+- Status topic:
+  - `oncovax/demo/orchestration/status`
+
+The exported flow artifact is `flows/nodered/demo-control-flow.json`.
+It validates basic command shape and emits orchestration status events on the demo status topic.
+
+This does **not** change ingestion authority:
+
+- Authoritative ingestion path remains direct `MQTT -> worker`.
+- Worker validation and persistence logic remain unchanged.
+- No runtime rewiring to make Node-RED mandatory for ingestion correctness.
+
+---
+
 ## Phase A Repository Completion Artifacts
 
 The following additive repository structures are intentionally introduced to support future operational exports without changing runtime behavior:

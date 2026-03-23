@@ -54,7 +54,8 @@ docker compose -f infra/docker-compose.dev.yml up -d --build
 
 This starts: Mosquitto, InfluxDB, MongoDB, FastAPI, Node-RED, Grafana.
 
-**Important:** Node-RED in this repository is **dev/demo-only** and optional. It hosts demo orchestration artifacts (for example `flows/nodered/demo-control-flow.json`) and is not required for core ingestion correctness.
+Node-RED in this stack is **optional dev/demo tooling** for demo orchestration artifacts only.
+It is not required for ingestion correctness.
 
 ### 4. Verify services
 
@@ -81,23 +82,6 @@ docker compose -f infra/docker-compose.dev.yml up simulator
 ```
 
 The simulator publishes telemetry once per second and injects occasional excursion spikes.
-
-### 7. Demo-control flow (optional, dev/demo only)
-
-If you need demo orchestration controls, import:
-
-- `flows/nodered/demo-control-flow.json`
-
-This flow uses only the approved demo topics:
-
-- Control subscribe:
-  - `oncovax/demo/control/scenario/select`
-  - `oncovax/demo/control/mode/set`
-  - `oncovax/demo/control/event/trigger`
-- Status publish:
-  - `oncovax/demo/orchestration/status`
-
-Do not rewire telemetry ingestion to depend on Node-RED. Authoritative ingestion remains direct MQTT telemetry to worker.
 
 ---
 
@@ -207,6 +191,8 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 curl https://your-domain.example.com/health
 ```
 
+Production-like topology preserves direct `MQTT -> worker` ingestion authority and does not require Node-RED.
+
 ---
 
 ## Environment Variables Reference
@@ -226,6 +212,19 @@ See `infra/.env.example` for the full list with descriptions.
 | `MQTT_HOST` | Yes (worker/sim) | MQTT broker hostname |
 | `MQTT_PORT` | Yes (worker/sim) | MQTT broker port |
 | `TEMP_THRESHOLD` | Worker | Alert threshold in °C (default: 8.0) |
+
+---
+
+## Demo-Control Contract Deployment Note (Phase B2c)
+
+The Node-RED demo-control artifact (`flows/nodered/demo-control-flow.json`) is scoped to demo topics:
+
+- `oncovax/demo/control/scenario/select`
+- `oncovax/demo/control/mode/set`
+- `oncovax/demo/control/event/trigger`
+- `oncovax/demo/orchestration/status`
+
+Do not rewire canonical telemetry ingestion through Node-RED in this phase.
 
 ---
 
