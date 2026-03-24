@@ -85,9 +85,16 @@ The simulator publishes telemetry once per second and injects occasional excursi
 
 ---
 
-## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas)
+## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas optional)
 
-This hosted baseline runs the **API + dashboard** on a Droplet and stores audit data in **MongoDB Atlas**. It does **not** require a local MongoDB container.
+This hosted baseline runs the **core live pipeline** on a Droplet:
+
+- `mosquitto` for MQTT transport
+- `worker` for telemetry ingestion and alert/audit generation
+- `api` + dashboard UI
+- `influxdb` for telemetry storage
+- `mongodb` (local, started by default in base compose) for audit events
+- optional MongoDB Atlas target via `MONGO_URI`
 
 ### 1. Provision the Droplet
 
@@ -113,15 +120,16 @@ cp infra/.env.example infra/.env
 # - Set INFLUX_TOKEN, passwords, etc.
 ```
 
-Start the base stack (API + core services):
+Start the base stack:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d --build
 ```
 
 **Notes:**
-- When `MONGO_URI` points to Atlas, the local `mongodb` container is optional and can be removed or ignored.
-- This hosted baseline focuses on the API + dashboard and Atlas-backed audit data. If you want to run the full ingestion pipeline on the Droplet, add the worker container (see the production-like stack below or extend the compose file).
+- In the default base path (`infra/docker-compose.yml`), local `mongodb` still starts and `api`/`worker` still declare `depends_on: mongodb`.
+- Atlas can still be used by setting `MONGO_URI` to an Atlas connection string.
+- An Atlas-only runtime (without local `mongodb`) requires a separate compose variant or override; it is not the default base compose path.
 
 ### 4. Configure MongoDB Atlas
 
@@ -149,7 +157,25 @@ Point your domain's A record to the Droplet's public IP.
 
 ### 2. Configure nginx
 
-Edit `infra/nginx/nginx.conf` and replace `your-domain.example.com` with your actual domain.
+`infra/nginx/nginx.conf` in this repository represents the live OncoVax wiring:
+
+- `server_name oncovax.live www.oncovax.live;`
+- `ssl_certificate /etc/letsencrypt/live/oncovax.live/fullchain.pem;`
+- `ssl_certificate_key /etc/letsencrypt/live/oncovax.live/privkey.pem;`
+
+If you deploy to a different domain, update server_name and both certificate paths together.
+
+### 2a. Configure Basic Auth credentials
+
+This production-like stack protects `location /` and alert acknowledgment endpoints with HTTP Basic Auth.
+Generate the password file on the host:
+
+```bash
+sudo apt install apache2-utils
+htpasswd -c ./infra/nginx/.htpasswd oncovax-operator
+```
+
+The file is mounted by `infra/docker-compose.prod.yml` at `/etc/nginx/conf.d/.htpasswd`.
 
 ### 3. Provision TLS certificates
 
@@ -162,11 +188,11 @@ TLS certificates are **not** automatically provisioned. Options:
 sudo apt install certbot
 
 # Obtain certificate (standalone mode, port 80 must be open)
-sudo certbot certonly --standalone -d your-domain.example.com
+sudo certbot certonly --standalone -d oncovax.live -d www.oncovax.live
 
 # Certificates will be at:
-# /etc/letsencrypt/live/your-domain.example.com/fullchain.pem
-# /etc/letsencrypt/live/your-domain.example.com/privkey.pem
+# /etc/letsencrypt/live/oncovax.live/fullchain.pem
+# /etc/letsencrypt/live/oncovax.live/privkey.pem
 ```
 
 Update `infra/docker-compose.prod.yml` nginx volume mounts to point to these paths.
@@ -188,7 +214,9 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ### 5. Verify
 
 ```bash
-curl https://your-domain.example.com/health
+curl -s https://oncovax.live/health
+curl -s https://oncovax.live/public-health
+curl -s -u oncovax-operator:<password> https://oncovax.live/summary
 ```
 
 Production-like topology preserves direct `MQTT -> worker` ingestion authority and does not require Node-RED.

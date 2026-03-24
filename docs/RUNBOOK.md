@@ -57,6 +57,20 @@ Run the included smoke test to verify all services are reachable:
 
 Expected: all checks pass with `200 OK` or healthy responses.
 
+### Production-like smoke check
+
+Use the same smoke script against live/proxy endpoints:
+
+```bash
+./scripts/smoke_test.sh --prod oncovax.live oncovax-operator '<password>'
+```
+
+This checks:
+
+- `GET /public-health` without auth
+- `GET /summary` with basic auth credentials
+
+
 ---
 
 ## 3. API Checks

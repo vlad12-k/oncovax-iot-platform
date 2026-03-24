@@ -3,3 +3,4 @@ __pycache__/
 .env
 infra/.env
 *.env.local
+infra/nginx/.htpasswd
