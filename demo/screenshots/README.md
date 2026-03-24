@@ -71,3 +71,13 @@ What this proves:
 - `sprint_6_*` Node-RED demo artifacts
 
 Use these only when explaining project progression; for Prompt G review prioritize sections 1–4.
+
+---
+
+## 6) Prompt G presentation-layer polish evidence
+
+- `prompt_g_fig_readme_quick_review_section.png`
+
+What this proves:
+
+- The repository entrypoint now includes a dedicated recruiter/instructor quick-review path.
