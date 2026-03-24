@@ -214,8 +214,9 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 ### 5. Verify
 
 ```bash
-curl -s https://your-domain.example.com/public-health
-curl -s -u oncovax-operator:<password> https://your-domain.example.com/summary
+curl -s https://oncovax.live/health
+curl -s https://oncovax.live/public-health
+curl -s -u oncovax-operator:<password> https://oncovax.live/summary
 ```
 
 Production-like topology preserves direct `MQTT -> worker` ingestion authority and does not require Node-RED.
