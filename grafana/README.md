@@ -27,12 +27,20 @@ Use an InfluxDB (Flux) data source configured against the same bucket used by wo
 
 The export uses a datasource input placeholder named `DS_INFLUXDB`; map it to your Influx data source during import.
 
+Dev compose worker is configured to ingest both canonical and simulator topics via:
+
+- `MQTT_TOPIC=oncovax/telemetry`
+- `MQTT_SIMULATOR_COMPAT_TOPIC=oncovax/telemetry/simulator`
+
 ## Import in Codespaces / dev
 
 1. Start dev stack:
 
    ```bash
    docker compose -f infra/docker-compose.dev.yml up -d --build
+
+   # ensure worker ingests simulator telemetry in dev compose
+   docker compose -f infra/docker-compose.dev.yml logs --tail=30 worker
    ```
 
 2. Open Grafana: `http://localhost:3000`

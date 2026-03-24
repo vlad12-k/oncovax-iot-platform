@@ -49,3 +49,11 @@ def test_prompt_f_grafana_readme_documents_d2_runtime_control_visibility():
     assert "breach_pulse" in text
     assert "offline_pulse" in text
     assert "reset_runtime" in text
+
+
+
+def test_prompt_f_dev_compose_worker_configures_simulator_compat_topic():
+    compose_text = (REPO_ROOT / "infra" / "docker-compose.dev.yml").read_text(encoding="utf-8")
+    assert "worker:" in compose_text
+    worker_block = compose_text.split("worker:", 1)[1].split("orchestration-adapter:", 1)[0]
+    assert "MQTT_SIMULATOR_COMPAT_TOPIC=oncovax/telemetry/simulator" in worker_block
