@@ -188,11 +188,11 @@ TLS certificates are **not** automatically provisioned. Options:
 sudo apt install certbot
 
 # Obtain certificate (standalone mode, port 80 must be open)
-sudo certbot certonly --standalone -d your-domain.example.com
+sudo certbot certonly --standalone -d oncovax.live -d www.oncovax.live
 
 # Certificates will be at:
-# /etc/letsencrypt/live/your-domain.example.com/fullchain.pem
-# /etc/letsencrypt/live/your-domain.example.com/privkey.pem
+# /etc/letsencrypt/live/oncovax.live/fullchain.pem
+# /etc/letsencrypt/live/oncovax.live/privkey.pem
 ```
 
 Update `infra/docker-compose.prod.yml` nginx volume mounts to point to these paths.
