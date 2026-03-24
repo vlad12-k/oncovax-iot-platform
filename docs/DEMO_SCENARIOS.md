@@ -2,6 +2,8 @@
 
 These scenarios are designed for recruiter/demo walkthroughs while preserving production-safe defaults.
 
+For a single start-to-finish run order, use [DEMO_WALKTHROUGH.md](DEMO_WALKTHROUGH.md).
+
 ## Scenario 1: Healthy steady-state telemetry
 
 - Show continuous telemetry arrival.
@@ -35,3 +37,9 @@ These scenarios are designed for recruiter/demo walkthroughs while preserving pr
 - Screenshot of dashboard with active data window.
 - Screenshot of Grafana panel after import (when dashboard exports are added).
 - Example acknowledged alert payload/response.
+
+## Reviewer notes
+
+- Keep focus on demonstrated behavior and evidence already present in repo.
+- Do not claim production guarantees beyond documented deployment/runbook boundaries.
+- Treat Node-RED demo-control as optional/dev-only orchestration support, not canonical ingestion.
