@@ -2,6 +2,16 @@
 
 Event-driven IoT monitoring platform for regulated cold-storage environments. This repository is maintained as a **production-like operations baseline** and is evolved incrementally with deployment safety guardrails.
 
+## Recruiter / instructor quick review (10–15 minutes)
+
+If you are evaluating this project for clarity, delivery quality, and demonstrable outcomes, use this path:
+
+1. Read [docs/OVERVIEW.md](docs/OVERVIEW.md) for scope and capability baseline.
+2. Follow [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md) for a single end-to-end demo sequence.
+3. Use [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md) to map claims to concrete proof artifacts.
+4. Browse [demo/screenshots/README.md](demo/screenshots/README.md) for visual evidence grouped by proof surface.
+5. (Optional live check) run production-like smoke validation from [docs/RUNBOOK.md](docs/RUNBOOK.md).
+
 ## What this repository demonstrates
 
 - MQTT-based telemetry ingestion pipeline
@@ -39,6 +49,12 @@ docker compose -f infra/docker-compose.dev.yml up -d --build
 ./scripts/smoke_test.sh
 ```
 
+Then continue with:
+
+- End-to-end demo flow: [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md)
+- Scenario-oriented narration: [docs/DEMO_SCENARIOS.md](docs/DEMO_SCENARIOS.md)
+- Observability dashboard import/use: [grafana/README.md](grafana/README.md)
+
 ## Repository structure
 
 ```text
@@ -59,9 +75,11 @@ grafana/                Dashboard export placeholders/artifacts
 - [docs/OVERVIEW.md](docs/OVERVIEW.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/DATA_FLOW.md](docs/DATA_FLOW.md)
+- [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md)
 - [docs/RUNBOOK.md](docs/RUNBOOK.md)
 - [docs/PRODUCTION_HARDENING_DAY1_DAY5.md](docs/PRODUCTION_HARDENING_DAY1_DAY5.md)
 - [docs/DEMO_SCENARIOS.md](docs/DEMO_SCENARIOS.md)
+- [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md)
 - [docs/RECOVERY_AND_ROLLBACK.md](docs/RECOVERY_AND_ROLLBACK.md)
 - [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)

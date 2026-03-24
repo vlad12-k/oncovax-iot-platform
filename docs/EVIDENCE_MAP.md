@@ -6,6 +6,59 @@ This document maps each platform capability to concrete implementation evidence 
 
 ---
 
+## Reviewer-first proof surfaces (Prompt G)
+
+Use this section when evaluating the project as a portfolio/demo artifact.
+
+### A) Product understanding proof
+
+| Question | Evidence |
+|---|---|
+| What is this project? | `README.md`, `docs/OVERVIEW.md` |
+| Why does it matter? | `docs/OVERVIEW.md` (cold-storage risk + monitoring workflow context) |
+| How does the architecture work? | `docs/ARCHITECTURE.md`, `docs/DATA_FLOW.md` |
+
+### B) Demo execution proof
+
+| Question | Evidence |
+|---|---|
+| How do I run a guided end-to-end demo? | `docs/DEMO_WALKTHROUGH.md` |
+| What scenarios should be shown? | `docs/DEMO_SCENARIOS.md`, `demo/scenarios.md` |
+| What are the operational checks? | `docs/RUNBOOK.md`, `scripts/smoke_test.sh` |
+
+### C) Observability proof
+
+| Question | Evidence |
+|---|---|
+| Is telemetry visibly flowing? | `grafana/dashboards/oncovax-observability-final.v1.json` |
+| How is Grafana configured/imported? | `grafana/README.md` |
+| Is there screenshot evidence? | `demo/screenshots/README.md` (`sprint_11_*`, `sprint_12_*`) |
+
+### D) Control-plane proof (D2)
+
+| Question | Evidence |
+|---|---|
+| Are runtime-control commands documented and verifiable? | `docs/RUNBOOK.md` (D2 runtime-control section), `grafana/README.md` (expected panel behavior) |
+| Are control artifacts present? | `flows/nodered/demo-control-flow.json`, `flows/nodered/README.md` |
+
+### E) Cloud/live proof (Prompt E)
+
+| Question | Evidence |
+|---|---|
+| Is hosted live routing documented/proven? | `docs/DEPLOYMENT.md`, `docs/RUNBOOK.md` production smoke section |
+| Is live ingress behavior implemented and tested? | `infra/nginx/nginx.conf`, `tests/test_prompt_e_cloud_live_config.py` |
+| Is hosted evidence visible? | `demo/screenshots/README.md` (`sprint_12_*`) |
+
+### F) Safety/trust proof
+
+| Question | Evidence |
+|---|---|
+| Are known boundaries and limitations explicit? | `docs/KNOWN_LIMITATIONS.md` |
+| Are threat/security controls documented? | `docs/THREAT_MODEL.md`, `SECURITY.md` |
+| Are rollback/recovery procedures present? | `docs/RECOVERY_AND_ROLLBACK.md` |
+
+---
+
 ## Capability Evidence
 
 ### 1. Telemetry Schema
@@ -155,3 +208,15 @@ This document maps each platform capability to concrete implementation evidence 
 | Sprint 11 | Operational dashboard | `demo/screenshots/sprint_11_*` |
 | Sprint 12 | Atlas + DigitalOcean | `demo/screenshots/sprint_12_*` |
 | All | Scenario write-ups | `demo/scenarios.md` |
+
+---
+
+## Prompt G demo-review sequence
+
+For recruiter/instructor review, use this exact order:
+
+1. `README.md` (quick review entrypoint)
+2. `docs/DEMO_WALKTHROUGH.md` (single narrative demo flow)
+3. `docs/EVIDENCE_MAP.md` (this file) for claim-to-proof traceability
+4. `demo/screenshots/README.md` for visual proof packs
+5. `docs/RUNBOOK.md` production-like smoke command (`--prod`) when live verification is needed
