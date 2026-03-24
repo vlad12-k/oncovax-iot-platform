@@ -167,7 +167,7 @@ If you deploy to a different domain, update server_name and both certificate pat
 
 ### 2a. Configure Basic Auth credentials
 
-This production-like stack protects `location /` and acknowledge endpoints with HTTP Basic Auth.
+This production-like stack protects `location /` and alert acknowledgment endpoints with HTTP Basic Auth.
 Generate the password file on the host:
 
 ```bash

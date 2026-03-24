@@ -69,7 +69,7 @@ This checks:
 
 - `GET /public-health` without auth
 - `GET /summary` with basic auth credentials
- 
+
 
 ---
 
