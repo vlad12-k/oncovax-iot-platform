@@ -1,99 +1,157 @@
 # OncoVax IoT Monitoring Platform
 
-Event-driven IoT monitoring platform for regulated cold-storage environments. This repository is maintained as a **production-like operations baseline** and is evolved incrementally with deployment safety guardrails.
+OncoVax is an event-driven monitoring stack for cold-storage telemetry: it ingests device/simulator telemetry over MQTT, validates and processes it in a worker, stores time-series in InfluxDB, stores alert/audit records in MongoDB, serves operational APIs and dashboard via FastAPI, and supports observability and runtime-control verification in dev.
+
+This README is the **single primary entrypoint** for review and runtime verification.
+
+---
 
 ## Recruiter / instructor quick review (10–15 minutes)
 
-If you are evaluating this project for clarity, delivery quality, and demonstrable outcomes, use this path:
+1. Start with this README and execute the canonical local route in section **Zero-to-live-proof local route (Prompt H canonical path)**.
+2. Follow [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md) for a narrative demo sequence.
+3. Use [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md) for claim-to-proof mapping.
+4. Browse [demo/screenshots/README.md](demo/screenshots/README.md) for visual evidence.
 
-1. Read [docs/OVERVIEW.md](docs/OVERVIEW.md) for scope and capability baseline.
-2. Follow [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md) for a single end-to-end demo sequence.
-3. Use [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md) to map claims to concrete proof artifacts.
-4. Browse [demo/screenshots/README.md](demo/screenshots/README.md) for visual evidence grouped by proof surface.
-5. (Optional live check) run production-like smoke validation from [docs/RUNBOOK.md](docs/RUNBOOK.md).
+---
 
-## What this repository demonstrates
+## 1) What this product is
 
-- MQTT-based telemetry ingestion pipeline
-- Worker-side validation and alert event generation
-- Time-series storage in InfluxDB
-- Audit/event persistence in MongoDB / MongoDB Atlas
-- FastAPI operational endpoints and lightweight dashboard
-- Docker Compose dev and production-like deployment layouts
-- Nginx ingress with protected routes and public uptime probe
+- **Problem:** cold-storage excursions must be detected quickly and audited.
+- **System:** simulator/device telemetry -> MQTT -> worker -> InfluxDB + MongoDB -> API/dashboard + Grafana.
+- **Operator workflow:** view alerts, filter/search, acknowledge incidents with audit fields.
 
-## Deployment safety commitments
-
-This repository intentionally preserves the existing production-safe behavior:
-
-- `/public-health` remains available for unauthenticated uptime checks
-- Private routes remain protected through ingress auth controls
-- Production reverse-proxy and compose topology are additive-first
-- Secrets are never committed to source control
-
-## Current architecture flow
+Architecture summary:
 
 ```text
-Simulator -> MQTT -> Worker -> InfluxDB (telemetry + alerts)
-                           -> MongoDB/Atlas (audit + alert lifecycle)
-                                        ^
-                                      FastAPI
-                                        ^
-                                   Web dashboard
+Simulator -> MQTT -> Worker -> InfluxDB (telemetry + alert series)
+                           -> MongoDB (audit_events lifecycle)
+                                     ^
+                                   FastAPI
+                                     ^
+                                Web dashboard
+                                     +
+                                  Grafana
 ```
 
-## Quickstart (local dev stack)
+---
+
+## 2) What is already automated
+
+- Dockerized local/dev stack via `infra/docker-compose.dev.yml`
+- Baseline smoke checks via `./scripts/smoke_test.sh`
+- Canonical local runtime entrypoint via `make verify-local`
+- Prompt guardrail tests in `tests/`
+
+---
+
+## 3) Zero-to-live-proof local route (Prompt H canonical path)
+
+Use this as the primary reviewer path.
+
+### Step A — Bring stack up with one command path
 
 ```bash
-docker compose -f infra/docker-compose.dev.yml up -d --build
-./scripts/smoke_test.sh
+make verify-local
 ```
 
-Then continue with:
+This runs:
 
-- End-to-end demo flow: [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md)
-- Scenario-oriented narration: [docs/DEMO_SCENARIOS.md](docs/DEMO_SCENARIOS.md)
-- Observability dashboard import/use: [grafana/README.md](grafana/README.md)
+- `docker compose -f infra/docker-compose.dev.yml up -d --build`
+- `./scripts/smoke_test.sh`
 
-## Repository structure
+### Step B — Verify telemetry + alerts at API surface
 
-```text
-infra/                  Compose and ingress configuration
-services/
-  api/                  FastAPI service
-  worker/               Telemetry consumer and alert logic
-  simulator/            Telemetry publisher
-  web/                  Dashboard frontend assets
-schemas/                Message and record schema files
-docs/                   Architecture, runbooks, hardening and operations guides
-flows/                  Node-RED export placeholders/artifacts
-grafana/                Dashboard export placeholders/artifacts
+```bash
+curl -s http://localhost:8000/summary | python -m json.tool
+curl -s "http://localhost:8000/alerts?limit=20" | python -m json.tool
 ```
 
-## Operations and delivery docs
+Expected: non-error JSON responses, with alert counts/events increasing while simulator runs.
 
-- [docs/OVERVIEW.md](docs/OVERVIEW.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/DATA_FLOW.md](docs/DATA_FLOW.md)
-- [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md)
-- [docs/RUNBOOK.md](docs/RUNBOOK.md)
-- [docs/PRODUCTION_HARDENING_DAY1_DAY5.md](docs/PRODUCTION_HARDENING_DAY1_DAY5.md)
-- [docs/DEMO_SCENARIOS.md](docs/DEMO_SCENARIOS.md)
-- [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md)
-- [docs/RECOVERY_AND_ROLLBACK.md](docs/RECOVERY_AND_ROLLBACK.md)
-- [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
-- [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
+### Step C — Verify Mongo audit visibility
 
-## Artifact placeholders introduced in Phase A
+```bash
+docker exec mongodb mongosh oncovax --quiet \
+  --eval 'db.audit_events.find({}).sort({time:-1}).limit(5).toArray()'
+```
 
-- `flows/` for future Node-RED exports
-- `grafana/dashboards/` for future Grafana dashboard exports
-- `services/simulator/scenarios/` for simulator scenario templates
-- Additional schema placeholders for alert/audit/device metadata contracts
+Expected: recent audit/alert lifecycle records exist.
 
-## Important notes
+### Step D — Verify Grafana population
 
-- Do not commit `.env` files or live credentials.
-- Preserve ingress and auth behavior when making runtime changes.
-- Prefer additive updates and explicit documentation over destructive rewrites.
+1. Open `http://localhost:3000` (admin/adminadminadmin in dev compose).
+2. Import dashboard: `grafana/dashboards/oncovax-observability-final.v1.json`.
+3. Map datasource input to InfluxDB datasource (`http://influxdb:8086`, org `oncovax`, bucket `telemetry`).
+4. Set time range to include active simulator traffic.
+
+Expected: ingest and trend panels update, alert panels populate when breaches occur.
+
+### Step E — Verify D2 runtime-control visibility
+
+Run status subscriber:
+
+```bash
+docker exec mosquitto mosquitto_sub -t oncovax/demo/orchestration/status -v
+```
+
+Trigger control events from another terminal:
+
+```bash
+docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger \
+  -m '{"command_id":"cmd-h-breach","issued_at":"2026-03-24T00:00:00Z","event_type":"breach_pulse","data":{"duration_cycles":3,"temperature_increase_c":9}}'
+```
+
+Expected: orchestration status messages appear, and Grafana trend/alert behavior visibly reacts (per `grafana/README.md` D2 expectations).
+
+---
+
+## 4) Cloud/live verification path (truthful boundary)
+
+Cloud/live verification is documented and partially automated, but requires real infrastructure and credentials.
+
+Production-like smoke path:
+
+```bash
+./scripts/smoke_test.sh --prod oncovax.live oncovax-operator '<password>'
+```
+
+This verifies:
+
+- unauthenticated `GET /public-health`
+- authenticated `GET /summary` through nginx
+
+### What is proven locally vs requires real cloud execution
+
+- **Proven locally in this repo path:** dev compose startup, simulator/worker ingest path, API/dashboard behavior, Mongo audit visibility, Grafana population, D2 reaction path.
+- **Requires real DigitalOcean/Atlas/domain execution:** external DNS, TLS cert wiring, internet-facing nginx routing, hosted credentials/network policy, live uptime from outside local environment.
+
+---
+
+## 5) Final validation and definition of done
+
+Use:
+
+- `docs/FINAL_VALIDATION_CHECKLIST.md` (Prompt H release/verification checklist)
+
+Prompt H is considered done only when every required checklist item passes with observed evidence.
+
+---
+
+## 6) Evidence links
+
+- Final checklist: `docs/FINAL_VALIDATION_CHECKLIST.md`
+- Evidence map: `docs/EVIDENCE_MAP.md`
+- Runbook details: `docs/RUNBOOK.md`
+- Grafana import/visibility details: `grafana/README.md`
+- Demo walkthrough: `docs/DEMO_WALKTHROUGH.md`
+- Known limitations: `docs/KNOWN_LIMITATIONS.md`
+
+---
+
+## 7) Limitations and truthfulness
+
+- This repository is a **production-like baseline**, not a fully hardened production platform.
+- No live secrets are stored in-repo.
+- Do not claim cloud/live guarantees unless executed against real infrastructure.
+- Node-RED remains dev/demo-only and is not the canonical ingestion authority in production path.
