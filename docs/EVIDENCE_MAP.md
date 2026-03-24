@@ -59,6 +59,20 @@ Use this section when evaluating the project as a portfolio/demo artifact.
 
 ---
 
+## Prompt H final closure proof surfaces
+
+Use this section for final runtime/release verification closure.
+
+| Prompt H question | Primary proof surface |
+|---|---|
+| What is the single reviewer entrypoint? | `README.md` |
+| What is the canonical local zero-to-live-proof route? | `README.md` + `Makefile` target `verify-local` |
+| Where is the explicit final validation/release gate? | `docs/FINAL_VALIDATION_CHECKLIST.md` |
+| Where are observability and D2 reaction expectations defined? | `grafana/README.md`, `docs/RUNBOOK.md` |
+| Where are cloud/live checks defined with truthful boundaries? | `README.md`, `docs/FINAL_VALIDATION_CHECKLIST.md`, `docs/RUNBOOK.md` |
+
+---
+
 ## Capability Evidence
 
 ### 1. Telemetry Schema
@@ -220,3 +234,11 @@ For recruiter/instructor review, use this exact order:
 3. `docs/EVIDENCE_MAP.md` (this file) for claim-to-proof traceability
 4. `demo/screenshots/README.md` for visual proof packs
 5. `docs/RUNBOOK.md` production-like smoke command (`--prod`) when live verification is needed
+
+## Prompt H final review sequence (closure)
+
+1. `README.md` (single primary entrypoint + canonical local path)
+2. `docs/FINAL_VALIDATION_CHECKLIST.md` (exact commands and expected outcomes)
+3. `docs/EVIDENCE_MAP.md` (this file, claim-to-proof mapping)
+4. `grafana/README.md` + dashboard JSON (observability/D2 behavior expectations)
+5. `docs/RUNBOOK.md` + `./scripts/smoke_test.sh --prod ...` (real cloud/live execution path)
