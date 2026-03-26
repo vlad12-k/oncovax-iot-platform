@@ -57,6 +57,32 @@ services:
       - influxdb
       - mongodb
 
+
+  orchestration-adapter:
+    build:
+      context: ..
+      dockerfile: services/orchestration_adapter/Dockerfile
+    container_name: oncovax-orchestration-adapter
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - ORCHESTRATION_STATUS_TOPIC=oncovax/demo/orchestration/status
+      - SIM_RUNTIME_CONTROL_TOPIC=oncovax/demo/internal/simulator/runtime/control
+    restart: always
+    depends_on:
+      - mosquitto
+
+  simulator:
+    build:
+      context: ..
+      dockerfile: services/simulator/Dockerfile
+    container_name: oncovax-simulator
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - mosquitto
+
   api:
     build:
       context: ..
@@ -76,6 +102,22 @@ services:
       retries: 5
       start_period: 10s
 
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: grafana
+    env_file:
+      - .env
+    expose:
+      - "3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    restart: always
+    depends_on:
+      - influxdb
   nginx:
     image: nginx:1.27-alpine
     container_name: oncovax-nginx
@@ -97,3 +139,4 @@ volumes:
   mosquitto_data:
   influxdb_data:
   mongodb_data:
+  grafana_data:
