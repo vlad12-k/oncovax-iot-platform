@@ -4,3 +4,15 @@ __pycache__/
 infra/.env
 *.env.local
 infra/nginx/.htpasswd
+
+# runtime / backup / proof artifacts
+backups/
+proof/
+
+# local backup files
+*.bak
+*.bak.*
+*.fixds.bak.*
+
+# logs
+*.log
