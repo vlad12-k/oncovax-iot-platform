@@ -118,6 +118,12 @@ services:
     restart: always
     depends_on:
       - influxdb
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
   nginx:
     image: nginx:1.27-alpine
     container_name: oncovax-nginx
@@ -134,6 +140,12 @@ services:
     restart: always
     depends_on:
       - api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --header='Host: oncovax.live' http://127.0.0.1/public-health | grep -q '{\"status\":\"ok\"}'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
 
 volumes:
   mosquitto_data:
