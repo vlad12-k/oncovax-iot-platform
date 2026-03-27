@@ -243,6 +243,14 @@ def should_emit_alert(alert: dict):
     return True
 
 
+def on_connect(client, userdata, flags, reason_code, properties=None):
+    print(f"[worker] connected to mqtt rc={reason_code}")
+    subscribe_topics = userdata["subscribe_topics"]
+    for topic in subscribe_topics:
+        client.subscribe(topic)
+        print(f"[worker] subscribed topic={topic}")
+
+
 def on_message(client, userdata, msg):
     write_api = userdata["write_api"]
     audit_collection = userdata["audit_collection"]
@@ -294,11 +302,12 @@ def main():
     client.user_data_set({
         "write_api": write_api,
         "audit_collection": audit_collection,
+        "subscribe_topics": subscribe_topics,
     })
+    client.on_connect = on_connect
     client.on_message = on_message
+    client.reconnect_delay_set(min_delay=1, max_delay=30)
     client.connect(MQTT_HOST, MQTT_PORT, 60)
-    for topic in subscribe_topics:
-        client.subscribe(topic)
     client.loop_forever()
 
 
