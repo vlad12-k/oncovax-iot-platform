@@ -1,166 +1,95 @@
-# Demo Walkthrough – Recruiter/Instructor Flow
+# Demo Walkthrough
 
-## Purpose
+## 1) Walkthrough intent
 
-This walkthrough provides a single, reproducible path to demonstrate OncoVax end-to-end with evidence checkpoints.
-It is intentionally presentation-oriented and does not change runtime architecture.
+This document provides a guided walkthrough of the current OncoVax repository baseline.
 
----
+The goal is to demonstrate implemented architecture, runtime behavior, and operational proof surfaces in a clear and credible order.
 
-## 0) What to show in one sentence
+## 2) How to frame the project at the start
 
-OncoVax monitors cold-storage telemetry through an MQTT → worker pipeline, stores and visualizes telemetry/alerts, and supports operational alert workflows with auditability and hosted/live verification paths.
+Start with this framing:
 
----
+- The repository implements a **production-style hosted baseline** for cold-storage telemetry monitoring workflows.
+- Telemetry in this runtime is **software-simulated**.
+- This is **not** a physical medical hardware deployment.
+- This is **not** a certified clinical deployment.
+- In production-like ingress mode, operational surfaces are protected by nginx route policy (public-safe vs protected paths).
+- The hosted baseline, live-domain wiring model, and observability stack are implemented and document-backed.
 
-## 1) Open the repository and orient quickly (2 minutes)
+## 3) Recommended walkthrough order
 
-1. Read `README.md` section **Recruiter / instructor quick review (10–15 minutes)**.
-2. Confirm capability baseline in `docs/OVERVIEW.md`.
-3. Keep `docs/EVIDENCE_MAP.md` open for claim-to-proof cross-reference.
+1. **README and project framing**
+   - Show scope, architecture summary, and explicit non-claims.
+2. **Architecture diagram**
+   - Walk through `docs/architecture-diagram.md` and service boundaries.
+3. **Deployment model**
+   - Explain dev, hosted baseline, and production-like ingress modes from `docs/DEPLOYMENT.md`.
+4. **Runtime public-safe endpoint**
+   - Show `/public-health` behavior through ingress.
+5. **Internal API proof**
+   - Show `/health`, `/summary`, and `/alerts` checks.
+6. **Grafana/observability proof**
+   - Show InfluxDB-backed telemetry/alert visibility and explain limits.
+7. **Runbook / recovery / security posture**
+   - Show `docs/RUNBOOK.md`, `OPS_RUNBOOK.md`, `docs/RECOVERY_AND_ROLLBACK.md`, and `SECURITY.md`.
+8. **Known limitations and maturity boundaries**
+   - Close with `docs/KNOWN_LIMITATIONS.md` and explicit next hardening priorities.
 
-Expected outcome:
+## 4) Proof surfaces to show
 
-- Reviewer understands what the platform is, why it matters, and what proof surfaces exist.
+- **`/public-health`**
+  - Demonstrates public-safe ingress liveness only.
+- **`/summary` and `/alerts` API responses**
+  - Demonstrate operational data visibility and alert workflow state exposure.
+- **Grafana dashboards**
+  - Demonstrate InfluxDB-backed time-series observability (telemetry and alert trends).
+- **Architecture diagram**
+  - Demonstrates implemented service boundaries, ingress, and persistence split.
+- **Canonical docs (deployment, runbook, recovery, security, threat model)**
+  - Demonstrate operational discipline, security posture, and recovery model coverage.
 
----
+## 5) What to say about hosting and infrastructure
 
-## 2) Start local stack and verify health (2–3 minutes)
+Describe hosting using implementation-backed statements:
 
-Run:
+- The platform supports a hosted cloud VM/server baseline.
+- The production-like topology supports live custom-domain ingress.
+- nginx ingress separates public-safe and protected operational routes.
+- External uptime monitoring is useful as an availability signal for public-safe endpoint reachability.
+- Atlas-backed persistence is supported via `MONGO_URI` configuration.
 
-```bash
-docker compose -f infra/docker-compose.dev.yml up -d --build
-./scripts/smoke_test.sh
-```
+Avoid sharing raw admin console links or provider control-plane details during the walkthrough.
 
-Expected outcome:
+## 6) What to say about observability
 
-- Services start successfully.
-- Smoke checks return healthy responses.
+- Grafana is useful for operational visibility, but it is not full operational truth.
+- InfluxDB-backed dashboards show telemetry and alert-series trends.
+- External uptime checks validate public endpoint reachability only.
+- Full correctness still requires API checks, service status checks, and log review.
 
-Evidence anchors:
+## 7) What not to claim
 
-- `docs/RUNBOOK.md` (service + smoke commands)
-- `demo/screenshots/sprint_8_fig_smoke_test_with_api_check_terminal.png`
+Do not claim:
 
----
+- fully hardened production readiness
+- certified medical/clinical deployment status
+- complete security assurance
+- physical device integration in this repository runtime
 
-## 3) Show core operational API proof (2 minutes)
+## 8) Closing guidance
 
-Run:
+End the walkthrough by summarizing what was proven and what remains intentionally bounded:
 
-```bash
-curl -s http://localhost:8000/summary | python -m json.tool
-curl -s "http://localhost:8000/alerts?limit=20" | python -m json.tool
-```
+- proven: implemented architecture, ingestion-to-alert flow, protected ingress model, API proof surfaces, and observability workflow
+- bounded: hardening maturity, application-layer auth depth, and operator-dependent deployment assurance
 
-Expected outcome:
+Close by pointing reviewers to:
 
-- Summary counts are returned.
-- Alert records are visible for operator workflow context.
+- `docs/KNOWN_LIMITATIONS.md`
+- `SECURITY.md`
+- `docs/THREAT_MODEL.md`
+- `docs/RUNBOOK.md`
+- `docs/RECOVERY_AND_ROLLBACK.md`
 
-Evidence anchors:
-
-- `demo/screenshots/sprint_10_fig_api_summary_terminal.png`
-- `demo/screenshots/sprint_10_fig_api_filtered_unacknowledged_alerts_terminal.png`
-
----
-
-## 4) Show dashboard + acknowledgement workflow (2 minutes)
-
-1. Open `http://localhost:8000`.
-2. Demonstrate:
-   - summary cards,
-   - alert filtering/search,
-   - alert acknowledgement flow.
-
-Expected outcome:
-
-- Reviewer sees usable operator workflow and acknowledgement UX.
-
-Evidence anchors:
-
-- `demo/screenshots/sprint_11_fig_operational_dashboard_main_view.png`
-- `demo/screenshots/sprint_11_fig_operational_dashboard_filtered_view.png`
-- `demo/screenshots/sprint_11_fig_operational_dashboard_search_view.png`
-
----
-
-## 5) Show observability proof in Grafana (2–3 minutes)
-
-1. Follow `grafana/README.md` import steps.
-2. Import `grafana/dashboards/oncovax-observability-final.v1.json`.
-3. Set time range to include active simulator traffic.
-
-Expected outcome:
-
-- Telemetry ingest and alert panels move with live data.
-- Per-device trends and recent alert table are visible.
-
-Evidence anchors:
-
-- `grafana/README.md`
-- `grafana/dashboards/oncovax-observability-final.v1.json`
-
----
-
-## 6) Show control-plane behavior proof (D2) (optional but strong)
-
-Use D2 commands from `docs/RUNBOOK.md`:
-
-- `scenario/select`
-- `mode/set`
-- `event/trigger` (`burst_pulse`, `breach_pulse`, `offline_pulse`)
-- `reset_runtime`
-
-Expected outcome:
-
-- Behavior changes are observable in telemetry/alert trends as documented in `grafana/README.md`.
-
-Evidence anchors:
-
-- `docs/RUNBOOK.md` (D2 runtime control section)
-- `grafana/README.md` (runtime-control visibility expectations)
-
----
-
-## 7) Show cloud/live proof path (Prompt E)
-
-Run production-like smoke test (when live credentials are available):
-
-```bash
-./scripts/smoke_test.sh --prod oncovax.live oncovax-operator '<password>'
-```
-
-Expected outcome:
-
-- Public health endpoint works unauthenticated.
-- Protected summary endpoint works with credentials.
-
-Evidence anchors:
-
-- `docs/RUNBOOK.md` production-like smoke section
-- `demo/screenshots/sprint_12_fig_digitalocean_hosted_api_terminal.png`
-- `demo/screenshots/sprint_12_fig_digitalocean_hosted_dashboard_view.png`
-
----
-
-## 8) Close with evidence map and limitations (1 minute)
-
-1. Walk through `docs/EVIDENCE_MAP.md` proof surfaces.
-2. Highlight boundary realism from `docs/KNOWN_LIMITATIONS.md`.
-
-Expected outcome:
-
-- Reviewer sees explicit evidence traceability and honest scope boundaries.
-
----
-
-## Fast fallback path (if time is only 5 minutes)
-
-1. `README.md` quick review section.
-2. `./scripts/smoke_test.sh`.
-3. `curl -s http://localhost:8000/summary | python -m json.tool`.
-4. Open `http://localhost:8000`.
-5. Show `docs/EVIDENCE_MAP.md` + `demo/screenshots/README.md`.
+This keeps the presentation credible, technically grounded, and aligned with current repository reality.
