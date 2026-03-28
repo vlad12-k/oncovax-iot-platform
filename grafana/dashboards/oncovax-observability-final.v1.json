@@ -1,5 +1,14 @@
 {
-  "__inputs": [],
+  "__inputs": [
+    {
+      "name": "DS_INFLUXDB",
+      "label": "InfluxDB",
+      "description": "InfluxDB Flux datasource",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB"
+    }
+  ],
   "__requires": [
     {
       "type": "grafana",
@@ -43,8 +52,8 @@
       {
         "builtIn": 1,
         "datasource": {
-          "type": "influxdb",
-          "uid": "InfluxDB"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
         "enable": true,
         "hide": true,
@@ -70,7 +79,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -118,11 +127,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> aggregateWindow(every: 1m, fn: count, createEmpty: false)\n  |> last()",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Telemetry ingest (points/min)",
@@ -131,7 +136,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -179,11 +184,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"alerts\")\n  |> filter(fn: (r) => r.status == \"active\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> aggregateWindow(every: 1m, fn: count, createEmpty: false)\n  |> last()",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Active alerts (events/min)",
@@ -192,7 +193,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -244,11 +245,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> group()\n  |> unique(column: \"device_id\")\n  |> count(column: \"_value\")",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Devices seen in window",
@@ -257,7 +254,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -300,11 +297,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r.metric == \"door_open\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> map(fn: (r) => ({ r with state: if r._value >= 0.5 then \"open\" else \"closed\" }))\n  |> group(columns: [\"state\"])\n  |> count()\n  |> keep(columns: [\"state\", \"_value\"])",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Door-open state distribution",
@@ -313,7 +306,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -346,11 +339,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r.metric == \"temperature\")\n  |> filter(fn: (r) => r._field == \"value\")",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Temperature by device",
@@ -359,7 +348,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -392,11 +381,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r.metric == \"humidity\" or r.metric == \"battery\")\n  |> filter(fn: (r) => r._field == \"value\")",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Humidity and battery trends",
@@ -405,7 +390,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -438,11 +423,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r.metric == \"signal_strength\")\n  |> filter(fn: (r) => r._field == \"value\")",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Signal strength (offline pulse visibility)",
@@ -451,7 +432,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -484,11 +465,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"alerts\")\n  |> filter(fn: (r) => r.status == \"active\")\n  |> filter(fn: (r) => r._field == \"value\" or r._field == \"threshold\")\n  |> pivot(rowKey: [\"_time\", \"device_id\", \"metric\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({ r with intensity: float(v: r.value) - float(v: r.threshold) }))\n  |> keep(columns: [\"_time\", \"device_id\", \"metric\", \"intensity\"])",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Alert intensity (value - threshold)",
@@ -497,7 +474,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -539,11 +516,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"alerts\")\n  |> filter(fn: (r) => r.status == \"active\")\n  |> filter(fn: (r) => r._field == \"value\" or r._field == \"threshold\" or r._field == \"consecutive_breach_count\" or r._field == \"message\")\n  |> pivot(rowKey: [\"_time\", \"device_id\", \"metric\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 50)",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Recent active alerts (last 50)",
@@ -552,7 +525,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -588,11 +561,7 @@
       "targets": [
         {
           "query": "from(bucket: \"telemetry\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r.metric == \"temperature\" or r.metric == \"humidity\" or r.metric == \"battery\" or r.metric == \"signal_strength\" or r.metric == \"open_duration_seconds\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> group(columns: [\"device_id\", \"metric\"])\n  |> last()\n  |> pivot(rowKey: [\"device_id\"], columnKey: [\"metric\"], valueColumn: \"_value\")\n  |> sort(columns: [\"device_id\"])",
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          }
+          "refId": "A"
         }
       ],
       "title": "Latest metrics by device",
@@ -624,7 +593,7 @@
     ]
   },
   "timezone": "utc",
-  "title": "OncoVax Observability – Prompt F Final",
+  "title": "OncoVax Observability \u2013 Prompt F Final",
   "uid": "oncovax-obsv-f-v1",
   "version": 1,
   "weekStart": ""
