@@ -1,94 +1,69 @@
-# Platform Overview – OncoVax IoT Monitoring Platform
+# Platform Overview
 
-## What This Platform Does
+## 1) Platform summary
 
-The OncoVax IoT Monitoring Platform is an event-driven telemetry pipeline and operational dashboard for regulated cold-storage monitoring.
-It represents a **production-like, release-candidate baseline** rather than a fully hardened production system.
+OncoVax is an event-driven cold-storage monitoring baseline that models telemetry ingestion, alert generation, operational APIs, and observability in a hosted deployment context.
 
-It ingests simulated device telemetry over MQTT, validates and stores readings in InfluxDB, detects threshold excursions, and persists excursion alerts as durable audit records in MongoDB. Operators can review, filter, and acknowledge alerts through a lightweight web dashboard served by a FastAPI service.
+The repository implements a production-style architecture (MQTT transport, worker-side processing, time-series storage, operational persistence, API/UI surfaces, and ingress controls) while remaining explicit about scope and maturity boundaries.
 
----
+## 2) Core components
 
-## Core Capabilities
+The current repository includes the following core components and responsibilities:
 
-| Capability | Status | Notes |
-|---|---|---|
-| Telemetry ingestion via MQTT | ✅ Implemented | Simulator publishes; worker subscribes |
-| Schema validation | ✅ Implemented | `telemetry.schema.json` validated by worker |
-| InfluxDB time-series storage | ✅ Implemented | Telemetry and alerts stored in `telemetry` bucket |
-| Threshold-based excursion detection | ✅ Implemented | `TEMP_THRESHOLD` env var |
-| MongoDB audit-trail records | ✅ Implemented | `audit_events` collection |
-| Alert acknowledgement workflow | ✅ Implemented | `POST /alerts/{id}/acknowledge` |
-| REST API for alert management | ✅ Implemented | FastAPI, multiple endpoints |
-| Operational dashboard | ✅ Implemented | HTML/CSS/JS, served by API container |
-| Summary cards and alert table | ✅ Implemented | `/summary` + `/alerts` |
-| Filter and search | ✅ Implemented | Client-side |
-| Alert acknowledgement from UI | ✅ Implemented | Modal with `acknowledged_by` + `incident_note` |
-| Grafana time-series views | ✅ Implemented (dev) | Requires InfluxDB data source setup |
-| MongoDB Atlas integration | ✅ Implemented | Atlas URI via `MONGO_URI` env var |
-| DigitalOcean hosted baseline | ✅ Implemented | Droplet + Atlas combination |
-| Containerised deployment | ✅ Implemented | Docker Compose |
-| CI / code-quality baseline | ✅ Implemented | GitHub Actions, CodeQL, Dependabot |
+- **Simulator (`services/simulator/`)**
+  - Publishes software-generated telemetry messages.
 
----
+- **MQTT broker / transport (Mosquitto)**
+  - Provides message distribution for telemetry topics.
 
-## What This Platform Is Not (Current Scope)
+- **Worker (`services/worker/`)**
+  - Subscribes to telemetry topics, validates payloads, evaluates threshold conditions, writes telemetry/alert signals to InfluxDB, and persists alert workflow records to MongoDB.
 
-- Not a full production-hardened multi-tenant platform
-- No user authentication or role-based access control (planned)
-- No TLS termination from within the application layer (nginx provides this in the production-like scaffold)
-- Not a regulatory submission package
+- **InfluxDB**
+  - Stores time-series telemetry and alert measurements.
 
----
+- **MongoDB (local) / Atlas-backed persistence (`MONGO_URI`)**
+  - Stores operational alert lifecycle and audit records.
 
-## Data Flow
+- **FastAPI service (`services/api/`)**
+  - Exposes health and operational endpoints (summary, alerts, acknowledgement workflows) and serves dashboard content.
 
-```
-Simulator → MQTT → Worker → InfluxDB (time-series)
-                          → MongoDB  (audit + acknowledgement)
-                                  ↑
-                             FastAPI REST API
-                                  ↑
-                         Operational Dashboard
-```
+- **Dashboard/UI (`services/web/`)**
+  - Provides an operator-facing web interface for current system and alert state.
 
----
+- **Grafana (`grafana/` + compose wiring)**
+  - Provides observability dashboards backed by InfluxDB.
 
-## Platform Stack
+- **nginx ingress (`infra/nginx/nginx.conf`, production-like compose path)**
+  - Provides HTTPS routing, basic-auth protection of operational surfaces, and route-level exposure boundaries.
 
-| Layer | Technology |
-|---|---|
-| Message broker | Mosquitto MQTT |
-| Telemetry simulator | Python + paho-mqtt |
-| Worker | Python + paho-mqtt + influxdb-client + pymongo |
-| Time-series DB | InfluxDB 2.7 |
-| Audit/workflow DB | MongoDB 7 / MongoDB Atlas |
-| API | FastAPI + uvicorn + pymongo |
-| Dashboard | HTML + CSS + JavaScript |
-| Visualisation | Grafana |
-| Containerisation | Docker Compose |
-| Cloud database | MongoDB Atlas |
-| Hosted runtime | DigitalOcean Droplet |
-| CI quality | GitHub Actions + CodeQL + Dependabot |
+## 3) Deployment modes
 
----
+The project defines three primary deployment modes with different behavior and exposure properties:
 
-## Repository Structure
+- **Local/dev (`infra/docker-compose.dev.yml`)**
+  - Full local stack for development and testing, including dev/demo tooling.
 
-```
-infra/                  Docker Compose configs, mosquitto config, env example
-services/
-  simulator/            Telemetry publisher
-  worker/               Telemetry consumer, excursion detection, persistence
-  api/                  FastAPI service + Dockerfile
-  web/                  Dashboard frontend (HTML/CSS/JS)
-  tools/                Operational utility scripts
-schemas/                JSON schema for telemetry validation
-docs/                   Architecture, runbook, threat model, deployment docs
-scripts/                Smoke test and utility scripts
-tests/                  Test assets
-demo/                   Screenshots and scenario write-ups
-tools/                  Postman collection
-```
+- **Hosted baseline (`infra/docker-compose.yml`)**
+  - Core hosted reference stack for MQTT, worker, API, InfluxDB, and MongoDB.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed technical architecture.
+- **Production-like ingress path (`infra/docker-compose.prod.yml` + nginx)**
+  - Adds reverse-proxy ingress, TLS certificate mounting, protected routes, and production-style service restart behavior.
+
+Environment behavior differs materially across these modes. Security assumptions, exposure controls, and operational procedures must be validated for the specific target environment.
+
+## 4) Operational boundaries
+
+Current operational boundaries are explicit:
+
+- Telemetry in this repository is simulated.
+- The repository does not include a physical device fleet.
+- Operational API and dashboard surfaces are intended to be protected, not anonymous public endpoints.
+- nginx exposes a public-safe health route (`/public-health`) for constrained liveness checks.
+- The project is non-clinical in scope and is not represented as certified clinical or regulated infrastructure.
+
+## 5) Current maturity
+
+The project demonstrates a serious production-style architecture with a working hosted baseline, documented deployment/runbook/security guidance, and practical baseline controls.
+
+At the same time, it should not be treated as fully release-grade production infrastructure without further hardening, stronger application-layer security controls, and environment-specific operational assurance.
