@@ -31,6 +31,10 @@ OncoVax is an event-driven cold-storage monitoring platform that models telemetr
 
 ## Architecture overview
 
+![OncoVax Architecture Diagram](docs/assets/oncovax-architecture-diagram.svg)
+
+Canonical source and explanatory legend: [`docs/architecture-diagram.md`](docs/architecture-diagram.md).
+
 The platform uses a layered architecture:
 
 - **Simulator** publishes software-generated telemetry.

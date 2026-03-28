@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">OncoVax IoT Platform Architecture Diagram</title>
+  <desc id="desc">Hosted baseline architecture with simulated telemetry, MQTT ingestion, processing, persistence boundaries, ingress protection, and operational surfaces.</desc>
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .host { fill: #f8fafc; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; }
+      .box { fill: #f1f5f9; stroke: #475569; stroke-width: 1.5; rx: 10; ry: 10; }
+      .store { fill: #eef2ff; stroke: #4338ca; stroke-width: 1.5; rx: 10; ry: 10; }
+      .public { fill: #ecfdf5; stroke: #059669; stroke-width: 1.5; rx: 10; ry: 10; }
+      .protected { fill: #fff7ed; stroke: #c2410c; stroke-width: 1.5; rx: 10; ry: 10; }
+      .note { fill: #f9fafb; stroke: #9ca3af; stroke-width: 1.2; stroke-dasharray: 4 3; rx: 10; ry: 10; }
+      .label { font: 600 17px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .text { font: 14px 'Segoe UI', Roboto, Arial, sans-serif; fill: #0f172a; }
+      .small { font: 13px 'Segoe UI', Roboto, Arial, sans-serif; fill: #334155; }
+      .legend { font: 13px 'Segoe UI', Roboto, Arial, sans-serif; fill: #1f2937; }
+      .arrow { stroke: #334155; stroke-width: 1.8; fill: none; marker-end: url(#arrowhead); }
+      .dash { stroke-dasharray: 5 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1280" height="760" />
+
+  <text x="28" y="38" class="label">OncoVax IoT Platform — Canonical Architecture (Hosted Baseline)</text>
+
+  <rect class="host" x="240" y="68" width="1010" height="620" />
+  <text x="260" y="95" class="text">Hosted baseline boundary (cloud VM / server)</text>
+
+  <rect class="box" x="300" y="140" width="190" height="72" />
+  <text x="316" y="168" class="text">Software simulator(s)</text>
+  <text x="316" y="189" class="small">Simulated telemetry source</text>
+
+  <rect class="box" x="560" y="140" width="190" height="72" />
+  <text x="585" y="168" class="text">Mosquitto</text>
+  <text x="579" y="189" class="small">MQTT broker</text>
+
+  <rect class="box" x="820" y="140" width="190" height="72" />
+  <text x="858" y="168" class="text">Worker service</text>
+  <text x="844" y="189" class="small">Validation + alert logic</text>
+
+  <rect class="store" x="760" y="275" width="250" height="95" />
+  <text x="835" y="304" class="text">InfluxDB</text>
+  <text x="780" y="326" class="small">Time-series telemetry + alerts</text>
+
+  <rect class="store" x="1060" y="275" width="170" height="95" />
+  <text x="1088" y="304" class="text">MongoDB</text>
+  <text x="1070" y="326" class="small">Operational/audit persistence</text>
+  <text x="1078" y="346" class="small">(Atlas-backed via MONGO_URI)</text>
+
+  <rect class="box" x="530" y="430" width="210" height="90" />
+  <text x="564" y="459" class="text">FastAPI service</text>
+  <text x="550" y="481" class="small">Operational API + dashboard</text>
+
+  <rect class="protected" x="840" y="430" width="190" height="90" />
+  <text x="890" y="459" class="text">Grafana</text>
+  <text x="858" y="481" class="small">Operational observability</text>
+
+  <rect class="box" x="300" y="430" width="190" height="90" />
+  <text x="342" y="459" class="text">nginx ingress</text>
+  <text x="321" y="481" class="small">Route + auth boundary</text>
+
+  <rect class="public" x="300" y="570" width="300" height="76" />
+  <text x="328" y="601" class="text">Public-safe surface</text>
+  <text x="328" y="622" class="small">/public-health only</text>
+
+  <rect class="protected" x="630" y="570" width="450" height="76" />
+  <text x="655" y="601" class="text">Protected operational surfaces</text>
+  <text x="655" y="622" class="small">API dashboard / summary / alerts + Grafana (authenticated)</text>
+
+  <rect class="note" x="25" y="140" width="185" height="80" />
+  <text x="38" y="172" class="text">External client</text>
+  <text x="38" y="194" class="small">Operator/user access</text>
+
+  <rect class="note" x="25" y="270" width="185" height="98" />
+  <text x="38" y="301" class="text">Scope note</text>
+  <text x="38" y="323" class="small">Non-clinical / non-certified</text>
+  <text x="38" y="343" class="small">deployment status</text>
+
+  <line class="arrow" x1="210" y1="180" x2="300" y2="475" />
+
+  <line class="arrow" x1="490" y1="176" x2="560" y2="176" />
+  <text x="503" y="164" class="small">MQTT telemetry</text>
+
+  <line class="arrow" x1="750" y1="176" x2="820" y2="176" />
+  <line class="arrow" x1="900" y1="212" x2="885" y2="275" />
+  <text x="907" y="254" class="small">telemetry + alerts</text>
+
+  <line class="arrow" x1="1008" y1="186" x2="1060" y2="310" />
+  <text x="1008" y="236" class="small">audit records</text>
+
+  <line class="arrow" x1="740" y1="475" x2="1060" y2="322" />
+  <text x="790" y="408" class="small">operational reads/updates</text>
+
+  <line class="arrow" x1="935" y1="430" x2="900" y2="370" />
+  <text x="942" y="401" class="small">query</text>
+
+  <line class="arrow" x1="490" y1="475" x2="530" y2="475" />
+  <line class="arrow" x1="490" y1="455" x2="840" y2="455" />
+
+  <line class="arrow dash" x1="420" y1="520" x2="450" y2="570" />
+  <line class="arrow dash" x1="420" y1="520" x2="820" y2="570" />
+
+  <text x="35" y="714" class="legend">Legend: green = public-safe path, orange = protected operational surface, dashed outer box = hosted baseline boundary, simulator nodes = software-generated telemetry.</text>
+</svg>
