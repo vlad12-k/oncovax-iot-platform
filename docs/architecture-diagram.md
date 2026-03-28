@@ -1,58 +1,75 @@
 # OncoVax Architecture Diagram
 
-This diagram shows the canonical hosted baseline for the OncoVax IoT Platform: software simulators publish telemetry to Mosquitto over MQTT, the worker processes and persists time-series and operational/audit data to separate stores, and nginx ingress exposes a narrow public-safe health path while keeping operational API and Grafana surfaces protected. It represents a production-style deployment topology with explicit trust boundaries, while remaining non-clinical and non-certified.
+## 1) Diagram intent
 
-```mermaid
-flowchart LR
-    classDef infra fill:#f5f7fa,stroke:#6b7280,stroke-width:1px,color:#111827;
-    classDef public fill:#ecfdf5,stroke:#059669,stroke-width:1px,color:#065f46;
-    classDef protected fill:#fff7ed,stroke:#c2410c,stroke-width:1px,color:#7c2d12;
-    classDef store fill:#eef2ff,stroke:#4338ca,stroke-width:1px,color:#1e1b4b;
-    classDef note fill:#f9fafb,stroke:#9ca3af,stroke-dasharray: 4 3,color:#374151;
+This diagram is the canonical architecture view for the OncoVax hosted baseline.
 
-    ext[External user / operator client]:::infra
+It shows:
 
-    subgraph host[Hosted baseline: cloud VM / server]
-        sim[Software telemetry simulator(s)]:::infra
-        mqtt[Mosquitto MQTT broker]:::infra
-        worker[Worker service]:::infra
-        api[FastAPI service]\n(api + dashboard):::infra
-        nginx[nginx ingress]:::infra
-        grafana[Grafana]:::protected
+- software-simulated telemetry ingestion
+- event processing and persistence boundaries
+- production-like ingress routing boundaries
+- public-safe versus protected operational surfaces
+- hosted server/cloud VM deployment context
+- external uptime checks as availability-signal context
 
-        subgraph persistence[Persistence responsibilities]
-            influx[(InfluxDB\nTime-series telemetry + alerts)]:::store
-            mongo[(Operational persistence boundary\nMongoDB / Atlas-backed via MONGO_URI)]:::store
-        end
+It does not claim full production hardening or certified clinical infrastructure.
 
-        sim -->|MQTT telemetry| mqtt
-        mqtt --> worker
-        worker -->|telemetry + alert signals| influx
-        worker -->|alert lifecycle / audit records| mongo
-        api -->|operational reads / updates| mongo
-        grafana -->|query| influx
+## 2) Canonical diagram asset (GitHub-rendered)
 
-        nginx -->|/public-health| api
-        nginx -->|protected operational paths| api
-        nginx -->|protected Grafana path| grafana
-    end
+![OncoVax Architecture Diagram](./assets/oncovax-architecture-diagram.svg)
 
-    ext -->|HTTPS| nginx
+If the image does not render in your context, open the raw asset directly:
 
-    pubSurf[Public-safe surface\n/public-health only]:::public
-    protSurf[Protected operational surfaces\nAPI dashboard/alerts/summary + Grafana]:::protected
-    simNote[Simulated telemetry source\n(no physical medical devices)]:::note
-    statusNote[Non-clinical / non-certified deployment status]:::note
+- `docs/assets/oncovax-architecture-diagram.svg`
 
-    nginx -. maps .-> pubSurf
-    nginx -. enforces auth on .-> protSurf
-    sim -.-> simNote
-    host -.-> statusNote
-```
+## 3) Topology interpretation
 
-## Legend
+### Hosted baseline boundary
 
-- **Public-safe surface**: intentionally limited ingress path for non-sensitive liveness exposure (for example `/public-health`).
-- **Protected operational surface**: authenticated operator-facing API/dashboard and Grafana routes; not anonymous public dashboards.
-- **Simulated telemetry source**: software simulators that generate telemetry events for ingestion and monitoring flows.
-- **Hosted baseline boundary**: cloud VM/server deployment boundary containing ingress, processing, and persistence services.
+The hosted baseline runs on a cloud VM/server boundary that contains ingress, application services, and core runtime dependencies.
+
+### Ingestion and processing pipeline
+
+1. Software simulator(s) publish telemetry to Mosquitto (MQTT).
+2. Worker subscribes, validates payloads, and evaluates thresholds.
+3. Worker writes telemetry/alert-series data to InfluxDB.
+4. Worker writes alert lifecycle/audit records to MongoDB.
+
+### Persistence roles
+
+- **InfluxDB**: time-series telemetry and alert signals.
+- **MongoDB (Atlas-backed via `MONGO_URI` when configured)**: operational lifecycle/audit persistence boundary.
+
+### API and observability roles
+
+- **FastAPI/dashboard layer**: operational endpoints and dashboard experience.
+- **Grafana**: observability views backed by InfluxDB.
+
+### Ingress and exposure boundaries
+
+- **Live domain ingress boundary** is enforced by nginx.
+- **Public-safe surface** is limited to `GET /public-health`.
+- **Protected operational surfaces** include operational API/dashboard paths and Grafana host routing.
+
+### Uptime signal boundary
+
+External uptime monitoring checks public endpoint reachability and liveness behavior. It is an availability signal, not proof of full internal correctness.
+
+## 4) Non-claims
+
+This architecture view does **not** claim:
+
+- physical medical device telemetry ingestion in repository runtime
+- certified clinical or regulated deployment status
+- complete production hardening or complete security assurance
+
+## 5) Related canonical references
+
+- `README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DATA_FLOW.md`
+- `docs/DEPLOYMENT.md`
+- `docs/OBSERVABILITY.md`
+- `SECURITY.md`
+- `docs/EVIDENCE_MAP.md`
