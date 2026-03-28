@@ -16,3 +16,9 @@ proof/
 
 # logs
 *.log
+
+.env.*
+*.env
+*.secret
+*.secrets
+tmp/
