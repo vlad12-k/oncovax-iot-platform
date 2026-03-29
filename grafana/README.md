@@ -1,102 +1,100 @@
-# Grafana Artifacts
+# Grafana Subsystem
 
-This directory contains **repo-controlled Grafana artifacts** for Prompt F final observability.
+## Purpose
 
-## Files
+In this repository, Grafana is the dashboard-based **observability surface** for time-series signals.
 
-- `dashboards/oncovax-observability-final.v1.json` — finalized dashboard export for live telemetry + alerts + D2 runtime-control visibility.
+It is used to:
 
-## Dashboard scope (Prompt F final)
+- visualize telemetry and alert-series trends
+- interpret recent runtime-window behavior
+- support operator-oriented signal inspection during verification and troubleshooting
 
-The dashboard is designed to provide live evidence that the current system is working end-to-end:
+Grafana is useful for visibility, but it is **not** the sole operational source of truth.
 
-- telemetry flow is active
-- excursion alerts are generated and visible
-- per-device behavior is visible
-- D2 runtime-control actions create visible changes
-- ingestion remains aligned with existing B2a/B2b/D2/E data path
+## Data source and dependency model
 
-## Data source requirements
+Grafana in this repository is InfluxDB-backed.
 
-Use an InfluxDB (Flux) data source configured against the same bucket used by worker writes:
+- Primary datasource path: InfluxDB (Flux) time-series data
+- Provisioning artifacts live under:
+  - `grafana/provisioning/datasources/`
+  - `grafana/provisioning/dashboards/`
+  - `grafana/dashboards/`
+- Correct datasource mapping, org/bucket alignment, and token/config quality are required for meaningful dashboard output
 
-- URL: `http://influxdb:8086`
-- Org: `oncovax`
-- Bucket: `telemetry`
-- Token: use your local/dev token from `.env` (`INFLUX_TOKEN`)
+Operational boundary reminders:
 
-The export uses a datasource input placeholder named `DS_INFLUXDB`; map it to your Influx data source during import.
+- Grafana is **not** the MongoDB lifecycle/audit truth source
+- MongoDB-backed operational lifecycle and acknowledgement truth remains outside dashboard panels
+- API and persistence-backed workflow state remains authoritative for operational lifecycle interpretation
 
-Dev compose worker is configured to ingest both canonical and simulator topics via:
+## What the dashboards show
 
-- `MQTT_TOPIC=oncovax/telemetry`
-- `MQTT_SIMULATOR_COMPAT_TOPIC=oncovax/telemetry/simulator`
+Current dashboards are oriented to practical baseline observability and typically provide:
 
-## Import in Codespaces / dev
+- telemetry trends over time
+- alert-series visibility signals
+- metric-level time-series panels
+- recent-window runtime interpretation across active services
 
-1. Start dev stack:
+Dashboard output should be interpreted as signal visibility over selected time windows, not as exhaustive system proof.
 
-   ```bash
-   docker compose -f infra/docker-compose.dev.yml up -d --build
+## What Grafana does not prove
 
-   # ensure worker ingests simulator telemetry in dev compose
-   docker compose -f infra/docker-compose.dev.yml logs --tail=30 worker
-   ```
+Grafana does **not** prove:
 
-2. Open Grafana: `http://localhost:3000`
-3. Configure InfluxDB datasource (if not already present).
-4. Import dashboard:
-   - Grafana → **Dashboards** → **Import**
-   - Upload `grafana/dashboards/oncovax-observability-final.v1.json`
-   - Select your InfluxDB datasource for `DS_INFLUXDB`
-5. Set dashboard time range to **Last 30 minutes** (or broader if needed).
+- full internal correctness of worker, API, and persistence behavior
+- complete incident detection coverage
+- protected-route correctness by itself
+- acknowledgement/lifecycle correctness in MongoDB-backed workflows
 
-## Final panels
+Grafana is **not** a substitute for:
 
-1. **Telemetry ingest (points/min)** (stat)
-2. **Active alerts (events/min)** (stat)
-3. **Devices seen in window** (stat)
-4. **Door-open state distribution** (pie)
-5. **Temperature by device** (timeseries)
-6. **Humidity and battery trends** (timeseries)
-7. **Signal strength (offline pulse visibility)** (timeseries)
-8. **Alert intensity (value - threshold)** (timeseries)
-9. **Recent active alerts (last 50)** (table)
-10. **Latest metrics by device** (table)
+- API verification checks (`/health`, `/summary`, `/alerts`)
+- runbook-driven restart/recovery validation
+- container/log-based operational investigation
 
-## Live verification behavior
+## Environment notes
 
-With simulator + worker running, these should move continuously:
+### Local/dev (`infra/docker-compose.dev.yml`)
 
-- **Telemetry ingest (points/min)** increases above 0 and updates each minute.
-- **Temperature/Humidity/Battery/Signal** timeseries continue updating.
-- **Latest metrics by device** refreshes with recent values.
+- Grafana is included and directly reachable on local port `3000`
+- Useful for dashboard iteration and local runtime signal inspection
+- Direct local access does not represent production-like ingress protections
 
-When alerts are generated (temperature breaches):
+### Hosted baseline (`infra/docker-compose.yml`)
 
-- **Active alerts (events/min)** rises above 0.
-- **Recent active alerts** shows new rows with device/metric/value/threshold/message.
-- **Alert intensity** shows positive deltas (`value - threshold`) for active breaches.
+- Core hosted baseline excludes Grafana by default
+- Observability in this mode relies on API checks, logs, and operator-managed monitoring integrations
 
-### D2 runtime-control visibility expectations
+### Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
 
-After issuing commands (via existing control topics):
+- Grafana is included and mounted with repo-controlled provisioning/dashboards
+- Grafana is exposed through nginx host routing (`grafana.<domain>`) and protected with basic-auth
+- Access assumptions are operational/protected, not anonymous public dashboard access
 
-- `scenario/select`:
-  - persistent behavior shift across trend panels (temperature, humidity/battery, door state distribution), based on selected scenario dynamics.
-- `mode/set`:
-  - persistent profile change; demo/standard mode shifts event cadence and trend characteristics visible in ingest + trend panels.
-- `burst_pulse`:
-  - short-term increase in **Telemetry ingest (points/min)** and denser points in trend panels.
-- `breach_pulse`:
-  - temperature spikes in **Temperature by device**, followed by alert activity and higher **Alert intensity**.
-- `offline_pulse`:
-  - **Signal strength** drops toward `-120 dBm`, with corresponding behavior change visible in trends.
-- `reset_runtime`:
-  - trend behavior returns toward startup scenario/profile baseline; temporary pulse effects clear.
+## Operational cautions
 
-## Notes
+- Time-range selection matters; incorrect windows can hide or misrepresent active behavior
+- "No data" can result from multiple causes (quiet interval, ingestion interruption, datasource mismatch, or configuration errors)
+- Datasource and dashboard provisioning alignment must match active runtime configuration
+- Dashboard interpretation should be cross-checked against API responses and logs
+- Protected operational access expectations still apply in hosted ingress environments
 
-- No secrets are embedded in the dashboard JSON.
-- Dashboard panels show **No data** when no telemetry exists in selected window.
-- This layer is additive and does not change worker/simulator/orchestration ingestion logic.
+## Scope boundary reminder
+
+- Telemetry in this repository is software-simulated
+- Repository scope is non-clinical
+- Grafana provides baseline observability, not complete monitoring assurance
+- This subsystem should not be presented as certified clinical monitoring or fully hardened production monitoring
+
+## Related references
+
+- Repository entrypoint: `README.md`
+- Observability model: `docs/OBSERVABILITY.md`
+- Deployment model: `docs/DEPLOYMENT.md`
+- Runbook procedures: `docs/RUNBOOK.md` and `OPS_RUNBOOK.md`
+- Recovery/rollback: `docs/RECOVERY_AND_ROLLBACK.md`
+- Evidence boundaries: `docs/EVIDENCE_MAP.md`
+- Security and threat boundaries: `SECURITY.md`, `docs/THREAT_MODEL.md`
