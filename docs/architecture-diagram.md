@@ -1,70 +1,63 @@
-# OncoVax Architecture Diagram
+# OncoVax Architecture Diagrams
 
-## 1) Diagram intent
+## Why there are two diagrams
 
-This diagram is the canonical architecture view for the OncoVax hosted baseline.
+The project now uses two canonical architecture diagrams to separate concerns that were previously mixed:
 
-It shows:
+1. **Runtime / service architecture** (internal system behavior)
+2. **Hosted / infrastructure topology** (deployment context and external boundaries)
 
-- software-simulated telemetry ingestion
-- event processing and persistence boundaries
-- production-like ingress routing boundaries
-- public-safe versus protected operational surfaces
-- hosted server/cloud VM deployment context
-- external uptime checks as availability-signal context
+This split improves clarity and keeps runtime behavior distinct from hosting context.
 
-It does not claim full production hardening or certified clinical infrastructure.
+## Diagram 1: Runtime / service architecture
 
-## 2) Canonical diagram asset (GitHub-rendered)
+![OncoVax Runtime Architecture](./assets/oncovax-runtime-architecture.svg)
 
-![OncoVax Architecture Diagram](./assets/oncovax-architecture-diagram.svg)
+Purpose:
 
-If the image does not render in your context, open the raw asset directly:
+- shows how services interact internally
+- shows telemetry flow, operational/API flow, and observability flow
+- shows ingress-facing route separation between public-safe and protected operational surfaces
 
-- `docs/assets/oncovax-architecture-diagram.svg`
+Interpretation notes:
 
-## 3) Topology interpretation
+- Runtime flow is centered on `simulator/orchestration-adapter -> Mosquitto -> worker -> InfluxDB + MongoDB`.
+- API/dashboard and Grafana are operator-facing surfaces behind ingress controls in production-like topology.
+- Public-safe ingress exposure is narrow (`GET /public-health`), while operational surfaces remain protected.
 
-### Hosted baseline boundary
+## Diagram 2: Hosted / infrastructure topology
 
-The hosted baseline runs on a cloud VM/server boundary that contains ingress, application services, and core runtime dependencies.
+![OncoVax Hosted Infrastructure Topology](./assets/oncovax-hosted-infrastructure-topology.svg)
 
-### Ingestion and processing pipeline
+Purpose:
 
-1. Software simulator(s) publish telemetry to Mosquitto (MQTT).
-2. Worker subscribes, validates payloads, and evaluates thresholds.
-3. Worker writes telemetry/alert-series data to InfluxDB.
-4. Worker writes alert lifecycle/audit records to MongoDB.
+- shows where the runtime stack is hosted
+- shows live-domain ingress identity and uptime-check context
+- shows managed persistence compatibility boundary (MongoDB Atlas) relative to hosted runtime
 
-### Persistence roles
+Interpretation notes:
 
-- **InfluxDB**: time-series telemetry and alert signals.
-- **MongoDB (Atlas-backed via `MONGO_URI` when configured)**: operational lifecycle/audit persistence boundary.
+- DigitalOcean-style hosting is deployment substrate context, not an application service claim.
+- Hosted VM/server boundary contains ingress and runtime workload services.
+- MongoDB Atlas is represented as managed persistence compatibility/external boundary, not as proof of production guarantees.
+- External uptime monitoring is an availability signal for public endpoint reachability, not proof of full internal correctness.
 
-### API and observability roles
+## Rendering notes
 
-- **FastAPI/dashboard layer**: operational endpoints and dashboard experience.
-- **Grafana**: observability views backed by InfluxDB.
+Both diagrams are embedded as direct SVG assets with GitHub-safe relative paths from this document:
 
-### Ingress and exposure boundaries
+- `./assets/oncovax-runtime-architecture.svg`
+- `./assets/oncovax-hosted-infrastructure-topology.svg`
 
-- **Live domain ingress boundary** is enforced by nginx.
-- **Public-safe surface** is limited to `GET /public-health`.
-- **Protected operational surfaces** include operational API/dashboard paths and Grafana host routing.
+## Scope and non-claims
 
-### Uptime signal boundary
+These diagrams do **not** claim:
 
-External uptime monitoring checks public endpoint reachability and liveness behavior. It is an availability signal, not proof of full internal correctness.
-
-## 4) Non-claims
-
-This architecture view does **not** claim:
-
-- physical medical device telemetry ingestion in repository runtime
+- telemetry from physical medical devices in repository runtime
 - certified clinical or regulated deployment status
-- complete production hardening or complete security assurance
+- complete production hardening
 
-## 5) Related canonical references
+## Related references
 
 - `README.md`
 - `docs/ARCHITECTURE.md`
@@ -72,4 +65,5 @@ This architecture view does **not** claim:
 - `docs/DEPLOYMENT.md`
 - `docs/OBSERVABILITY.md`
 - `SECURITY.md`
+- `docs/KNOWN_LIMITATIONS.md`
 - `docs/EVIDENCE_MAP.md`

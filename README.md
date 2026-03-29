@@ -1,101 +1,126 @@
 # OncoVax IoT Platform
 
-OncoVax is an event-driven cold-storage monitoring platform baseline that demonstrates telemetry ingestion, threshold-based alerting, operational APIs, and observability in a hosted deployment context.
+OncoVax is an event-driven cold-storage monitoring platform baseline that demonstrates software-telemetry ingestion, threshold-based alerting, operational APIs, and observability in a hosted deployment context.
 
-The repository implements a production-style architecture (MQTT transport, worker processing, time-series storage, operational persistence, API/dashboard delivery, and ingress controls) while keeping scope boundaries explicit: telemetry is software-simulated, not physical medical-device telemetry; this is not certified clinical infrastructure; and additional hardening is required before full release-grade production treatment.
+The repository implements a production-style architecture (MQTT transport, worker processing, time-series storage, operational persistence, API/dashboard delivery, and ingress controls) while keeping scope boundaries explicit: telemetry is software-simulated, this is not certified clinical infrastructure, and additional hardening is required before full release-grade production treatment.
 
 ## What this project is
 
-- A repository implementation of an event-driven monitoring pipeline:
+- A concrete implementation of an event-driven monitoring stack:
   - simulator -> MQTT -> worker -> InfluxDB + MongoDB -> FastAPI/dashboard -> Grafana.
-- A hosted-baseline deployment model with production-like ingress topology available in the repository.
-- A concrete operational reference for ingress boundaries, runbook discipline, and evidence-backed claims.
+- A hosted-baseline deployment model with documented ingress boundaries and operational checks.
+- A technical reference for operational behavior with conservative, evidence-based claims.
 
 ## What this project is not
 
 - Not a physical medical-device fleet platform.
 - Not a certified clinical or regulated deployment.
-- Not an anonymous public dashboard deployment.
+- Not an anonymous public operational dashboard deployment.
 - Not a claim of fully complete production hardening.
 
-## Architecture at a glance
+## Architecture
 
-![OncoVax Architecture Diagram](docs/assets/oncovax-architecture-diagram.svg)
+The architecture is presented with **two diagrams** to separate runtime behavior from hosted deployment context.
 
-Architecture legend and interpretation: [`docs/architecture-diagram.md`](docs/architecture-diagram.md)
+### 1) Runtime / service architecture
 
-### Core runtime components
+![OncoVax Runtime Architecture](docs/assets/oncovax-runtime-architecture.svg)
 
-- **Simulator (`services/simulator/`)** publishes software-generated telemetry.
-- **Mosquitto (MQTT)** provides message transport.
-- **Worker (`services/worker/`)** validates payloads, evaluates thresholds, and writes to persistence layers.
-- **InfluxDB** stores telemetry and alert-series time-series data.
-- **MongoDB** stores operational alert lifecycle/audit records.
-- **FastAPI (`services/api/`)** exposes health/summary/alerts/acknowledgement APIs and serves dashboard assets.
-- **Grafana** provides InfluxDB-backed observability views.
-- **nginx ingress (`infra/nginx/nginx.conf`)** enforces route exposure boundaries in production-like topology.
+This diagram explains how the system works internally: telemetry ingestion, worker processing, persistence responsibilities, API/dashboard access paths, and observability flow.
+
+### 2) Hosted / infrastructure topology
+
+![OncoVax Hosted Infrastructure Topology](docs/assets/oncovax-hosted-infrastructure-topology.svg)
+
+This diagram explains hosted deployment context: live-domain ingress identity, DigitalOcean-style hosting substrate, VM/server boundary, external uptime-signal context, and Atlas-backed persistence compatibility boundary.
+
+Companion interpretation and legend notes: [`docs/architecture-diagram.md`](docs/architecture-diagram.md)
+
+## System components and responsibilities
+
+- **Simulator (`services/simulator/`)**: publishes software-generated telemetry.
+- **Orchestration adapter (`services/orchestration_adapter/`)**: bridges demo/runtime-control MQTT topics.
+- **Mosquitto**: MQTT broker for telemetry and control-topic transport.
+- **Worker (`services/worker/`)**: validates payloads, applies threshold logic, writes telemetry and alert lifecycle records.
+- **InfluxDB**: time-series telemetry and alert-series store.
+- **MongoDB**: operational lifecycle/audit persistence boundary used by API workflows.
+- **FastAPI + dashboard (`services/api/` + `services/web/`)**: health and operational APIs plus dashboard experience.
+- **Grafana (`grafana/`)**: InfluxDB-backed observability views.
+- **nginx ingress (`infra/nginx/nginx.conf`)**: route/auth boundary in production-like topology.
 
 ## Hosted baseline and infrastructure roles
 
-### Where the stack runs
+### Hosted VM / server role
 
-The hosted baseline is designed to run on a Linux cloud VM/server substrate (DigitalOcean-style hosting is documented as an example operating context). In this model, the VM is the runtime boundary for core services and ingress policy.
+The hosted baseline runs on a Linux cloud VM/server boundary. This VM is the runtime execution boundary for ingress, API/UI surfaces, worker pipeline components, and core service dependencies.
 
-This is an implemented deployment context, not a claim of provider-managed production guarantees.
+Operationally, this boundary matters because it is where route exposure policy, runtime health, restart behavior, and deployment configuration are enforced.
 
-### Role of nginx and live domain ingress
+### DigitalOcean-style hosting role
 
-In production-like topology (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`):
+DigitalOcean-style hosting is deployment substrate context for the implemented hosted baseline. It describes where the stack runs, not an application-layer capability and not a production-readiness guarantee.
 
-- nginx terminates ingress and routes traffic by host/path policy.
-- `GET /public-health` is exposed as a narrow public-safe liveness route.
-- Operational API/dashboard routes are protected by basic auth.
-- Grafana host routing is protected by basic auth.
-- TLS/domain behavior is operator-managed through deployment configuration.
+### MongoDB Atlas compatibility role
 
-The live domain is the ingress identity boundary for hosted checks and operator access, not proof of full production readiness.
+The operational persistence contract is MongoDB-based and supports Atlas-backed operation through `MONGO_URI`.
 
-### Role of MongoDB / Atlas-backed persistence
+This indicates managed persistence compatibility for the operational record boundary; it is not a claim of managed-service guarantees beyond repository scope.
 
-Operational persistence is defined by MongoDB-backed alert lifecycle/audit records. The same application contract supports Atlas-backed operation through `MONGO_URI`.
+### Live domain and ingress identity role
 
-Atlas compatibility indicates managed persistence support for this boundary; it does not by itself claim broader managed-service guarantees beyond repository scope.
+The live domain is the external ingress identity boundary for hosted access. In production-like topology (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`), nginx enforces route-level separation:
 
-### Role of external uptime monitoring
+- public-safe `GET /public-health`
+- protected operational API/dashboard paths
+- protected Grafana host routing
 
-External uptime checks are an availability-signal layer for hosted public endpoint reachability (for example, public-safe route liveness).
+### External uptime monitoring role
 
-They do **not** prove complete internal correctness across worker processing, persistence integrity, or protected operational workflows.
+External uptime monitoring is availability-signal context for public endpoint reachability.
+
+It does **not** prove:
+
+- internal worker processing correctness
+- persistence integrity correctness
+- protected operational workflow correctness
 
 ## Deployment modes
 
-- **Local/dev**: `infra/docker-compose.dev.yml` (full dev stack, direct local exposure)
-- **Hosted baseline**: `infra/docker-compose.yml` (core hosted services)
-- **Production-like ingress**: `infra/docker-compose.prod.yml` + nginx (ingress boundary, protected operational surfaces)
+- **Local/dev** (`infra/docker-compose.dev.yml`)
+  - Includes simulator, orchestration adapter, Mosquitto, worker, API/UI, InfluxDB, MongoDB, Grafana, and Node-RED.
+  - Intended for local development and end-to-end runtime validation.
+
+- **Hosted baseline** (`infra/docker-compose.yml`)
+  - Core hosted stack: Mosquitto, worker, API, InfluxDB, MongoDB.
+  - Supports Atlas-backed persistence via `MONGO_URI`.
+
+- **Production-like ingress** (`infra/docker-compose.prod.yml` + nginx)
+  - Adds nginx ingress boundary, TLS mounting, protected routes, simulator, orchestration adapter, and Grafana.
+  - Aligns with hosted topology validation and ingress policy checks.
 
 See: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
 
 ## Security and operational boundaries
 
-Currently represented baseline controls include:
+Current baseline controls include:
 
-- ingress separation between public-safe and protected operational surfaces
-- TLS scaffolding and route protection in nginx production-like policy
-- selected rate-limiting in nginx for protected/write-sensitive paths
+- ingress segmentation between public-safe and protected surfaces
+- basic-auth protections for operational and Grafana ingress surfaces in production-like mode
+- nginx rate limits on protected routes (including acknowledgement write paths)
 - runbook and recovery/rollback procedures
-- observability baseline through API checks, logs, InfluxDB, and Grafana (where present)
+- observability baseline through API checks, logs, InfluxDB, and Grafana where available
 
-These are baseline controls, not full production-hardening completion.
+These are baseline controls, not complete production hardening.
 
-## Local verification
+## Local and hosted verification
 
-Canonical local verification path:
+Canonical local verification:
 
 ```bash
 make verify-local
 ```
 
-Production-like smoke path (hosted environment required):
+Production-like smoke verification (hosted environment required):
 
 ```bash
 ./scripts/smoke_test.sh --prod <domain> <username> <password>
@@ -105,6 +130,7 @@ Production-like smoke path (hosted environment required):
 
 - Overview: [`docs/OVERVIEW.md`](docs/OVERVIEW.md)
 - Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Architecture diagrams: [`docs/architecture-diagram.md`](docs/architecture-diagram.md)
 - Data flow: [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md)
 - Deployment: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
 - Observability: [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md)
@@ -122,8 +148,8 @@ Production-like smoke path (hosted environment required):
 
 This repository does **not** claim:
 
-- physical medical-device telemetry fleet operation
+- telemetry from physical medical-device fleets
 - certified clinical or regulated deployment status
 - complete production hardening or complete security assurance
 
-Use this repository as a production-style engineering baseline with explicit operational boundaries and evidence-based claim discipline.
+Use this repository as a production-style engineering baseline with explicit operational boundaries and conservative claim discipline.
