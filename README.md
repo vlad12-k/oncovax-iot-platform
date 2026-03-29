@@ -18,6 +18,30 @@ The repository implements a production-style architecture (MQTT transport, worke
 - Not an anonymous public operational dashboard deployment.
 - Not a claim of fully complete production hardening.
 
+## Key capabilities
+
+- Software-simulated telemetry ingestion through MQTT transport.
+- Threshold-based worker alert generation over incoming telemetry.
+- Split persistence model:
+  - InfluxDB for telemetry and alert-series time-series data.
+  - MongoDB for operational lifecycle/audit state.
+- Operational API and dashboard workflows for health, summary, alert visibility, and acknowledgement.
+- Production-like ingress model with public-safe versus protected operational route boundaries.
+- Grafana-backed observability for time-series telemetry and alert-signal interpretation.
+- Hosted baseline support across core services.
+- Atlas-backed operational persistence compatibility via `MONGO_URI`.
+
+## End-to-end workflow
+
+1. Simulator publishes software telemetry events.
+2. Mosquitto transports telemetry topics.
+3. Worker validates payloads and evaluates thresholds.
+4. InfluxDB stores telemetry and alert-series signals.
+5. MongoDB stores operational lifecycle/audit state.
+6. API/dashboard exposes operational views and acknowledgement interactions.
+7. Grafana provides observability views over InfluxDB time-series data.
+8. In production-like mode, nginx governs public-safe versus protected ingress surfaces.
+
 ## Architecture
 
 The architecture is presented with **two diagrams** to separate runtime behavior from hosted deployment context.
@@ -36,6 +60,26 @@ This diagram explains hosted deployment context: live-domain ingress identity, D
 
 Companion interpretation and legend notes: [`docs/architecture-diagram.md`](docs/architecture-diagram.md)
 
+## Hosted baseline and infrastructure roles
+
+### Hosted baseline in practice
+
+The hosted baseline runs on a Linux cloud VM/server boundary. That VM is the runtime boundary where ingress policy, service composition, restart behavior, and environment configuration are applied to the running stack.
+
+DigitalOcean-style hosting is deployment substrate context for this baseline. It describes where the workload is hosted, not an application-layer feature and not a provider-guarantee claim.
+
+The live domain is the ingress identity boundary for hosted operator and check access. In production-like topology (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`), nginx enforces route-level separation between public-safe and protected operational paths.
+
+External uptime monitoring is an availability-signal layer for hosted public endpoint reachability.
+
+It does **not** prove:
+
+- internal worker processing correctness
+- persistence integrity correctness
+- protected operational workflow correctness
+
+MongoDB Atlas compatibility is the managed persistence compatibility boundary for operational state through `MONGO_URI`. It represents supported persistence placement, not a claim of complete managed-service operational guarantees.
+
 ## System components and responsibilities
 
 - **Simulator (`services/simulator/`)**: publishes software-generated telemetry.
@@ -47,42 +91,6 @@ Companion interpretation and legend notes: [`docs/architecture-diagram.md`](docs
 - **FastAPI + dashboard (`services/api/` + `services/web/`)**: health and operational APIs plus dashboard experience.
 - **Grafana (`grafana/`)**: InfluxDB-backed observability views.
 - **nginx ingress (`infra/nginx/nginx.conf`)**: route/auth boundary in production-like topology.
-
-## Hosted baseline and infrastructure roles
-
-### Hosted VM / server role
-
-The hosted baseline runs on a Linux cloud VM/server boundary. This VM is the runtime execution boundary for ingress, API/UI surfaces, worker pipeline components, and core service dependencies.
-
-Operationally, this boundary matters because it is where route exposure policy, runtime health, restart behavior, and deployment configuration are enforced.
-
-### DigitalOcean-style hosting role
-
-DigitalOcean-style hosting is deployment substrate context for the implemented hosted baseline. It describes where the stack runs, not an application-layer capability and not a production-readiness guarantee.
-
-### MongoDB Atlas compatibility role
-
-The operational persistence contract is MongoDB-based and supports Atlas-backed operation through `MONGO_URI`.
-
-This indicates managed persistence compatibility for the operational record boundary; it is not a claim of managed-service guarantees beyond repository scope.
-
-### Live domain and ingress identity role
-
-The live domain is the external ingress identity boundary for hosted access. In production-like topology (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`), nginx enforces route-level separation:
-
-- public-safe `GET /public-health`
-- protected operational API/dashboard paths
-- protected Grafana host routing
-
-### External uptime monitoring role
-
-External uptime monitoring is availability-signal context for public endpoint reachability.
-
-It does **not** prove:
-
-- internal worker processing correctness
-- persistence integrity correctness
-- protected operational workflow correctness
 
 ## Deployment modes
 
@@ -100,6 +108,36 @@ It does **not** prove:
 
 See: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
 
+## Repository structure
+
+- `infra/` — Docker Compose topologies, ingress config, and environment templates.
+- `services/` — API, worker, simulator, and orchestration adapter service implementations.
+- `grafana/` — dashboard definitions and provisioning artifacts.
+- `docs/` — canonical architecture, deployment, observability, runbook, security, and evidence documentation.
+- `scripts/` — operational helper scripts, including smoke-test entrypoints.
+- `tests/` — repository verification and guardrail tests.
+- `demo/` — demo-facing runtime artifacts and scenario support assets.
+
+## Verification and proof surfaces
+
+Implementation-backed checks and proof surfaces include:
+
+- ingress public-safe liveness: `GET /public-health`
+- API liveness: `GET /health`
+- operational summary surface: `GET /summary`
+- operational alert visibility surface: `GET /alerts`
+- Grafana dashboards over InfluxDB time-series data
+- container/service logs across API, worker, simulator, ingress, and data services
+- runbook-driven restart, recovery, and rollback checks
+- claim-to-proof mapping in [`docs/EVIDENCE_MAP.md`](docs/EVIDENCE_MAP.md)
+
+Canonical validation entrypoints:
+
+```bash
+make verify-local
+./scripts/smoke_test.sh --prod <domain> <username> <password>
+```
+
 ## Security and operational boundaries
 
 Current baseline controls include:
@@ -112,19 +150,11 @@ Current baseline controls include:
 
 These are baseline controls, not complete production hardening.
 
-## Local and hosted verification
+## Current maturity
 
-Canonical local verification:
+This repository represents a serious production-style hosted baseline with implemented runtime services, ingress boundaries, operational documentation, and verification paths.
 
-```bash
-make verify-local
-```
-
-Production-like smoke verification (hosted environment required):
-
-```bash
-./scripts/smoke_test.sh --prod <domain> <username> <password>
-```
+It is not yet fully release-grade production infrastructure. Additional hardening, deeper application-layer security controls, and environment-specific operational assurance are still required before full production treatment.
 
 ## Documentation map
 
