@@ -195,3 +195,9 @@ This repository does **not** claim:
 - complete production hardening or complete security assurance
 
 Use this repository as a production-style engineering baseline with explicit operational boundaries and conservative claim discipline.
+
+## License and usage
+
+This repository is **source-available** and is **not** offered under a permissive open-source license.
+
+See [`LICENSE`](LICENSE) for legal terms and [`LICENSE_POLICY.md`](LICENSE_POLICY.md) for a plain-language summary.
