@@ -44,10 +44,23 @@ Start with this framing:
   - Demonstrate operational data visibility and alert workflow state exposure.
 - **Grafana dashboards**
   - Demonstrate InfluxDB-backed time-series observability (telemetry and alert trends).
+  - For visual evidence layering, prioritize live hosted screenshots in `docs/assets/live-hosted/` as the stronger hosted-runtime proof surface.
+  - Use legacy demo/staged screenshots in `demo/screenshots/` as secondary supporting visuals only.
 - **Architecture diagram**
   - Demonstrates implemented service boundaries, ingress, and persistence split.
 - **Canonical docs (deployment, runbook, recovery, security, threat model)**
   - Demonstrate operational discipline, security posture, and recovery model coverage.
+
+### Live hosted visual evidence to prioritize
+
+When presenting observability proof in walkthroughs, prioritize the deployed-baseline live hosted screenshots:
+
+- `docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png`
+- `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png`
+- `docs/assets/live-hosted/live-hosted-grafana-telemetry-ingest-points-per-minute.png`
+- `docs/assets/live-hosted/live-hosted-grafana-active-alerts-events-per-minute.png`
+
+Keep framing conservative: these visuals strengthen runtime observability evidence, but they do not replace API/log/runbook validation and do not by themselves prove full production hardening or certification.
 
 ## 5) What to say about hosting and infrastructure
 

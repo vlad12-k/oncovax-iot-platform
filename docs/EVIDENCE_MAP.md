@@ -26,6 +26,7 @@ Use the map as a truth-boundary reference. If a statement is not supported by th
   - `docs/DEPLOYMENT.md`
   - `infra/docker-compose.yml`
   - `infra/docker-compose.prod.yml`
+  - Supporting visuals: `docs/assets/live-hosted/` screenshots (hosted runtime observability context)
 - **What is demonstrated**
   - Implemented deployment patterns exist for hosted baseline and production-like ingress topology.
   - Core service topology and operator-managed deployment context are documented and implemented.
@@ -82,6 +83,7 @@ Use the map as a truth-boundary reference. If a statement is not supported by th
   - `docs/RUNBOOK.md`
   - `OPS_RUNBOOK.md`
   - API route checks: `/health`, `/summary`, `/alerts`, acknowledgement workflow references
+  - Supporting visuals: `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png` (alert activity context)
 - **What is demonstrated**
   - API endpoints exist for liveness and operational alert workflow visibility.
   - Operational checks are documented for direct/local and production-like contexts.
@@ -96,9 +98,11 @@ Use the map as a truth-boundary reference. If a statement is not supported by th
   - `infra/docker-compose.prod.yml` (Grafana + InfluxDB)
   - `README.md`
   - `grafana/` artifacts and provisioning references
+  - Supporting visuals: `docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png`, `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png`, and related panels in `docs/assets/live-hosted/`
 - **What is demonstrated**
   - InfluxDB-backed telemetry and alert-series visibility via Grafana is implemented.
   - Observability interpretation boundaries are explicitly documented.
+  - Live hosted screenshots provide conservative visual confirmation of deployed-baseline dashboard signal visibility.
 - **What is not demonstrated**
   - Exhaustive enterprise monitoring coverage.
   - Dashboard-only proof of full operational correctness.
@@ -137,6 +141,7 @@ Use the map as a truth-boundary reference. If a statement is not supported by th
   - `infra/nginx/nginx.conf` (`oncovax.live`, TLS certificate paths)
   - `docs/DEPLOYMENT.md`
   - `docs/RUNBOOK.md`
+  - Supporting visuals: live hosted Grafana panels in `docs/assets/live-hosted/` (deployed runtime context only)
 - **What is demonstrated**
   - Live-domain/TLS ingress wiring model is implemented and documented.
   - Public-safe and protected route behavior is explicitly separated in ingress policy.
@@ -166,6 +171,12 @@ The current repository baseline does **not** provide evidence for:
 - complete production hardening proof
 - complete security assurance proof
 - full internal correctness from public endpoint liveness alone
+
+Screenshot-specific boundary reminder:
+
+- Live hosted screenshots in `docs/assets/live-hosted/` are supporting visual evidence only.
+- They strengthen hosted-runtime observability claims, but they are not sole proof.
+- They do not establish full production hardening status or clinical/regulatory certification.
 
 These boundaries must be stated explicitly in walkthroughs and documentation reviews.
 

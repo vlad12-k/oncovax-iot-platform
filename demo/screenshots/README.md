@@ -2,11 +2,14 @@
 
 ## Purpose
 
-This directory contains screenshot-based demo and evidence artifacts for the repository baseline.
+This index separates two screenshot evidence classes used in this repository baseline:
 
-These images are supporting artifacts for walkthrough and review workflows. They are useful for visual context, but they are not the sole proof source.
+- **Legacy demo/staged screenshots** stored in `demo/screenshots/`
+- **Live hosted evidence screenshots** stored in `docs/assets/live-hosted/`
 
-## How to use this directory
+Both classes are supporting artifacts for walkthrough and review workflows. They are useful for visual context, but they are not the sole proof source.
+
+## How to use this index
 
 Use screenshots together with canonical docs:
 
@@ -17,7 +20,32 @@ Use screenshots together with canonical docs:
 
 Treat screenshots as supporting evidence layers. Final operational truth still depends on API checks, logs, runbook validation, and configuration-backed runtime behavior.
 
-## Screenshot categories
+## Evidence classes
+
+### A) Live hosted evidence (deployed baseline)
+
+Path: `docs/assets/live-hosted/`
+
+These screenshots are from the actually deployed, server-backed baseline and should be treated as the stronger visual evidence layer for hosted runtime observability.
+
+- `live-hosted-grafana-alert-intensity-value-minus-threshold.png`
+- `live-hosted-grafana-telemetry-ingest-points-per-minute.png`
+- `live-hosted-grafana-active-alerts-events-per-minute.png`
+- `live-hosted-grafana-devices-seen-in-window.png`
+- `live-hosted-grafana-recent-active-alerts-last-50.png`
+- `live-hosted-grafana-door-open-state-distribution.png`
+- `live-hosted-grafana-temperature-by-device.png`
+- `live-hosted-grafana-humidity-and-battery-trends.png`
+- `live-hosted-grafana-signal-strength-offline-pulse-visibility.png`
+- `live-hosted-grafana-latest-metrics-by-device.png`
+
+### B) Legacy demo/staged screenshots
+
+Path: `demo/screenshots/`
+
+These screenshots remain useful as supporting/illustrative visuals, but they are secondary to live hosted evidence when a hosted runtime claim is being presented.
+
+## Legacy demo/staged screenshot categories (`demo/screenshots/`)
 
 ### 1) Architecture / documentation visuals
 
@@ -70,12 +98,12 @@ Supports persistence/integration context and operational validation illustration
 
 ## What screenshots demonstrate
 
-Screenshots in this directory can support:
+Screenshots referenced by this index can support:
 
 - visual confirmation that interfaces and operational views exist
 - examples of observability/dashboard surfaces
 - examples of API and operational workflow interaction patterns
-- hosted-baseline evidence context for walkthrough discussions
+- hosted-baseline evidence context for walkthrough discussions (strongest when using `docs/assets/live-hosted/`)
 
 ## What screenshots do not prove
 
@@ -96,4 +124,4 @@ When adding or refreshing screenshot artifacts:
 - prefer clear, neutral, release-grade names that describe the captured surface
 - avoid process-history-oriented naming as primary evidence language
 - avoid retaining outdated screenshots as default references when newer canonical evidence exists
-- keep this index synchronized with actual files present in `demo/screenshots/`
+- keep this index synchronized with actual files in both `demo/screenshots/` and `docs/assets/live-hosted/`

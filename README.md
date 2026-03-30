@@ -138,6 +138,16 @@ make verify-local
 ./scripts/smoke_test.sh --prod <domain> <username> <password>
 ```
 
+## Live hosted observability evidence (deployed baseline)
+
+The following screenshots are from the live hosted Grafana baseline and provide visual supporting evidence for active telemetry/alert observability surfaces:
+
+![Live hosted Grafana — Temperature by device](docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png)
+
+![Live hosted Grafana — Recent active alerts (last 50)](docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png)
+
+These visuals are supporting proof layers and should be interpreted together with API checks, logs, runbook verification, and configuration-backed runtime behavior.
+
 ## Security and operational boundaries
 
 Current baseline controls include:
