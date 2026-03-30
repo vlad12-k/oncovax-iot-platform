@@ -41,6 +41,8 @@ Use these first when presenting hosted-baseline observability claims.
 - `live-hosted-grafana-signal-strength-offline-pulse-visibility.png`
 - `live-hosted-grafana-latest-metrics-by-device.png`
 
+**Verification**: The 10 files listed above account for all assets currently present in `docs/assets/live-hosted/`.
+
 ### B) Legacy demo/staged screenshots
 
 Path: `demo/screenshots/`
