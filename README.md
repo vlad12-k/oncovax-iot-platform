@@ -150,6 +150,13 @@ _Caption: Recent alert activity surface from the deployed hosted baseline._
 
 These visuals are supporting proof layers and should be interpreted together with API checks, logs, runbook verification, and configuration-backed runtime behavior.
 
+## Live walkthrough video
+
+A live hosted walkthrough of the deployed baseline is available here:  
+https://youtu.be/Q5hKVtd-a3g
+
+This video is a supporting demonstration layer and should be interpreted alongside API checks, logs, runbook validation, and documented scope boundaries.
+
 ## Security and operational boundaries
 
 Current baseline controls include:
