@@ -155,6 +155,8 @@ These visuals are supporting proof layers and should be interpreted together wit
 A live hosted walkthrough of the deployed baseline is available here:  
 [Live hosted walkthrough video](https://youtu.be/Q5hKVtd-a3g)
 
+The walkthrough demonstrates hosted ingress behavior, API proof surfaces, and observability checks in the deployed baseline context.
+
 This video is a supporting demonstration layer and should be interpreted alongside API checks, logs, runbook validation, and documented scope boundaries.
 
 ## Security and operational boundaries
