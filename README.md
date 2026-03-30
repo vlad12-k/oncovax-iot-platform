@@ -153,7 +153,7 @@ These visuals are supporting proof layers and should be interpreted together wit
 ## Live walkthrough video
 
 A live hosted walkthrough of the deployed baseline is available here:  
-https://youtu.be/Q5hKVtd-a3g
+[Live hosted walkthrough video](https://youtu.be/Q5hKVtd-a3g)
 
 This video is a supporting demonstration layer and should be interpreted alongside API checks, logs, runbook validation, and documented scope boundaries.
 
