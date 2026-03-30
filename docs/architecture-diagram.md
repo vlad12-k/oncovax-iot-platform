@@ -11,7 +11,7 @@ This split improves clarity and keeps runtime behavior distinct from hosting con
 
 ## Diagram 1: Runtime / service architecture
 
-![OncoVax Runtime Architecture](./assets/oncovax-runtime-architecture.svg)
+![OncoVax Runtime Architecture](./assets/oncovax-architecture-diagram.svg)
 
 Purpose:
 
@@ -46,7 +46,7 @@ Interpretation notes:
 
 Both diagrams are embedded as direct SVG assets with GitHub-safe relative paths from this document:
 
-- `./assets/oncovax-runtime-architecture.svg`
+- `./assets/oncovax-architecture-diagram.svg`
 - `./assets/oncovax-hosted-infrastructure-topology.svg`
 
 ## Scope and non-claims

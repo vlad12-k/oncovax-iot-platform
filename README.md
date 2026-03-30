@@ -48,7 +48,7 @@ The architecture is presented with **two diagrams** to separate runtime behavior
 
 ### 1) Runtime / service architecture
 
-![OncoVax Runtime Architecture](docs/assets/oncovax-runtime-architecture.svg)
+![OncoVax Runtime Architecture](docs/assets/oncovax-architecture-diagram.svg)
 
 This diagram explains how the system works internally: telemetry ingestion, worker processing, persistence responsibilities, API/dashboard access paths, and observability flow.
 
@@ -140,11 +140,13 @@ make verify-local
 
 ## Live hosted observability evidence (deployed baseline)
 
-The following screenshots are from the live hosted Grafana baseline and provide visual supporting evidence for active telemetry/alert observability surfaces:
+The following screenshots are from the live hosted Grafana baseline and provide visible supporting evidence for deployed observability behavior:
 
 ![Live hosted Grafana — Temperature by device](docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png)
+_Caption: Device-level temperature trends visible from the deployed hosted baseline._
 
 ![Live hosted Grafana — Recent active alerts (last 50)](docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png)
+_Caption: Recent alert activity surface from the deployed hosted baseline._
 
 These visuals are supporting proof layers and should be interpreted together with API checks, logs, runbook verification, and configuration-backed runtime behavior.
 

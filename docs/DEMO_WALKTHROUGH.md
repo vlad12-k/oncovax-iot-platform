@@ -53,7 +53,7 @@ Start with this framing:
 
 ### Live hosted visual evidence to prioritize
 
-When presenting observability proof in walkthroughs, prioritize the deployed-baseline live hosted screenshots:
+When presenting observability proof in walkthroughs, use the deployed-baseline live hosted screenshots as the preferred visual layer before any legacy demo/staged visuals:
 
 - `docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png`
 - `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png`

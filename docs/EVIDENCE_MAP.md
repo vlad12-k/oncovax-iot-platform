@@ -98,7 +98,7 @@ Use the map as a truth-boundary reference. If a statement is not supported by th
   - `infra/docker-compose.prod.yml` (Grafana + InfluxDB)
   - `README.md`
   - `grafana/` artifacts and provisioning references
-  - Supporting visuals: `docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png`, `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png`, and related panels in `docs/assets/live-hosted/`
+  - Supporting visuals (preferred visual layer for deployed baseline): `docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png`, `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png`, and related panels in `docs/assets/live-hosted/`
 - **What is demonstrated**
   - InfluxDB-backed telemetry and alert-series visibility via Grafana is implemented.
   - Observability interpretation boundaries are explicitly documented.

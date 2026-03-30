@@ -28,6 +28,8 @@ Path: `docs/assets/live-hosted/`
 
 These screenshots are from the actually deployed, server-backed baseline and should be treated as the stronger visual evidence layer for hosted runtime observability.
 
+Use these first when presenting hosted-baseline observability claims.
+
 - `live-hosted-grafana-alert-intensity-value-minus-threshold.png`
 - `live-hosted-grafana-telemetry-ingest-points-per-minute.png`
 - `live-hosted-grafana-active-alerts-events-per-minute.png`
@@ -44,6 +46,8 @@ These screenshots are from the actually deployed, server-backed baseline and sho
 Path: `demo/screenshots/`
 
 These screenshots remain useful as supporting/illustrative visuals, but they are secondary to live hosted evidence when a hosted runtime claim is being presented.
+
+Use these as secondary visuals only after showing live hosted evidence.
 
 ## Legacy demo/staged screenshot categories (`demo/screenshots/`)
 
