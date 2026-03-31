@@ -2,4 +2,4 @@
 
 This directory contains scenario configuration templates for telemetry simulation.
 
-Phase A provides placeholders only; runtime simulator code is not changed in this phase.
+This directory currently provides scenario templates only; runtime simulator behavior is controlled by existing simulator code.

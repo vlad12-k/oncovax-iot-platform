@@ -11,6 +11,6 @@ Planned tests (to be implemented):
 4. Excursion rule triggers an alert event when thresholds + duration are met.
 5. Audit event is recorded for alert acknowledgement (later, MongoDB/Atlas).
 
-How to run (placeholder):
-- `make up`
-- `make test-integration`
+How to run (planned):
+- `make verify-local` (current canonical local verification entrypoint)
+- integration-specific test command is not implemented in this repository baseline
