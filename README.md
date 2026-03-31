@@ -1,5 +1,7 @@
 # OncoVax IoT Platform
 
+![OncoVax Logo](docs/assets/logo-final/oncovax-logo-lockup.svg)
+
 OncoVax is an event-driven cold-storage monitoring platform baseline that demonstrates software-telemetry ingestion, threshold-based alerting, operational APIs, and observability in a hosted deployment context.
 
 The repository implements a production-style architecture (MQTT transport, worker processing, time-series storage, operational persistence, API/dashboard delivery, and ingress controls) while keeping scope boundaries explicit: telemetry is software-simulated, this is not certified clinical infrastructure, and additional hardening is required before full release-grade production treatment.
