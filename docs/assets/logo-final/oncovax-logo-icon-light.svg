@@ -1,0 +1,8 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OncoVax final icon light">
+  <rect width="256" height="256" fill="#FFFFFF"/>
+  <circle cx="128" cy="128" r="82" stroke="#0F172A" stroke-width="12"/>
+  <path d="M90 92L128 160L166 92" stroke="#334155" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="90" cy="92" r="4.5" fill="#0F172A"/>
+  <circle cx="128" cy="160" r="4.5" fill="#0F172A"/>
+  <circle cx="166" cy="92" r="4.5" fill="#0F172A"/>
+</svg>
