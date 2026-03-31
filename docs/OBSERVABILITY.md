@@ -1,139 +1,151 @@
-# Observability – OncoVax IoT Monitoring Platform
+# Observability Guide
 
-## Overview
+## 1) Observability intent
 
-This document describes the current observability baseline for the OncoVax IoT Monitoring Platform. It covers logging, health checking, metrics visibility, and alert monitoring.
+This document defines the canonical observability model for the OncoVax repository baseline.
 
----
+Observability in this repository provides baseline operational visibility for:
 
-## Health Checks
+- telemetry activity
+- alert-series activity
+- service health checks
+- ingress liveness checks
 
-### API Service
+This is a practical baseline for engineering and operations workflows, not a claim of complete monitoring maturity.
 
-The FastAPI service exposes a health endpoint:
+## 2) Observability components
 
-```
-GET /health
-→ {"status": "ok"}
-```
+### InfluxDB (time-series source)
 
-The Docker Compose healthcheck configuration polls this endpoint every 30 seconds:
+InfluxDB is the primary time-series observability source for:
 
-```yaml
-healthcheck:
-  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-  interval: 30s
-  timeout: 10s
-  retries: 5
-  start_period: 10s
-```
+- telemetry measurements
+- alert-series measurements
 
-### InfluxDB
+### Grafana (observability surface)
 
-InfluxDB exposes its own health endpoint:
+Grafana provides dashboard-based visibility using InfluxDB-backed time-series data.
 
-```
-GET http://localhost:8086/health
-→ {"name":"influxdb","message":"ready for queries and writes","status":"pass",...}
-```
+### API verification surfaces
 
-### Smoke Test
+Operational verification also relies on API checks:
 
-A smoke test script is provided at `scripts/smoke_test.sh`. It checks:
-- Docker container running state
-- InfluxDB health endpoint
-- Grafana login page availability
-- API health endpoint
-- MongoDB container reachability
+- `GET /health`
+- `GET /summary`
+- `GET /alerts`
 
-Run it after deployment:
+These checks validate operational behavior that dashboards alone do not fully prove.
 
-```bash
-./scripts/smoke_test.sh
-```
+### nginx public-health ingress visibility
 
----
+In production-like ingress mode, nginx exposes `GET /public-health` as a narrow public-safe liveness route.
 
-## Logging
+### External uptime monitoring
 
-### API Service
+Operator-managed external uptime monitoring can continuously check public endpoint reachability for the hosted baseline domain.
 
-The FastAPI service logs are emitted to stdout by uvicorn and captured by Docker. To view:
+## 3) What Grafana shows
 
-```bash
-docker compose logs -f api
-```
+Current Grafana coverage is primarily InfluxDB-driven and supports:
 
-Default uvicorn log format includes request method, path, status code, and response time.
+- telemetry trends over time
+- alert-series visibility and trend signals
+- metric-oriented panels for operational monitoring windows
 
-### Worker Service
+Grafana is therefore useful for time-series signal visibility and trend interpretation across recent system behavior.
 
-The worker logs:
-- MQTT connection events
-- Each received telemetry message (device_id, metric, value)
-- Schema validation failures
-- Threshold breaches detected
-- InfluxDB write confirmations
-- MongoDB write confirmations
+## 4) What Grafana does not represent
 
-```bash
-docker compose logs -f worker
-```
+Grafana does not represent the full operational source of truth.
 
-### Simulator
+Specifically:
 
-The simulator logs each published message to stdout.
+- Grafana is not the MongoDB lifecycle/audit truth boundary
+- Grafana is not a substitute for API/runbook verification checks
+- Grafana is not a claim of enterprise-grade monitoring completeness
 
-```bash
-docker compose logs -f simulator
-```
+Operational alert lifecycle and acknowledgement truth remains API/MongoDB backed.
 
----
+## 5) External uptime monitoring
 
-## Metrics and Time-Series Visibility
+External uptime monitoring in this repository context is used for public-safe ingress reachability checks.
 
-### InfluxDB
+What it validates:
 
-All telemetry and alert records are stored in InfluxDB under the `telemetry` bucket:
-- Measurement: `telemetry` – raw device readings (device_id, metric, value, unit)
-- Measurement: `alerts` – threshold breach events
+- the live public endpoint is reachable from outside the deployment perimeter
+- the public-safe health route responds as expected
 
-Access the InfluxDB UI at `http://localhost:8086` (dev) to explore data with the built-in Data Explorer.
+What it does not validate:
 
-### Grafana
+- full internal service correctness across worker, persistence, and operational API workflows
+- protected-route behavior requiring authenticated operational checks
+- complete incident-detection coverage for all failure modes
 
-Grafana (dev stack only) is configured at `http://localhost:3000`.
+Treat uptime monitoring as one observability layer within an operator-managed monitoring posture.
 
-To view telemetry:
-1. Add InfluxDB as a data source (URL: `http://influxdb:8086`, token from `.env`)
-2. Create panels to visualise temperature readings and alert markers
+## 6) Environment differences
 
-Note: Grafana panels will show **No data** if no telemetry has been produced in the selected time window. This reflects the data state, not a system failure.
+Observability behavior differs by deployment mode.
 
----
+### Local/dev (`infra/docker-compose.dev.yml`)
 
-## Alert Monitoring
+- includes InfluxDB and Grafana with direct local port exposure
+- includes full local service visibility and local log inspection paths
+- useful for dashboard iteration and end-to-end telemetry/alert inspection
 
-Excursion alerts are visible through:
+### Hosted baseline (`infra/docker-compose.yml`)
 
-1. **Operational Dashboard** at `http://localhost:8000`
-   - Summary cards (total / acknowledged / unacknowledged)
-   - Alert table with filter and search
-   - Acknowledgement workflow via modal
+- includes core services and InfluxDB
+- does not include Grafana in this compose mode by default
+- relies on API checks, container health/status, logs, and operator-managed monitoring integrations
 
-2. **API endpoints** (for programmatic access):
-   - `GET /summary` – counts by acknowledgement state
-   - `GET /alerts` – list with optional filter
-   - `GET /alerts/{id}` – individual alert detail
+### Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
 
----
+- includes InfluxDB and Grafana
+- nginx provides ingress boundaries, including public-safe `GET /public-health`
+- Grafana is a protected operational surface behind nginx basic-auth host routing
+- protected API checks and runbook workflows remain required in addition to dashboard visibility
 
-## Current Limitations
+## 7) Operational verification path
 
-- No centralised log aggregation (e.g., no ELK or Loki stack)
-- No alerting on service downtime (no uptime monitor or pager)
-- Health check at `/health` does not yet verify MongoDB reachability
-- No distributed tracing
-- No Prometheus metrics endpoint
+Use runbook-aligned checks as the canonical verification path.
 
-These are appropriate for the current MVP and hosted baseline scope. Production hardening would require expanding this layer.
+### Public ingress check
+
+- `GET /public-health` through nginx to validate public-safe ingress liveness
+
+### Internal API checks
+
+- `GET /health`
+- `GET /summary`
+- `GET /alerts` (or constrained alert listing checks)
+
+### Service state checks
+
+- container logs for API/worker/nginx/simulator
+- compose service status and health state checks
+
+Canonical procedural references:
+
+- `docs/RUNBOOK.md`
+- `OPS_RUNBOOK.md`
+
+## 8) Observability limitations
+
+Current observability limitations include:
+
+- dashboard maturity is evolving and should not be interpreted as exhaustive monitoring coverage
+- monitoring is useful for baseline operations but is not exhaustive across all failure classes
+- external uptime monitoring validates only one layer (public endpoint availability)
+- the repository does not provide a full enterprise incident-detection platform
+- observability tooling is not a substitute for disciplined human operational execution
+
+## 9) Non-claims
+
+Current observability support does not claim:
+
+- physical medical device observability coverage
+- certified clinical monitoring status
+- fully hardened production monitoring completeness
+
+Telemetry remains software-simulated in this repository runtime, and observability outcomes depend on correct operator-managed deployment and monitoring configuration.

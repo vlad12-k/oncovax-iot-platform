@@ -1,159 +1,188 @@
-# Threat Model – OncoVax IoT Monitoring Platform
+# Threat Model
 
-## Scope
+## 1) Threat model intent
 
-This document describes the current threat model for the OncoVax IoT Monitoring Platform in its MVP and hosted prototype baseline. It is not a formal security audit. It is intended to document known risks, current mitigations, and areas requiring strengthening before any production use.
+This document defines a practical threat model for the OncoVax repository baseline.
 
----
+It describes security-relevant boundaries, realistic threat categories, current mitigations, and known residual risks for the implemented architecture.
 
-## System Boundaries
+The model reflects a production-style hosted baseline and production-like ingress pattern, not fully hardened production assurance.
 
-```
-[Simulator] → MQTT(1883) → [Mosquitto] → [Worker] → [InfluxDB / MongoDB]
-                                                           ↑
-                                                    [FastAPI :8000]
-                                                           ↑
-                                              [Browser / Operator Dashboard]
-```
+## 2) System boundaries
 
-External:
-- MongoDB Atlas (cloud-managed, TLS enforced by Atlas)
-- DigitalOcean Droplet (Linux VM, public IP)
+The current threat model covers these implemented system components and infrastructure contexts:
 
----
+- simulator (`services/simulator/`)
+- MQTT broker (Mosquitto)
+- worker (`services/worker/`)
+- InfluxDB (time-series store)
+- MongoDB or Atlas-backed persistence (`MONGO_URI`)
+- API service (`services/api/`)
+- dashboard/UI (`services/web/` served by API)
+- Grafana (`grafana/`)
+- nginx ingress (`infra/nginx/nginx.conf` in production-like mode)
+- live domain and external uptime monitoring as operator-managed infrastructure context
 
-## Trust Zones
+Scope notes:
 
-| Zone | Trust Level | Notes |
-|---|---|---|
-| Docker internal network | High | Services communicate over Docker bridge network |
-| MongoDB Atlas | High | Managed; TLS enforced; network access IP-whitelisted |
-| DigitalOcean Droplet | Medium | Requires firewall and hardening |
-| Public internet facing API | Low | Currently unauthenticated |
-| Operator browser | Low | No session management yet |
+- Telemetry in this repository runtime is software-simulated.
+- The repository models a hosted operational baseline and ingress controls, with explicit maturity limits.
 
----
+## 3) Trust boundaries
 
-## Threat Catalogue
+### 3.1 Public-safe route boundary
 
-### T1 – Unauthenticated API Access
+In production-like ingress mode, nginx exposes `GET /public-health` without basic auth as a narrow liveness route.
 
-**Description:** The FastAPI service is currently unauthenticated. Any client with network access can read all alerts, read alert details, and POST acknowledgements.
+This path is intentionally limited and should not be treated as a complete security or correctness boundary by itself.
 
-**Impact:** Unauthorised alert acknowledgement; data exfiltration of audit records.
+### 3.2 Protected operational surfaces
 
-**Current mitigation:** Network-layer restriction (DigitalOcean firewall rules); no public-facing exposure beyond intended operator scope.
+Current nginx policy protects operational routes through basic auth:
 
-**Residual risk:** High. Authentication must be added before broader production use.
+- `location /` (API/dashboard operational surface)
+- acknowledgement route pattern `^/alerts/.*/acknowledge$`
+- Grafana host routing
 
-**Planned mitigation:** Add API key or session-based authentication.
+### 3.3 Ingress-layer protections vs app-layer limits
 
----
+Current protection is primarily ingress-layer driven (TLS scaffolding, route segmentation, basic auth, selected rate limits).
 
-### T2 – MQTT Broker Allows Anonymous Connections
+Application-layer authentication/authorization (first-class API auth and RBAC) remains incomplete.
 
-**Description:** Mosquitto is configured with `allow_anonymous true`. Any client that can reach port 1883 can publish arbitrary telemetry messages.
+### 3.4 Persistence boundaries
 
-**Impact:** An attacker could inject malicious telemetry, trigger false excursion alerts, or flood the audit collection.
+- InfluxDB: telemetry and alert-series measurements.
+- MongoDB/Atlas: operational lifecycle and audit records used by API workflows.
 
-**Current mitigation:** Schema validation in the worker rejects malformed messages. MQTT port not publicly exposed in production.
+Risk posture depends on correct connectivity, credential handling, and exposure configuration for both stores.
 
-**Residual risk:** Medium. A crafted but schema-valid message could create false audit records.
+## 4) Threat categories
 
-**Planned mitigation:** Enable MQTT authentication (username/password or TLS client certificates). Restrict port 1883 to internal Docker network only.
+### 4.1 Unauthorized ingress access
 
----
+Threat:
 
-### T3 – Sensitive Configuration in Environment Variables
+- Unauthorized access attempts against protected API/dashboard and Grafana routes.
 
-**Description:** InfluxDB tokens, MongoDB URIs, and Grafana credentials are passed via environment variables. If the `.env` file is accidentally committed or if a container is compromised, credentials are exposed.
+Potential impact:
 
-**Current mitigation:** `.gitignore` excludes `.env` files. `.env.example` contains only placeholder values.
+- Unauthorized operational visibility or write actions if protections are bypassed or credentials are weak.
 
-**Residual risk:** Medium. Depends on operator discipline not to commit real values.
+### 4.2 Credential exposure / weak secret hygiene
 
-**Planned mitigation:** Use a secrets manager (e.g., Docker secrets, HashiCorp Vault, cloud provider secrets) for production.
+Threat:
 
----
+- Exposure of `.env` credentials/tokens or weak credential rotation practices.
 
-### T4 – Hardcoded Dev Credentials in Compose Files
+Potential impact:
 
-**Description:** `docker-compose.dev.yml` contains example values for InfluxDB and Grafana admin passwords. If operators do not rotate these, the dev stack may be deployed with weak credentials.
+- Unauthorized service/database access and lateral compromise of operational surfaces.
 
-**Current mitigation:** Values are documented as examples and marked for replacement in `.env.example`.
+### 4.3 Misconfigured public exposure
 
-**Residual risk:** Low for dev; High if deployed to internet-facing hosts without rotation.
+Threat:
 
-**Planned mitigation:** Enforce credentials-via-env-file only; remove hardcoded fallbacks from compose files.
+- Incorrect firewall/perimeter/domain/TLS configuration exposing routes or ports more broadly than intended.
 
----
+Potential impact:
 
-### T5 – No TLS for Internal API Communication
+- Expanded attack surface, unauthorized probing, and higher abuse risk.
 
-**Description:** The FastAPI service and MQTT broker communicate without TLS inside the Docker network. If exposed directly to the internet, traffic is unencrypted.
+### 4.4 Telemetry/message tampering in deployment context
 
-**Current mitigation:** A production-like reverse-proxy/TLS scaffold exists (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`, documented in `docs/DEPLOYMENT.md`), but it has not been fully validated as hardened live production.
+Threat:
 
-**Residual risk:** Medium. TLS must be configured and certificates provisioned before any internet-facing exposure.
+- Unauthorized or untrusted publishers injecting or replaying MQTT messages in reachable network contexts.
 
-**Planned mitigation:** Use nginx + Let's Encrypt (certbot) for TLS termination and validate hardening. See `infra/nginx/nginx.conf`.
+Potential impact:
 
----
+- False telemetry, misleading alert signals, operational confusion, and noisy incident handling.
 
-### T6 – MongoDB Atlas Network Access
+### 4.5 Persistence/connectivity failures
 
-**Description:** Atlas allows IP-whitelisting. If the whitelist is too broad (e.g., `0.0.0.0/0`), any client can attempt to connect.
+Threat:
 
-**Current mitigation:** Atlas default configuration requires a connection from an allowlisted IP.
+- MongoDB/Atlas or InfluxDB connectivity faults, credential mismatches, or degraded persistence availability.
 
-**Residual risk:** Medium. Allowlist must be restricted to Droplet IP only.
+Potential impact:
 
-**Planned mitigation:** Pin Atlas network access to the Droplet's static IP. Rotate Atlas credentials if IP changes.
+- Data loss windows, partial operational visibility, failed alert lifecycle operations, and unreliable summaries.
 
----
+### 4.6 Observability blind spots / misleading health signals
 
-### T7 – No Rate Limiting on API Endpoints
+Threat:
 
-**Description:** There is no rate limiting on the FastAPI service. A malicious client could flood `/alerts/{id}/acknowledge` or other endpoints.
+- Reliance on narrow liveness checks or dashboard snapshots without internal verification.
 
-**Current mitigation:** None at application layer. Network-level restrictions partially mitigate.
+Potential impact:
 
-**Residual risk:** Low in current deployment scope. Higher as exposure increases.
+- False confidence in system correctness while internal processing or persistence is degraded.
 
-**Planned mitigation:** Add rate limiting middleware (e.g., `slowapi`) or configure nginx rate limiting.
+### 4.7 Operator error / configuration drift
 
----
+Threat:
 
-### T8 – Grafana Admin Password
+- Drift in compose, nginx, credentials, firewall rules, or domain/TLS configuration over time.
 
-**Description:** Grafana is deployed with a configurable admin password via env. Default in dev compose files is an example value.
+Potential impact:
 
-**Current mitigation:** Not exposed publicly in dev. Grafana port (3000) should be restricted by firewall in hosted deployments.
+- Security control regressions, availability incidents, or unintended public exposure.
 
-**Residual risk:** Low for dev. Medium for hosted instances with open firewall.
+## 5) Current mitigations
 
-**Planned mitigation:** Restrict Grafana port to internal access only in production. Rotate admin credentials.
+The repository currently provides these baseline mitigations:
 
----
+- basic-auth protection for protected API/dashboard routes and Grafana (nginx policy)
+- TLS scaffolding in production-like ingress path (certificate mounts and HTTPS routing)
+- nginx rate limiting on selected protected/write paths:
+  - general protected traffic (`oncovax_general_limit`)
+  - acknowledgement write route (`oncovax_write_limit`)
+- narrow public-safe route exposure (`/public-health`) rather than broad anonymous operational access
+- documented restart/recovery procedures (deployment and runbook guidance)
+- canonical operational verification path for post-change checks (`docs/RUNBOOK.md`)
 
-## Summary Risk Table
+These mitigations are useful baseline controls, not complete hardening.
 
-| ID | Threat | Current Risk | Mitigated by Planned Action |
-|---|---|---|---|
-| T1 | Unauthenticated API | High | Add API authentication |
-| T2 | Anonymous MQTT | Medium | MQTT auth + port restriction |
-| T3 | Env var secrets | Medium | Secrets manager |
-| T4 | Dev hardcoded creds | Low–High | Env-file-only credentials |
-| T5 | No TLS | Medium | nginx + Let's Encrypt |
-| T6 | Atlas network access | Medium | IP whitelist restriction |
-| T7 | No rate limiting | Low | Rate limiting middleware/nginx |
-| T8 | Grafana password | Low–Medium | Firewall + credential rotation |
+## 6) Known residual risks
 
----
+Residual risks that remain material:
 
-## Out of Scope (Current Baseline)
+- incomplete application-layer authentication/authorization and RBAC
+- environment-file-based secret handling limitations compared to dedicated secrets systems
+- dependence on operator-managed perimeter/domain/TLS/firewall correctness
+- `public-health` reachability does not prove full internal service correctness
+- observability stack is not a full enterprise detection/response platform
+- environment-specific risk differences can create unsafe assumption carryover across dev/hosted/production-like modes
 
-- Patient data handling (no patient data in this system)
-- Code signing or supply chain security
-- Full penetration test
-- Formal regulatory compliance assessment
+## 7) Environment differences
+
+### 7.1 Local/dev risk posture (`infra/docker-compose.dev.yml`)
+
+- broad direct port exposure for local iteration
+- includes additional dev/demo surfaces
+- hardcoded dev-oriented defaults exist in compose for local convenience
+- unsuitable as-is for internet-facing deployment
+
+### 7.2 Hosted baseline risk posture (`infra/docker-compose.yml`)
+
+- core services exposed by compose without nginx ingress boundary by default
+- operator controls (firewall/perimeter/credentials) are primary risk reducers
+- supports Atlas-backed persistence with associated credential and network posture responsibilities
+
+### 7.3 Production-like ingress risk posture (`infra/docker-compose.prod.yml` + nginx)
+
+- adds ingress segmentation, TLS scaffolding, and basic-auth route protection
+- includes selected nginx rate limits on protected/write paths
+- still depends on strong operator execution (credential quality, firewall scope, TLS lifecycle, configuration discipline)
+- improves baseline posture but does not eliminate residual risks listed above
+
+## 8) Out-of-scope / non-claims
+
+This threat model does not claim:
+
+- physical medical device fleet threat coverage in repository runtime
+- clinical/regulatory certification status
+- complete production hardening or formal security assurance completion
+
+This is a conservative, engineering-grade baseline threat model for current repository implementation and deployment patterns.

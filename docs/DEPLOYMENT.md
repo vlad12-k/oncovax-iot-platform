@@ -1,289 +1,208 @@
-# Deployment Guide – OncoVax IoT Monitoring Platform
+# Deployment Guide
 
-## Overview
+## 1) Deployment intent
 
-This guide covers three distinct deployment modes:
+This document defines the canonical deployment model for the OncoVax repository baseline.
 
-1. **Local full-stack development** (all services on one machine via `docker-compose.dev.yml`).
-2. **Hosted baseline** on a DigitalOcean Droplet with **MongoDB Atlas** for audit data (API + dashboard hosted, Atlas-backed persistence).
-3. **Production-like deployment** using `docker-compose.prod.yml` with **nginx + TLS scaffold**.
+The repository supports three deployment patterns:
 
-Each mode is intentionally scoped; none represent a fully hardened, audited production deployment.
+- local/dev deployment
+- hosted baseline deployment
+- production-like ingress deployment using nginx
 
----
+Deployment support is practical and operationally useful, but it is not a claim of fully hardened production readiness.
 
-## Prerequisites
+## 2) Deployment modes
 
-- Docker and Docker Compose installed
-- Git
-- `curl` available for smoke tests
-- For Atlas: a MongoDB Atlas cluster and connection string
-- For hosted baseline: a DigitalOcean Droplet (Ubuntu 22.04 LTS recommended) with Docker installed
+### Local/dev (`infra/docker-compose.dev.yml`)
 
----
+Full local stack for development, testing, and operational workflow validation.
 
-## 1) Local Full-Stack Development (Docker Compose Dev)
+### Hosted baseline (`infra/docker-compose.yml`)
 
-This mode runs **all services locally**, including MongoDB and InfluxDB.
+Core hosted stack for MQTT transport, worker processing, API, and persistence services.
 
-### 1. Clone the repository
+### Production-like ingress path (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`)
 
-```bash
-git clone https://github.com/vlad12-k/oncovax-iot-platform.git
-cd oncovax-iot-platform
-```
+Hosted stack with nginx reverse proxy, TLS certificate mounting, and protected ingress routing for operational surfaces.
 
-### 2. Configure environment
+## 3) What each mode includes
 
-```bash
-cp infra/.env.example infra/.env
-# Edit infra/.env and fill in real values
-```
+### Local/dev mode
 
-Key variables to set:
-- `INFLUX_TOKEN` – a secure random string (generate with `openssl rand -hex 32`)
-- `DOCKER_INFLUXDB_INIT_PASSWORD` – InfluxDB admin password
-- `DOCKER_INFLUXDB_INIT_ADMIN_TOKEN` – must match `INFLUX_TOKEN`
-- `GF_SECURITY_ADMIN_PASSWORD` – Grafana admin password
+Services included:
 
-### 3. Start the dev stack
+- mosquitto
+- influxdb
+- mongodb
+- api
+- worker
+- simulator
+- orchestration-adapter
+- grafana
+- nodered
 
-```bash
-docker compose -f infra/docker-compose.dev.yml up -d --build
-```
+Exposure characteristics:
 
-This starts: Mosquitto, InfluxDB, MongoDB, FastAPI, Node-RED, Grafana.
+- service ports are directly exposed for local iteration (`1883`, `8086`, `27017`, `8000`, `3000`, `1880`)
+- direct local access does not represent production-like ingress protections
 
-Node-RED in this stack is **optional dev/demo tooling** for demo orchestration artifacts only.
-It is not required for ingestion correctness.
+Primary use:
 
-### 4. Verify services
+- development, troubleshooting, and local end-to-end verification
 
-```bash
-./scripts/smoke_test.sh
-```
+### Hosted baseline mode
 
-Or check individually:
+Services included:
 
-```bash
-curl -s http://localhost:8000/health     # API
-curl -s http://localhost:8086/health     # InfluxDB
-curl -I http://localhost:3000/login      # Grafana
-```
+- mosquitto
+- influxdb
+- mongodb
+- api
+- worker
 
-### 5. Access the dashboard
+Exposure characteristics:
 
-Open `http://localhost:8000` in a browser.
+- core service ports are exposed by compose for hosted operation
+- no nginx ingress boundary in this mode by default
 
-### 6. Generate test data
+Primary use:
 
-```bash
-docker compose -f infra/docker-compose.dev.yml up simulator
-```
+- baseline hosted deployment of canonical ingestion/processing/API path
 
-The simulator publishes telemetry once per second and injects occasional excursion spikes.
+### Production-like ingress mode
 
----
+Services included:
 
-## 2) Hosted Baseline (DigitalOcean + MongoDB Atlas optional)
+- mosquitto
+- influxdb
+- mongodb
+- api
+- worker
+- simulator
+- orchestration-adapter
+- grafana
+- nginx
 
-This hosted baseline runs the **core live pipeline** on a Droplet:
+Exposure characteristics:
 
-- `mosquitto` for MQTT transport
-- `worker` for telemetry ingestion and alert/audit generation
-- `api` + dashboard UI
-- `influxdb` for telemetry storage
-- `mongodb` (local, started by default in base compose) for audit events
-- optional MongoDB Atlas target via `MONGO_URI`
+- external ingress through nginx on ports `80` and `443`
+- API runs behind nginx (API port is internal `expose`, not host-published)
+- route and host-level access control is applied through nginx policy
 
-### 1. Provision the Droplet
+Primary use:
 
-- Ubuntu 22.04 LTS, minimum 1 vCPU / 1 GB RAM
-- Enable firewall: allow ports 22 (SSH), 8000 (API), 80/443 (if nginx is used)
-- Add your SSH key
+- production-style topology validation with protected operational ingress behavior
 
-### 2. Install Docker on the Droplet
+## 4) Configuration model
 
-```bash
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-```
+Configuration is environment-variable driven.
 
-### 3. Deploy the application
+### `.env` and environment variables
 
-```bash
-git clone https://github.com/vlad12-k/oncovax-iot-platform.git
-cd oncovax-iot-platform
-cp infra/.env.example infra/.env
-# Edit infra/.env:
-# - Set MONGO_URI to your MongoDB Atlas SRV connection string
-# - Set INFLUX_TOKEN, passwords, etc.
-```
+- hosted baseline and production-like compose files use `env_file: .env`
+- use `infra/.env.example` as the configuration template
+- do not commit real credentials or private tokens
 
-Start the base stack:
+### MongoDB configuration (`MONGO_URI`)
 
-```bash
-docker compose -f infra/docker-compose.yml up -d --build
-```
+- API and worker operational persistence use `MONGO_URI`
+- local MongoDB is used by default in compose stacks that include `mongodb`
+- Atlas-backed persistence is supported by supplying an Atlas URI in `MONGO_URI`
 
-**Notes:**
-- In the default base path (`infra/docker-compose.yml`), local `mongodb` still starts and `api`/`worker` still declare `depends_on: mongodb`.
-- Atlas can still be used by setting `MONGO_URI` to an Atlas connection string.
-- An Atlas-only runtime (without local `mongodb`) requires a separate compose variant or override; it is not the default base compose path.
+### InfluxDB configuration
 
-### 4. Configure MongoDB Atlas
+- worker requires `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_BUCKET`, and `INFLUX_TOKEN`
+- dev compose initializes InfluxDB with explicit setup variables in compose
+- hosted and production-like deployment expect InfluxDB settings through `.env`
 
-1. Create a cluster in MongoDB Atlas
-2. Create a database user with read/write access to the `oncovax` database
-3. Whitelist the Droplet's IP address in Atlas → Network Access
-4. Copy the SRV connection string and set it as `MONGO_URI` in your `.env`
+### Grafana/admin configuration
 
-### 5. Verify
+- dev compose sets Grafana admin credentials directly in compose for local use
+- production-like compose loads Grafana credentials and settings from `.env`
+- Grafana is an operational surface and should remain protected in hosted ingress deployments
 
-```bash
-curl http://<droplet-ip>:8000/health
-curl http://<droplet-ip>:8000/summary
-```
+### nginx, TLS, and basic-auth configuration
 
----
+Production-like ingress expects:
 
-## 3) Production-Like Deployment (nginx + TLS Scaffold)
+- valid nginx config at `infra/nginx/nginx.conf`
+- `.htpasswd` mounted for protected route access control
+- TLS material mounted from host (`/etc/letsencrypt`) as configured in compose
+- domain names, certificate paths, and auth credentials managed by the operator
 
-For a production-like setup with HTTPS, use `infra/docker-compose.prod.yml` and the included nginx configuration. This stack is **TLS-ready** but not fully hardened for live production.
+## 5) Ingress and route exposure
 
-### 1. Configure your domain
+In production-like mode, route exposure is defined by nginx policy.
 
-Point your domain's A record to the Droplet's public IP.
+### Public-safe route
 
-### 2. Configure nginx
+- `GET /public-health` is exposed without basic auth
+- this route is intentionally narrow and intended for health-style checks only
+- perimeter controls should still constrain this path in internet-facing deployments (for example firewall allowlists, cloud load-balancer/CDN/WAF request controls, and narrow exposure policy)
 
-`infra/nginx/nginx.conf` in this repository represents the live OncoVax wiring:
+### Protected operational API/dashboard routes
 
-- `server_name oncovax.live www.oncovax.live;`
-- `ssl_certificate /etc/letsencrypt/live/oncovax.live/fullchain.pem;`
-- `ssl_certificate_key /etc/letsencrypt/live/oncovax.live/privkey.pem;`
+- operational API and dashboard routes behind `location /` are basic-auth protected
+- acknowledgement route pattern is separately protected and write-rate limited (`limit_req zone=oncovax_write_limit burst=5 nodelay`; zone rate `3r/m` in `infra/nginx/nginx.conf`)
 
-If you deploy to a different domain, update server_name and both certificate paths together.
+### Protected Grafana route
 
-### 2a. Configure Basic Auth credentials
+- Grafana host routing (`grafana.<domain>`) is basic-auth protected in nginx
 
-This production-like stack protects `location /` and alert acknowledgment endpoints with HTTP Basic Auth.
-Generate the password file on the host:
+### Environment note
 
-```bash
-sudo apt install apache2-utils
-htpasswd -c ./infra/nginx/.htpasswd oncovax-operator
-```
+- direct API access in local/dev or base hosted mode does not provide the same route protection model as nginx ingress mode
 
-The file is mounted by `infra/docker-compose.prod.yml` at `/etc/nginx/conf.d/.htpasswd`.
+## 6) Hosted baseline guidance
 
-### 3. Provision TLS certificates
+Hosted baseline is implemented and supported as a practical operational deployment pattern.
 
-TLS certificates are **not** automatically provisioned. Options:
+Key properties:
 
-**Option A – Let's Encrypt (certbot, recommended for internet-facing deployments):**
+- canonical MQTT -> worker -> InfluxDB + MongoDB/API path is preserved
+- Atlas-backed operational persistence is supported through `MONGO_URI`
+- domain, TLS certificate lifecycle, firewall scope, and credential policy are operator-managed
 
-```bash
-# Install certbot on the host
-sudo apt install certbot
+Hosted baseline should be treated as an operational reference baseline, not as a claim of full production hardening.
 
-# Obtain certificate (standalone mode, port 80 must be open)
-sudo certbot certonly --standalone -d oncovax.live -d www.oncovax.live
+## 7) Operational validation
 
-# Certificates will be at:
-# /etc/letsencrypt/live/oncovax.live/fullchain.pem
-# /etc/letsencrypt/live/oncovax.live/privkey.pem
-```
+Use runbook-aligned checks after deployment and after operational changes.
 
-Update `infra/docker-compose.prod.yml` nginx volume mounts to point to these paths.
+### Core health and API checks
 
-**Option B – Self-signed (internal / development testing only):**
+- `GET /health` for API liveness
+- `GET /summary` for operational data availability
+- `GET /alerts` for alert visibility checks
 
-```bash
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout infra/nginx/certs/server.key \
-  -out infra/nginx/certs/server.crt
-```
+### Ingress checks (production-like)
 
-### 4. Start the prod-like stack
+- `GET /public-health` without auth through nginx
+- authenticated `GET /summary` through nginx using basic-auth credentials
 
-```bash
-docker compose -f infra/docker-compose.prod.yml up -d --build
-```
+### Canonical command paths
 
-### 5. Verify
+- local verification: `make verify-local`
+- smoke checks: `./scripts/smoke_test.sh`
+- production-like smoke checks: `./scripts/smoke_test.sh --prod <domain> <username> <password>`
 
-```bash
-curl -s https://oncovax.live/health
-curl -s https://oncovax.live/public-health
-curl -s -u oncovax-operator:<password> https://oncovax.live/summary
-```
+Detailed operational procedures are maintained in:
 
-Production-like topology preserves direct `MQTT -> worker` ingestion authority and does not require Node-RED.
+- `docs/RUNBOOK.md`
+- `OPS_RUNBOOK.md`
 
----
+## 8) Deployment limitations / non-claims
 
-## Environment Variables Reference
+Current deployment support does not claim:
 
-See `infra/.env.example` for the full list with descriptions.
+- telemetry from physical medical hardware fleets
+- certified clinical or regulated infrastructure status
+- fully hardened production infrastructure
 
-| Variable | Required | Description |
-|---|---|---|
-| `MONGO_URI` | Yes | MongoDB connection string (local or Atlas) |
-| `MONGO_DB` | Yes | Database name (default: `oncovax`) |
-| `MONGO_COLLECTION` | Yes | Collection name (default: `audit_events`) |
-| `CORS_ALLOWED_ORIGINS` | Optional | Comma-separated CORS allowlist (default: same-origin only) |
-| `INFLUX_URL` | Yes (worker) | InfluxDB base URL |
-| `INFLUX_TOKEN` | Yes (worker) | InfluxDB API token |
-| `INFLUX_ORG` | Yes (worker) | InfluxDB organisation |
-| `INFLUX_BUCKET` | Yes (worker) | InfluxDB bucket |
-| `MQTT_HOST` | Yes (worker/sim) | MQTT broker hostname |
-| `MQTT_PORT` | Yes (worker/sim) | MQTT broker port |
-| `TEMP_THRESHOLD` | Worker | Alert threshold in °C (default: 8.0) |
+Current limitations and dependencies:
 
----
-
-## Demo-Control Contract Deployment Note (Phase B2c)
-
-The Node-RED demo-control artifact (`flows/nodered/demo-control-flow.json`) is scoped to demo topics:
-
-- `oncovax/demo/control/scenario/select`
-- `oncovax/demo/control/mode/set`
-- `oncovax/demo/control/event/trigger`
-- `oncovax/demo/orchestration/status`
-
-Do not rewire canonical telemetry ingestion through Node-RED in this phase.
-
----
-
-## Restart Policy
-
-Restart behavior differs between the dev/base and production compose files:
-
-- **Local / development (`docker-compose.yml`, `docker-compose.dev.yml`)**
-  - Services use `restart: unless-stopped`
-  - Containers restart automatically after host reboot
-  - Containers do not restart after `docker stop <container>` — they stay stopped until explicitly started again
-
-- **Production (`infra/docker-compose.prod.yml`)**
-  - Services use `restart: always`
-  - Containers restart automatically after host reboot and after any unexpected exit
-
-In all cases, `docker compose down` stops and removes the containers; they will not restart until you bring the stack up again.
-
----
-
-## Updating the Deployment
-
-```bash
-git pull origin main
-# Use the compose file for the mode you are running:
-#   docker compose -f infra/docker-compose.yml up -d --build
-#   docker compose -f infra/docker-compose.prod.yml up -d --build
-```
-
----
-
-## Rollback
-
-See [RUNBOOK.md](RUNBOOK.md) for rollback procedures.
+- telemetry remains software-simulated in repository runtime
+- deployment security and reliability depend strongly on operator-managed configuration quality
+- ingress protections are meaningful in production-like mode, but application-layer auth/RBAC remains incomplete (see `SECURITY.md`)
+- environment assumptions are not interchangeable across dev, hosted baseline, and production-like modes (see `docs/KNOWN_LIMITATIONS.md` and `docs/RUNBOOK.md`)

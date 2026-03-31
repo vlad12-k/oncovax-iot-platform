@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1460" height="920" viewBox="0 0 1460 920" role="img" aria-labelledby="title desc">
+  <title id="title">OncoVax Hosted Infrastructure Topology</title>
+  <desc id="desc">Hosted topology showing live domain and uptime checks entering a DigitalOcean-style cloud VM running nginx and runtime services, with MongoDB Atlas as managed external persistence boundary and public-safe/protected route separation.</desc>
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .cloud { fill: #f8fafc; stroke: #334155; stroke-width: 2; stroke-dasharray: 8 6; }
+      .vm { fill: #f1f5f9; stroke: #475569; stroke-width: 1.8; stroke-dasharray: 6 4; }
+      .edge { fill: #fefce8; stroke: #a16207; stroke-width: 1.5; }
+      .svc { fill: #f1f5f9; stroke: #475569; stroke-width: 1.5; }
+      .store { fill: #eef2ff; stroke: #3730a3; stroke-width: 1.5; }
+      .external { fill: #f8fafc; stroke: #6b7280; stroke-width: 1.5; }
+      .public { fill: #ecfdf5; stroke: #047857; stroke-width: 1.5; }
+      .protected { fill: #fff7ed; stroke: #c2410c; stroke-width: 1.5; }
+      .note { fill: #f9fafb; stroke: #9ca3af; stroke-width: 1.2; stroke-dasharray: 4 3; }
+      .title { font: 700 22px Arial, sans-serif; fill: #0f172a; }
+      .h2 { font: 600 17px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 13px Arial, sans-serif; fill: #334155; }
+      .legend { font: 13px Arial, sans-serif; fill: #111827; }
+      .arrow { stroke: #334155; stroke-width: 1.8; fill: none; marker-end: url(#arrowhead); }
+      .dash { stroke-dasharray: 6 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1460" height="920" />
+  <text class="title" x="24" y="38">OncoVax Hosted Infrastructure Topology</text>
+
+  <rect class="cloud" x="250" y="80" width="1000" height="790" rx="12" ry="12" />
+  <text class="h2" x="273" y="108">DigitalOcean-style hosted cloud environment (hosting context)</text>
+
+  <rect class="vm" x="290" y="180" width="920" height="650" rx="12" ry="12" />
+  <text class="h2" x="313" y="208">Hosted VM / cloud server boundary (runtime + ingress workload)</text>
+
+  <rect class="edge" x="320" y="235" width="860" height="72" rx="10" ry="10" />
+  <text class="h2" x="347" y="263">Live domain ingress boundary</text>
+  <text class="small" x="347" y="284">Domain identity and TLS ingress route into hosted stack</text>
+
+  <rect class="svc" x="350" y="345" width="210" height="96" rx="10" ry="10" />
+  <text class="h2" x="392" y="381">nginx ingress</text>
+  <text class="small" x="372" y="404">Route segmentation + auth</text>
+
+  <rect class="public" x="350" y="475" width="300" height="72" rx="10" ry="10" />
+  <text class="h2" x="381" y="507">Public-safe boundary</text>
+  <text class="small" x="381" y="529">GET /public-health only</text>
+
+  <rect class="protected" x="680" y="475" width="500" height="72" rx="10" ry="10" />
+  <text class="h2" x="709" y="507">Protected operational surfaces</text>
+  <text class="small" x="709" y="529">Operational API/dashboard and Grafana ingress remain authenticated</text>
+
+  <rect class="svc" x="620" y="345" width="240" height="96" rx="10" ry="10" />
+  <text class="h2" x="672" y="381">API + dashboard</text>
+  <text class="small" x="645" y="404">Operational interface layer</text>
+
+  <rect class="protected" x="890" y="345" width="210" height="96" rx="10" ry="10" />
+  <text class="h2" x="961" y="381">Grafana</text>
+  <text class="small" x="914" y="404">Protected observability surface</text>
+
+  <rect class="svc" x="620" y="585" width="210" height="88" rx="10" ry="10" />
+  <text class="h2" x="667" y="619">Mosquitto</text>
+  <text class="small" x="658" y="641">MQTT broker</text>
+
+  <rect class="svc" x="860" y="585" width="190" height="88" rx="10" ry="10" />
+  <text class="h2" x="903" y="619">Worker</text>
+  <text class="small" x="884" y="641">Processing engine</text>
+
+  <rect class="svc" x="410" y="585" width="180" height="88" rx="10" ry="10" />
+  <text class="h2" x="444" y="619">Simulator</text>
+  <text class="small" x="431" y="641">Software telemetry</text>
+
+  <rect class="svc" x="350" y="705" width="240" height="88" rx="10" ry="10" />
+  <text class="h2" x="381" y="739">Orchestration adapter</text>
+  <text class="small" x="378" y="761">Runtime-control bridge</text>
+
+  <rect class="store" x="1080" y="585" width="120" height="88" rx="10" ry="10" />
+  <text class="h2" x="1096" y="619">InfluxDB</text>
+  <text class="small" x="1088" y="641">Time-series</text>
+
+  <rect class="external" x="1280" y="510" width="160" height="128" rx="10" ry="10" />
+  <text class="h2" x="1302" y="546">MongoDB Atlas</text>
+  <text class="small" x="1294" y="570">Managed persistence</text>
+  <text class="small" x="1292" y="590">compatibility boundary</text>
+
+  <rect class="note" x="24" y="162" width="200" height="98" rx="10" ry="10" />
+  <text class="h2" x="45" y="196">Live domain</text>
+  <text class="small" x="45" y="219">Public identity for</text>
+  <text class="small" x="45" y="239">hosted ingress access</text>
+
+  <rect class="note" x="24" y="290" width="200" height="110" rx="10" ry="10" />
+  <text class="h2" x="45" y="324">External uptime monitoring</text>
+  <text class="small" x="45" y="347">Availability signal for</text>
+  <text class="small" x="45" y="367">public endpoint reachability</text>
+  <text class="small" x="45" y="387">(not internal correctness proof)</text>
+
+  <rect class="note" x="1280" y="662" width="160" height="120" rx="10" ry="10" />
+  <text class="h2" x="1300" y="696">Scope note</text>
+  <text class="small" x="1292" y="719">Hosted baseline is</text>
+  <text class="small" x="1292" y="739">operational reference</text>
+  <text class="small" x="1292" y="759">not full hardening claim</text>
+
+  <line class="arrow" x1="224" y1="210" x2="320" y2="393" />
+  <line class="arrow dash" x1="224" y1="350" x2="350" y2="510" />
+
+  <line class="arrow" x1="560" y1="393" x2="620" y2="393" />
+  <line class="arrow" x1="560" y1="373" x2="890" y2="373" />
+
+  <line class="arrow dash" x1="455" y1="441" x2="500" y2="475" />
+  <line class="arrow dash" x1="455" y1="441" x2="865" y2="475" />
+
+  <line class="arrow" x1="590" y1="629" x2="620" y2="629" />
+  <line class="arrow" x1="590" y1="749" x2="620" y2="629" />
+  <line class="arrow" x1="830" y1="629" x2="860" y2="629" />
+  <line class="arrow" x1="1050" y1="629" x2="1080" y2="629" />
+  <line class="arrow" x1="1050" y1="610" x2="1280" y2="560" />
+  <line class="arrow" x1="860" y1="393" x2="1280" y2="580" />
+
+  <text class="legend" x="24" y="892">Legend: dashed cloud box = DigitalOcean-style hosting context; dashed VM box = hosted server boundary; green/orange = public-safe vs protected ingress surfaces; Atlas node = managed external persistence compatibility boundary.</text>
+</svg>

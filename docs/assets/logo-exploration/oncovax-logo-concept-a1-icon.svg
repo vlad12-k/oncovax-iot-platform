@@ -1,0 +1,8 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OncoVax concept A1 icon rough">
+  <rect width="256" height="256" fill="#111827"/>
+  <circle cx="128" cy="128" r="86" stroke="#E5E7EB" stroke-width="14"/>
+  <path d="M86 90L128 164L170 90" stroke="#9CA3AF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="86" cy="90" r="6" fill="#E5E7EB"/>
+  <circle cx="128" cy="164" r="6" fill="#E5E7EB"/>
+  <circle cx="170" cy="90" r="6" fill="#E5E7EB"/>
+</svg>

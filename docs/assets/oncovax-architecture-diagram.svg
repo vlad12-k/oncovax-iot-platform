@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860" role="img" aria-labelledby="title desc">
+  <title id="title">OncoVax IoT Platform Hosted Baseline Architecture</title>
+  <desc id="desc">Architecture showing software simulator to MQTT to worker to InfluxDB and MongoDB, FastAPI and Grafana behind nginx ingress with public-safe and protected route boundaries, hosted cloud VM context, live domain ingress boundary, and external uptime monitoring as availability signal.</desc>
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .host { fill: #f8fafc; stroke: #475569; stroke-width: 2; stroke-dasharray: 8 6; }
+      .domain { fill: #fefce8; stroke: #a16207; stroke-width: 1.5; }
+      .box { fill: #f1f5f9; stroke: #475569; stroke-width: 1.5; }
+      .store { fill: #eef2ff; stroke: #3730a3; stroke-width: 1.5; }
+      .public { fill: #ecfdf5; stroke: #047857; stroke-width: 1.5; }
+      .protected { fill: #fff7ed; stroke: #c2410c; stroke-width: 1.5; }
+      .note { fill: #f9fafb; stroke: #9ca3af; stroke-width: 1.2; stroke-dasharray: 4 3; }
+      .title { font: 700 22px Arial, sans-serif; fill: #0f172a; }
+      .h2 { font: 600 17px Arial, sans-serif; fill: #0f172a; }
+      .text { font: 14px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 13px Arial, sans-serif; fill: #334155; }
+      .legend { font: 13px Arial, sans-serif; fill: #111827; }
+      .arrow { stroke: #334155; stroke-width: 1.8; fill: none; marker-end: url(#arrowhead); }
+      .dash { stroke-dasharray: 6 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1440" height="860" />
+  <text class="title" x="26" y="38">OncoVax IoT Platform — Hosted Baseline Architecture</text>
+
+  <rect class="host" x="300" y="78" width="1110" height="700" rx="12" ry="12" />
+  <text class="h2" x="324" y="106">Hosted server / cloud VM boundary</text>
+
+  <rect class="domain" x="324" y="126" width="1060" height="70" rx="10" ry="10" />
+  <text class="h2" x="348" y="153">Live domain ingress boundary</text>
+  <text class="small" x="348" y="174">Domain and TLS routing context enforced by nginx in production-like topology</text>
+
+  <rect class="box" x="360" y="245" width="220" height="82" rx="10" ry="10" />
+  <text class="h2" x="385" y="276">Software simulator(s)</text>
+  <text class="small" x="386" y="298">Software-generated telemetry</text>
+
+  <rect class="box" x="650" y="245" width="220" height="82" rx="10" ry="10" />
+  <text class="h2" x="706" y="276">Mosquitto</text>
+  <text class="small" x="698" y="298">MQTT broker</text>
+
+  <rect class="box" x="940" y="245" width="220" height="82" rx="10" ry="10" />
+  <text class="h2" x="983" y="276">Worker service</text>
+  <text class="small" x="964" y="298">Validation + threshold logic</text>
+
+  <rect class="store" x="900" y="390" width="260" height="110" rx="10" ry="10" />
+  <text class="h2" x="986" y="424">InfluxDB</text>
+  <text class="small" x="920" y="447">Time-series telemetry + alert signals</text>
+
+  <rect class="store" x="1200" y="390" width="180" height="110" rx="10" ry="10" />
+  <text class="h2" x="1237" y="424">MongoDB</text>
+  <text class="small" x="1217" y="447">Operational/audit records</text>
+  <text class="small" x="1210" y="468">Atlas-backed via MONGO_URI</text>
+
+  <rect class="box" x="590" y="560" width="260" height="100" rx="10" ry="10" />
+  <text class="h2" x="633" y="595">FastAPI + dashboard</text>
+  <text class="small" x="615" y="618">Operational API + operator UI</text>
+
+  <rect class="protected" x="920" y="560" width="220" height="100" rx="10" ry="10" />
+  <text class="h2" x="988" y="595">Grafana</text>
+  <text class="small" x="944" y="618">Observability surface (protected)</text>
+
+  <rect class="box" x="340" y="560" width="210" height="100" rx="10" ry="10" />
+  <text class="h2" x="378" y="595">nginx ingress</text>
+  <text class="small" x="357" y="618">HTTPS routing + auth boundary</text>
+
+  <rect class="public" x="340" y="700" width="330" height="66" rx="10" ry="10" />
+  <text class="h2" x="374" y="730">Public-safe route boundary</text>
+  <text class="small" x="374" y="750">GET /public-health only</text>
+
+  <rect class="protected" x="700" y="700" width="560" height="66" rx="10" ry="10" />
+  <text class="h2" x="730" y="730">Protected operational surfaces</text>
+  <text class="small" x="730" y="750">Operational API/dashboard + Grafana (authenticated ingress)</text>
+
+  <rect class="note" x="24" y="156" width="236" height="96" rx="10" ry="10" />
+  <text class="h2" x="44" y="188">External user/operator</text>
+  <text class="small" x="44" y="210">HTTPS access to live domain</text>
+
+  <rect class="note" x="24" y="292" width="236" height="96" rx="10" ry="10" />
+  <text class="h2" x="44" y="324">External uptime monitoring</text>
+  <text class="small" x="44" y="346">Availability signal for public</text>
+  <text class="small" x="44" y="366">endpoint reachability</text>
+
+  <rect class="note" x="24" y="428" width="236" height="120" rx="10" ry="10" />
+  <text class="h2" x="44" y="460">Scope boundary note</text>
+  <text class="small" x="44" y="482">Simulated telemetry runtime</text>
+  <text class="small" x="44" y="502">Non-clinical / non-certified</text>
+  <text class="small" x="44" y="522">Not fully hardened production</text>
+
+  <line class="arrow" x1="260" y1="204" x2="340" y2="600" />
+  <line class="arrow dash" x1="260" y1="340" x2="340" y2="734" />
+
+  <line class="arrow" x1="580" y1="286" x2="650" y2="286" />
+  <text class="small" x="598" y="273">MQTT telemetry</text>
+
+  <line class="arrow" x1="870" y1="286" x2="940" y2="286" />
+  <line class="arrow" x1="1050" y1="327" x2="1030" y2="390" />
+  <text class="small" x="1060" y="370">telemetry + alerts</text>
+
+  <line class="arrow" x1="1140" y1="322" x2="1200" y2="432" />
+  <text class="small" x="1142" y="376">lifecycle/audit records</text>
+
+  <line class="arrow" x1="850" y1="610" x2="1200" y2="455" />
+  <text class="small" x="900" y="545">operational reads/updates</text>
+
+  <line class="arrow" x1="1030" y1="560" x2="1030" y2="500" />
+  <text class="small" x="1040" y="532">query</text>
+
+  <line class="arrow" x1="550" y1="600" x2="590" y2="600" />
+  <line class="arrow" x1="550" y1="580" x2="920" y2="580" />
+  <line class="arrow dash" x1="445" y1="660" x2="500" y2="700" />
+  <line class="arrow dash" x1="445" y1="660" x2="880" y2="700" />
+
+  <text class="legend" x="28" y="828">Legend: dashed outer boundary = hosted cloud VM/server; yellow box = live domain ingress context; green = public-safe route; orange = protected operational surfaces; uptime monitoring provides availability signal only.</text>
+</svg>

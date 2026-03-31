@@ -1,49 +1,78 @@
-# OncoVax Ops Runbook
+# OncoVax Operator Quick Reference
 
-## Health checks
+## 1) Purpose
+
+This file is a compact operator cheat sheet for routine verification, restart/recreate, and first-pass troubleshooting.
+
+For complete procedures, environment-specific flow, and troubleshooting detail, use **`docs/RUNBOOK.md`**.
+
+## 2) Core checks
+
+### 2.1 Compose status
+
 ```bash
-curl -iS https://oncovax.live/public-health
+docker compose -f infra/docker-compose.prod.yml ps
+docker ps --format "table {{.Names}}\t{{.Status}}"
+```
+
+### 2.2 Public-safe ingress check (`/public-health`)
+
+```bash
+curl -iS https://<live-domain>/public-health
+```
+
+Expected: HTTP 200 with `{"status":"ok"}`.
+
+### 2.3 Internal API checks (`/health`, `/summary`, `/alerts`)
+
+```bash
 docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/health").read().decode())'
 docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/summary").read().decode())'
 docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/alerts?limit=3").read().decode())'
 ```
 
-## Restart stack
+## 3) Restart / recreate
+
+### 3.1 Restart services
+
 ```bash
-cd /opt/oncovax/infra
-docker compose -f docker-compose.prod.yml restart
-docker compose -f docker-compose.prod.yml ps
+docker compose -f infra/docker-compose.prod.yml restart
+docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-## Force recreate
+### 3.2 Force recreate containers
+
 ```bash
-cd /opt/oncovax/infra
-docker compose -f docker-compose.prod.yml up -d --force-recreate
-docker compose -f docker-compose.prod.yml ps
+docker compose -f infra/docker-compose.prod.yml up -d --force-recreate
+docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-## Logs
+## 4) Logs
+
 ```bash
+docker logs --since=10m oncovax-nginx
 docker logs --since=10m oncovax-api
 docker logs --since=10m oncovax-worker
-docker logs --since=10m oncovax-nginx
 docker logs --since=10m oncovax-simulator
 ```
 
-## Monitoring proof
-- public endpoint must return HTTP 200 and {"status":"ok"}
-- nginx logs should show public-health checks
-- API must return summary and alerts internally
+## 5) Interpretation reminders
 
-## Rollback snapshot
-Use latest folder in /opt/oncovax/backups/
+- `/public-health` is a narrow liveness check, not full correctness validation.
+- External uptime checks confirm reachability, not complete internal correctness.
+- Protected operational surfaces must remain protected (auth-gated routes should still require valid credentials).
 
-Restore at minimum:
-- infra/docker-compose.prod.yml
-- infra/nginx/nginx.conf
+## 6) Rollback reminder
 
-Then run:
-```bash
-cd /opt/oncovax/infra
-docker compose -f docker-compose.prod.yml up -d --force-recreate
-```
+Rollback means restoring known-good configuration/artifacts, then revalidating compose status, API checks, ingress behavior, logs, and observability.
+
+Primary rollback references:
+
+- `docs/RECOVERY_AND_ROLLBACK.md`
+- `docs/RUNBOOK.md`
+
+## 7) Scope reminder
+
+- This cheat sheet is for a production-style hosted baseline.
+- Telemetry in repository runtime is software-simulated.
+- This is not a certified clinical deployment runbook.

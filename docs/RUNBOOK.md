@@ -1,361 +1,290 @@
-# Runbook – OncoVax IoT Monitoring Platform
+# Operations Runbook
 
-## Purpose
+## 1) Runbook intent
 
-This runbook covers operational procedures for the OncoVax IoT Monitoring Platform, including service management, alert workflow, troubleshooting, and recovery steps.
+This document defines the canonical operational verification and recovery-oriented check path for the OncoVax repository baseline.
 
----
+It is intended to help operators validate service health, ingress behavior, telemetry/alert flow visibility, and post-change operational state across supported deployment modes.
 
-## 1. Service Management
+This runbook represents practical baseline operations guidance, not a claim of fully hardened production operations.
 
-### Start local development stack
+## 2) Core verification checks
 
-```bash
-docker compose -f infra/docker-compose.dev.yml up -d --build
-```
+Use these checks in order after startup, restart, configuration changes, or incident response.
 
-### Stop local development stack
+### 2.1 Compose service status
 
-```bash
-docker compose -f infra/docker-compose.dev.yml down
-```
-
-### View logs (all services)
-
-```bash
-docker compose -f infra/docker-compose.dev.yml logs -f --tail=200
-```
-
-### View logs for a specific service
-
-```bash
-docker compose -f infra/docker-compose.dev.yml logs -f api
-docker compose -f infra/docker-compose.dev.yml logs -f worker
-```
-
-### Restart a specific service
-
-```bash
-docker compose -f infra/docker-compose.dev.yml restart api
-```
-
-### Check service status
+Local/dev:
 
 ```bash
 docker compose -f infra/docker-compose.dev.yml ps
 ```
 
----
-
-## 2. Smoke Test
-
-Run the included smoke test to verify all services are reachable:
+Hosted baseline:
 
 ```bash
-./scripts/smoke_test.sh
+docker compose -f infra/docker-compose.yml ps
 ```
 
-Expected: all checks pass with `200 OK` or healthy responses.
-
-### Production-like smoke check
-
-Use the same smoke script against live/proxy endpoints:
+Production-like ingress:
 
 ```bash
-./scripts/smoke_test.sh --prod oncovax.live oncovax-operator '<password>'
+docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-This checks:
+### 2.2 Container health state
 
-- `GET /public-health` without auth
-- `GET /summary` with basic auth credentials
+Inspect health for services that declare health checks in compose (for example API, worker, nginx, simulator, orchestration adapter, and Grafana where applicable):
 
+```bash
+docker ps --format "table {{.Names}}\t{{.Status}}"
+```
 
----
+If any service is restarting or unhealthy, inspect logs before continuing with API/ingress validation.
 
-## 3. API Checks
+### 2.3 Public-safe ingress check (`/public-health`)
 
-### Check API health
+In production-like ingress mode, validate public-safe route behavior through nginx:
+
+```bash
+curl -iS https://<live-domain>/public-health
+```
+
+Expected behavior:
+
+- HTTP 200
+- JSON body includes `{"status":"ok"}`
+
+### 2.4 Internal API checks (`/health`, `/summary`, `/alerts`)
+
+Local/dev or hosted baseline direct checks:
 
 ```bash
 curl -s http://localhost:8000/health
-# Expected: {"status":"ok"}
-```
-
-### Check alert summary
-
-```bash
 curl -s http://localhost:8000/summary | python -m json.tool
-```
-
-### List alerts (last 20)
-
-```bash
 curl -s "http://localhost:8000/alerts?limit=20" | python -m json.tool
 ```
 
-### List unacknowledged alerts
+Production-like internal checks from API container:
 
 ```bash
-curl -s "http://localhost:8000/alerts?acknowledged=false" | python -m json.tool
+docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/health").read().decode())'
+docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/summary").read().decode())'
+docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/alerts?limit=3").read().decode())'
 ```
 
-### Get a specific alert
+### 2.5 Log inspection paths
+
+Local/dev logs:
 
 ```bash
-curl -s http://localhost:8000/alerts/<alert_id> | python -m json.tool
+docker compose -f infra/docker-compose.dev.yml logs -f --tail=200
 ```
 
-### Acknowledge an alert
+Production-like targeted logs:
 
 ```bash
-curl -s -X POST http://localhost:8000/alerts/<alert_id>/acknowledge \
-  -H "Content-Type: application/json" \
-  -d '{"acknowledged_by": "operator-name", "incident_note": "Reviewed and closed."}' \
-  | python -m json.tool
+docker logs --since=10m oncovax-nginx
+docker logs --since=10m oncovax-api
+docker logs --since=10m oncovax-worker
+docker logs --since=10m oncovax-simulator
 ```
 
----
+## 3) Environment-specific runbook behavior
 
-## 4. Alert Workflow
+### 3.1 Local/dev (`infra/docker-compose.dev.yml`)
 
-1. Worker detects a temperature breach above `TEMP_THRESHOLD`
-2. Alert record is written to MongoDB `audit_events` collection
-3. Alert appears in the operational dashboard at `http://localhost:8000`
-4. Operator reviews the alert in the dashboard (filter by unacknowledged)
-5. Operator clicks **Acknowledge** on an alert row
-6. Modal prompts for `acknowledged_by` and optional `incident_note`
-7. API issues `POST /alerts/{id}/acknowledge`
-8. Alert status updates to Acknowledged in the dashboard
+- Includes full local stack (including Grafana and Node-RED).
+- Uses direct local port exposure for operational checks.
+- Best for local end-to-end validation and troubleshooting.
 
----
-
-## 5. Generating Test Telemetry
-
-### Start the simulator
+Canonical local verification entrypoint:
 
 ```bash
-docker compose -f infra/docker-compose.dev.yml up simulator
+make verify-local
 ```
 
-The simulator publishes to `oncovax/telemetry` approximately once per second.
-Excursion spikes (value ~10.5 °C) are injected randomly with ~2% probability.
+### 3.2 Hosted baseline (`infra/docker-compose.yml`)
 
-### Manually trigger an excursion (for testing)
+- Includes core services (mosquitto, worker, API, InfluxDB, MongoDB).
+- No nginx ingress boundary in this mode by default.
+- Grafana is not included by default in this compose mode.
+- Operational validation relies on compose status, API checks, and logs.
 
-Use the Postman collection at `tools/postman_collection.json`, or publish directly:
+### 3.3 Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
+
+- Includes nginx ingress with TLS/basic-auth route controls.
+- Includes Grafana and orchestration adapter.
+- Uses public-safe ingress checks plus authenticated/protected operational checks.
+
+Canonical production-like smoke command:
 
 ```bash
-docker exec mosquitto mosquitto_pub \
-  -t oncovax/telemetry \
-  -m '{"device_id":"test-001","asset_type":"coldstorage","ts":"2024-01-01T00:00:00+00:00","metric":"temperature","value":10.5,"unit":"C"}'
+./scripts/smoke_test.sh --prod <domain> <username> <password>
 ```
 
----
+## 4) Ingress and domain checks
 
-## 5A. Demo-Control Orchestration (Node-RED, optional)
+The hosted baseline can use a live custom domain managed by operators.
 
-Node-RED demo orchestration is **dev/demo-only** and optional.
-It must not replace or rewire canonical telemetry ingestion.
+### 4.1 Public-safe route behavior
 
-### Contract topics
+- `GET /public-health` is intentionally exposed for narrow liveness checks.
+- This route is not a complete operational correctness check.
 
-- Control topics:
-  - `oncovax/demo/control/scenario/select`
-  - `oncovax/demo/control/mode/set`
-  - `oncovax/demo/control/event/trigger`
-- Status topic:
-  - `oncovax/demo/orchestration/status`
+### 4.2 Protected operational surfaces
 
-### Safe enable procedure
+In production-like ingress policy:
 
-1. Ensure baseline ingestion is healthy first (`MQTT -> worker`):
-   - `curl -s http://localhost:8000/health`
-   - verify worker logs show normal telemetry processing
-2. Start/keep Node-RED only in dev stack:
-   - `docker compose -f infra/docker-compose.dev.yml up -d nodered`
-3. Import flow artifact:
-   - `flows/nodered/demo-control-flow.json`
-4. Publish control commands only on `oncovax/demo/control/*` topics.
-5. Observe orchestration acknowledgements on `oncovax/demo/orchestration/status`.
+- Operational API/dashboard routes behind `location /` are protected by basic auth.
+- Alert acknowledgement routes are protected and write-rate limited.
+- Grafana host routing is protected by basic auth.
 
-### Safe disable procedure
+### 4.3 Ingress validation sequence
 
-1. Stop publishing demo-control commands.
-2. Stop Node-RED (optional service):
-   - `docker compose -f infra/docker-compose.dev.yml stop nodered`
-3. Re-check ingestion continuity:
-   - worker continues processing telemetry without Node-RED
-   - API health remains `{\"status\":\"ok\"}`
+1. Confirm domain resolves and TLS ingress responds.
+2. Confirm `/public-health` returns expected liveness response.
+3. Confirm protected operational routes require valid credentials.
+4. Confirm internal API checks still pass.
 
-### Safety rule
+## 5) Monitoring interpretation
 
-Do not route telemetry through Node-RED in this phase. Keep canonical ingestion direct:
+External uptime monitoring is useful for detecting public endpoint availability changes.
 
-- producer/simulator -> MQTT topic (e.g. `oncovax/telemetry`) -> worker
+What it indicates:
 
-### D2 runtime control live verification
+- external reachability of the public-safe endpoint
+- whether ingress liveness responses are available
 
-Start dev stack with adapter + simulator:
+What it does not prove:
+
+- full correctness of API workflows, worker processing, or persistence state
+- correctness of protected route behavior without authenticated checks
+- full internal health across all services and dependencies
+
+Always pair uptime-monitor observations with API/internal checks and service-log review.
+
+## 6) Operational troubleshooting categories
+
+### 6.1 Ingress problems
+
+Symptoms:
+
+- `/public-health` unavailable or non-200
+- TLS errors or repeated redirect/auth failures
+
+Checks:
+
+- `docker logs --since=10m oncovax-nginx`
+- nginx container status and health
+- TLS material mount and domain alignment with nginx configuration
+
+### 6.2 API problems
+
+Symptoms:
+
+- `/health` fails
+- `/summary` or `/alerts` returns errors or empty/unexpected data
+
+Checks:
+
+- API container logs
+- API container health status
+- API-to-MongoDB connectivity (`MONGO_URI` correctness)
+
+### 6.3 Worker / telemetry-flow problems
+
+Symptoms:
+
+- missing telemetry progression
+- missing alert generation despite expected threshold conditions
+
+Checks:
+
+- worker logs for MQTT subscription, parse, and write errors
+- MQTT broker/container status
+- worker environment settings (`MQTT_TOPIC`, InfluxDB variables, threshold settings)
+
+### 6.4 Observability / Grafana visibility problems
+
+Symptoms:
+
+- dashboards show no data despite active services
+
+Checks:
+
+- InfluxDB health and write activity
+- Grafana container health (production-like or dev where present)
+- dashboard time-window selection and data-source mapping
+
+Interpretation rule:
+
+- “No data” can reflect time-window/data-state issues, not only service failure.
+
+### 6.5 Persistence problems
+
+Symptoms:
+
+- API operational reads fail
+- acknowledgements fail or do not persist
+
+Checks:
+
+- MongoDB service status and logs
+- `MONGO_URI` configuration (including Atlas-backed configuration where used)
+- API and worker connectivity to persistence endpoints
+
+## 7) Operator responsibilities
+
+Operators remain responsible for deployment safety and correctness, including:
+
+- credential management (basic-auth, service credentials, token rotation)
+- TLS certificate and live domain configuration lifecycle
+- firewall/perimeter exposure policy
+- secret hygiene (`.env`/runtime-secret handling, no committed real secrets)
+- validation discipline after restarts, config changes, or incident recovery
+
+Recommended post-change discipline:
+
+1. Compose status and health verification
+2. Public-safe ingress verification
+3. Internal API verification
+4. Log review for ingress/API/worker errors
+5. Observability-layer sanity check (InfluxDB/Grafana where applicable)
+
+## 8) Recovery and restart references
+
+### 8.1 Standard restart
+
+Local/dev:
 
 ```bash
-docker compose -f infra/docker-compose.dev.yml up -d --build mosquitto simulator orchestration-adapter
+docker compose -f infra/docker-compose.dev.yml restart
+docker compose -f infra/docker-compose.dev.yml ps
 ```
 
-Observe orchestration status:
+Production-like:
 
 ```bash
-docker exec mosquitto mosquitto_sub -t oncovax/demo/orchestration/status -v
+docker compose -f infra/docker-compose.prod.yml restart
+docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-Observe simulator telemetry:
+### 8.2 Force recreate (production-like)
 
 ```bash
-docker exec mosquitto mosquitto_sub -t oncovax/telemetry/simulator -v
+docker compose -f infra/docker-compose.prod.yml up -d --force-recreate
+docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-Publish persistent scenario change:
+After restart/recreate, rerun the core verification checks in Section 2.
 
-```bash
-docker exec mosquitto mosquitto_pub -t oncovax/demo/control/scenario/select -m '{"command_id":"cmd-s1","issued_at":"2026-03-23T20:00:00Z","scenario":"demo-friendly"}'
-```
+## 9) Non-claims
 
-Publish persistent mode/profile change:
+This runbook does not claim:
 
-```bash
-docker exec mosquitto mosquitto_pub -t oncovax/demo/control/mode/set -m '{"command_id":"cmd-m1","issued_at":"2026-03-23T20:00:05Z","enabled":false}'
-```
+- zero-touch autonomous operations
+- fully hardened production operations
+- clinical infrastructure operations certification
 
-Publish temporary overrides:
-
-```bash
-docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-e1","issued_at":"2026-03-23T20:00:10Z","event_type":"burst_pulse","data":{"duration_cycles":3,"burst_count":6}}'
-docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-e2","issued_at":"2026-03-23T20:00:12Z","event_type":"breach_pulse","data":{"duration_cycles":3,"temperature_increase_c":9}}'
-docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-e3","issued_at":"2026-03-23T20:00:14Z","event_type":"offline_pulse","data":{"duration_cycles":3}}'
-```
-
-Reset runtime to startup defaults and clear temporary overrides:
-
-```bash
-docker exec mosquitto mosquitto_pub -t oncovax/demo/control/event/trigger -m '{"command_id":"cmd-r1","issued_at":"2026-03-23T20:00:20Z","event_type":"reset_runtime"}'
-```
-
----
-
-## 6. Troubleshooting
-
-### API returns 503 / cannot connect to MongoDB
-
-- Check that MongoDB container is running: `docker compose ps`
-- Verify `MONGO_URI` env var is set correctly in `.env`
-- For Atlas: verify the Atlas connection string is valid and network access is allowed
-
-### Dashboard shows "No alerts"
-
-- Confirm the worker is running and subscribed to MQTT
-- Confirm the simulator is publishing messages
-- Check `docker compose logs worker` for validation or connection errors
-- Check that `TEMP_THRESHOLD` is set appropriately (default: 8.0 °C)
-
-### Worker not writing to InfluxDB
-
-- Verify `INFLUX_URL`, `INFLUX_TOKEN`, `INFLUX_ORG`, `INFLUX_BUCKET` are correct in `.env`
-- Check InfluxDB health: `curl http://localhost:8086/health`
-
-### Grafana shows "No data"
-
-- Ensure the InfluxDB data source is configured in Grafana (URL: `http://influxdb:8086`)
-- Confirm the token and org match the values set in `.env`
-- Select an appropriate time window covering when the simulator was running
-
-### Container restart loop
-
-- Check container logs: `docker compose logs <service>`
-- Confirm environment variables are correctly set in `.env`
-- Confirm MongoDB or InfluxDB containers are healthy before API or worker
-
----
-
-## 7. Rollback Procedure
-
-### Local development
-
-```bash
-git log --oneline -10             # identify last known good commit
-git checkout <commit-sha>         # revert working tree
-docker compose -f infra/docker-compose.dev.yml down
-docker compose -f infra/docker-compose.dev.yml up -d --build
-```
-
-### Hosted deployment (DigitalOcean)
-
-1. SSH into the Droplet
-2. Navigate to the deployment directory
-3. Pull the previous image tag or revert to a prior `git` commit
-4. Re-run `docker compose -f infra/docker-compose.prod.yml up -d --build`
-5. Verify with `curl http://localhost:8000/health`
-
----
-
-## 8. Data Management
-
-### MongoDB – view audit records
-
-```bash
-docker exec -it mongodb mongosh oncovax \
-  --eval 'db.audit_events.find({acknowledged: false}).limit(5).pretty()'
-```
-
-### InfluxDB – verify telemetry is arriving
-
-Open `http://localhost:8086` in a browser, log in, and query the `telemetry` bucket.
-
----
-
-## 9. Configuration Reference
-
-All configuration is via environment variables. See `infra/.env.example` for the full list.
-
-Key variables:
-
-| Variable | Default | Description |
-|---|---|---|
-| `MONGO_URI` | `mongodb://mongodb:27017` | MongoDB connection string |
-| `MONGO_DB` | `oncovax` | Database name |
-| `MONGO_COLLECTION` | `audit_events` | Collection name |
-| `INFLUX_URL` | `http://influxdb:8086` | InfluxDB base URL |
-| `INFLUX_TOKEN` | dev token | InfluxDB API token |
-| `INFLUX_ORG` | `oncovax` | InfluxDB organisation |
-| `INFLUX_BUCKET` | `telemetry` | InfluxDB bucket |
-| `MQTT_HOST` | `mosquitto` | MQTT broker hostname |
-| `MQTT_PORT` | `1883` | MQTT broker port |
-| `TEMP_THRESHOLD` | `8.0` | Alert temperature threshold (°C) |
-
-
----
-
-## 10. Documentation and Artifact Hygiene
-
-### Validate required docs and placeholders
-
-```bash
-test -f docs/PRODUCTION_HARDENING_DAY1_DAY5.md
-test -f docs/DATA_FLOW.md
-test -f docs/DEMO_SCENARIOS.md
-test -f docs/RECOVERY_AND_ROLLBACK.md
-test -f docs/KNOWN_LIMITATIONS.md
-test -f flows/README.md
-test -f grafana/README.md
-test -f schemas/alert.schema.json
-test -f schemas/audit_event.schema.json
-test -f schemas/device_metadata.schema.json
-```
-
-### Secret safety checks
-
-- Ensure `.env` and `infra/.env` are excluded from Git tracking.
-- Do not store real credentials in flow/dashboard export artifacts.
-
-### Phase note
-
-This phase does not alter worker logic, telemetry schema, API routes, nginx behavior, or production compose behavior.
+The repository runbook is an operator-driven baseline for production-style operations with explicit scope and maturity limits.

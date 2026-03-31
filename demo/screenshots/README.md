@@ -1,16 +1,74 @@
-# Demo Screenshots Evidence Index
+# Demo Screenshot Evidence Index
 
-This directory groups screenshot evidence used for recruiter/instructor review.
+## Purpose
+
+This index separates two screenshot evidence classes used in this repository baseline:
+
+- **Legacy demo/staged screenshots** stored in `demo/screenshots/`
+- **Live hosted evidence screenshots** stored in `docs/assets/live-hosted/`
+
+Both classes are supporting artifacts for walkthrough and review workflows. They are useful for visual context, but they are not the sole proof source.
 
 ## How to use this index
 
-1. Follow `docs/DEMO_WALKTHROUGH.md` for the live demo sequence.
-2. Use this index to quickly find matching visual proof artifacts.
-3. Cross-reference with `docs/EVIDENCE_MAP.md` for capability-to-proof mapping.
+Use screenshots together with canonical docs:
 
----
+- demo flow and narration: `docs/DEMO_WALKTHROUGH.md`
+- scenario framing and boundaries: `docs/DEMO_SCENARIOS.md`
+- claim-to-proof boundaries: `docs/EVIDENCE_MAP.md`
+- operational verification procedures: `docs/RUNBOOK.md` and `OPS_RUNBOOK.md`
 
-## 1) API and workflow proof
+Treat screenshots as supporting evidence layers. Final operational truth still depends on API checks, logs, runbook validation, and configuration-backed runtime behavior.
+
+## Evidence classes
+
+### A) Live hosted evidence (deployed baseline)
+
+Path: `docs/assets/live-hosted/`
+
+These screenshots are from the actually deployed, server-backed baseline and should be treated as the stronger visual evidence layer for hosted runtime observability.
+
+Use these first when presenting hosted-baseline observability claims.
+
+- `live-hosted-grafana-alert-intensity-value-minus-threshold.png`
+- `live-hosted-grafana-telemetry-ingest-points-per-minute.png`
+- `live-hosted-grafana-active-alerts-events-per-minute.png`
+- `live-hosted-grafana-devices-seen-in-window.png`
+- `live-hosted-grafana-recent-active-alerts-last-50.png`
+- `live-hosted-grafana-door-open-state-distribution.png`
+- `live-hosted-grafana-temperature-by-device.png`
+- `live-hosted-grafana-humidity-and-battery-trends.png`
+- `live-hosted-grafana-signal-strength-offline-pulse-visibility.png`
+- `live-hosted-grafana-latest-metrics-by-device.png`
+
+**Verification**: The 10 files listed above account for all assets currently present in `docs/assets/live-hosted/`.
+
+### B) Legacy demo/staged screenshots
+
+Path: `demo/screenshots/`
+
+These screenshots remain useful as supporting/illustrative visuals, but they are secondary to live hosted evidence when a hosted runtime claim is being presented.
+
+Use these as secondary visuals only after showing live hosted evidence.
+
+## Legacy demo/staged screenshot categories (`demo/screenshots/`)
+
+### 1) Architecture / documentation visuals
+
+- `prompt_g_fig_readme_quick_review_section.png`
+
+Supports visual confirmation of repository documentation surface and entrypoint structure.
+
+### 2) Grafana / observability visuals
+
+- `sprint_11_fig_operational_dashboard_main_view.png`
+- `sprint_11_fig_operational_dashboard_filtered_view.png`
+- `sprint_11_fig_operational_dashboard_search_view.png`
+- `sprint_12_fig_digitalocean_hosted_dashboard_view.png`
+
+Supports dashboard-oriented observability examples (visibility/filter/search views and hosted dashboard context).
+
+### 3) Operational UI / API proof visuals
 
 - `sprint_7_fig_api_alerts_get_terminal.png`
 - `sprint_7_fig_api_acknowledge_post_terminal.png`
@@ -18,26 +76,12 @@ This directory groups screenshot evidence used for recruiter/instructor review.
 - `sprint_10_fig_api_single_alert_terminal.png`
 - `sprint_10_fig_api_filtered_unacknowledged_alerts_terminal.png`
 - `sprint_10_fig_api_summary_terminal.png`
+- `sprint_4_fig_acknowledge_alert_script_terminal.png`
+- `sprint_4_fig_mongodb_acknowledged_audit_event_terminal.png`
 
-What this proves:
+Supports visual examples of alert retrieval/acknowledgement flows and API-facing operational checks.
 
-- API retrieval, filtering, summary, and acknowledgement paths are demonstrated.
-
----
-
-## 2) Dashboard usability proof
-
-- `sprint_11_fig_operational_dashboard_main_view.png`
-- `sprint_11_fig_operational_dashboard_filtered_view.png`
-- `sprint_11_fig_operational_dashboard_search_view.png`
-
-What this proves:
-
-- Operator-facing dashboard supports alert visibility, filter/search workflow, and presentation readiness.
-
----
-
-## 3) Deployment/readiness proof
+### 4) Deployment / ingress / hosted-baseline visuals
 
 - `sprint_8_fig_docker_stack_with_api_container.png`
 - `sprint_8_fig_containerized_api_health_terminal.png`
@@ -45,39 +89,45 @@ What this proves:
 - `sprint_9_fig_env_example_configuration.png`
 - `sprint_9_fig_api_healthcheck_configuration.png`
 - `sprint_9_fig_api_healthcheck_healthy_stack.png`
+- `sprint_12_fig_digitalocean_hosted_api_terminal.png`
 
-What this proves:
+Supports deployment and health-check context for local/containerized and hosted-baseline demonstration views.
 
-- Containerized runtime and health/readiness checks were validated.
-
----
-
-## 4) Cloud/live proof
+### 5) Validation / persistence / operational context visuals
 
 - `sprint_12_fig_atlas_api_summary_and_alerts_terminal.png`
 - `sprint_12_fig_atlas_cluster_or_collection_view.png`
-- `sprint_12_fig_digitalocean_hosted_api_terminal.png`
-- `sprint_12_fig_digitalocean_hosted_dashboard_view.png`
+- `sprint_6_fig_nodered_flow_canvas.png`
+- `sprint_6_fig_nodered_debug_messages.png`
 
-What this proves:
+Supports persistence/integration context and operational validation illustrations.
 
-- Hosted API/dashboard and Atlas-backed data path evidence is available.
+## What screenshots demonstrate
 
----
+Screenshots referenced by this index can support:
 
-## 5) Historical build-up context (optional)
+- visual confirmation that interfaces and operational views exist
+- examples of observability/dashboard surfaces
+- examples of API and operational workflow interaction patterns
+- hosted-baseline evidence context for walkthrough discussions (strongest when using `docs/assets/live-hosted/`)
 
-- `sprint_4_*` acknowledgement baseline
-- `sprint_6_*` Node-RED demo artifacts
+## What screenshots do not prove
 
-Use these only when explaining project progression; for Prompt G review prioritize sections 1–4.
+Screenshots alone do **not** prove:
 
----
+- full runtime correctness
+- complete security assurance
+- complete production readiness
+- certified clinical infrastructure
+- full operational truth without API/log/runbook evidence
 
-## 6) Prompt G presentation-layer polish evidence
+Screenshots should be interpreted as static evidence snapshots, not complete runtime verification.
 
-- `prompt_g_fig_readme_quick_review_section.png`
+## Naming and curation expectations
 
-What this proves:
+When adding or refreshing screenshot artifacts:
 
-- The repository entrypoint now includes a dedicated recruiter/instructor quick-review path.
+- prefer clear, neutral, release-grade names that describe the captured surface
+- avoid process-history-oriented naming as primary evidence language
+- avoid retaining outdated screenshots as default references when newer canonical evidence exists
+- keep this index synchronized with actual files in both `demo/screenshots/` and `docs/assets/live-hosted/`

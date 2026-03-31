@@ -1,0 +1,11 @@
+<svg width="760" height="220" viewBox="0 0 760 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OncoVax concept A1 lockup rough">
+  <rect width="760" height="220" fill="#111827"/>
+  <g transform="translate(18 18)">
+    <circle cx="92" cy="92" r="62" stroke="#E5E7EB" stroke-width="10"/>
+    <path d="M62 64L92 118L122 64" stroke="#9CA3AF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="62" cy="64" r="4" fill="#E5E7EB"/>
+    <circle cx="92" cy="118" r="4" fill="#E5E7EB"/>
+    <circle cx="122" cy="64" r="4" fill="#E5E7EB"/>
+  </g>
+  <text x="210" y="128" fill="#E5E7EB" font-size="72" font-family="Inter, Segoe UI, Roboto, Arial, sans-serif" font-weight="500" letter-spacing="1">OncoVax</text>
+</svg>
