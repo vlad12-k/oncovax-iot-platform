@@ -1,0 +1,11 @@
+1debe58dd64b75854e99b714b72b9316d436e9ac452decbc781abfba8ea3c3f6  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-backups-snapshots-before-destroy-2026-08-10.png
+3dd9827902a88941bc1ff745531c1a575b272bfa1b8132ff20e80763d085bae0  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-billing-insights-full-2026-08-10.png
+83fb204702fe5525d040bb8176a9269baec0d4346fbe1db2006a2fa36fb58979  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-billing-overview-full-2026-08-10.png
+6a701c5788ffeabf2fadb26b68ef62fbf8943488f378ff0975edf9529b77577c  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-console-handshake-timeout-2026-08-10.png
+672adb4307afdf24471b7775c13108bc2d914b5e0a102ccfabe1e71e4e757a0b  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-droplet-activity-created-2026-08-10.png
+91ff67f47df70dd18b3ee14cd2c80c7d7e72299f76a53c728a5ed7941d05a877  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-droplet-insights-full-2026-08-10.png
+1e6eac2dd335e475509c262c8ffb8640ed1daeb2a0bb63fe0b6769d4e7267616  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-droplet-overview-full-2026-08-10.png
+29c006698d98de6ef9ccf2164e6f6f6bacc629917a83cfca32298bb1bb613d87  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-networking-firewall-full-2026-08-10.png
+073bad449efe52077667568c930507bb838f9aaa9787b2cc09cbaee2bed1ce81  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/digitalocean-volumes-before-destroy-2026-08-10.png
+8ff75c4a3740a10051a5cf49eda5233376d68d095744d12b0996c0471823398d  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/dns-records-oncovax-live-full-2026-08-10.png
+99078752890b67207ea3561a43d19b62446749f2e6c641593f3c3d07d3fd3c54  docs/deployment-evidence/2026-08-09-digitalocean-shutdown/screenshots/uptimerobot-monitor-full-2026-08-10.png
