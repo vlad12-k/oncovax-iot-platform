@@ -28,3 +28,11 @@ def test_ingress_has_tls_and_protected_operator_routes():
     assert 'ssl_certificate_key ' in config
     assert 'auth_basic_user_file /etc/nginx/conf.d/.htpasswd;' in config
     assert 'location = /public-health' in config
+
+
+def test_loopback_ingress_health_does_not_redirect():
+    config = (ROOT / 'infra/nginx/nginx.conf').read_text()
+    http_server = config.split('server {', 2)[1]
+    health = http_server.split('location = /public-health {', 1)[1].split('}', 1)[0]
+    assert 'proxy_pass http://api:8000;' in health
+    assert 'return 301' not in health
