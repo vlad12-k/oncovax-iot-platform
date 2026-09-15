@@ -1,14 +1,112 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "OncoVax Audit Event",
+  "title": "OncoVax persisted alert lifecycle record",
+  "description": "MongoDB alert lifecycle record as exposed by the API without _id. Acknowledgement mutates this record; this is not an immutable event log.",
   "type": "object",
-  "description": "Placeholder audit event schema for documentation/contract alignment",
-  "required": ["event_type", "time"],
+  "required": [
+    "device_id",
+    "asset_type",
+    "metric",
+    "threshold",
+    "value",
+    "status",
+    "consecutive_breach_count",
+    "message",
+    "alert_id",
+    "event_type",
+    "time",
+    "acknowledged",
+    "acknowledged_by",
+    "incident_note"
+  ],
   "properties": {
-    "event_type": { "type": "string", "minLength": 1 },
-    "time": { "type": "string", "format": "date-time" },
-    "actor": { "type": ["string", "null"] },
-    "details": { "type": ["object", "null"] }
+    "device_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_type": {
+      "enum": [
+        "coldstorage",
+        "cleanroom",
+        "bioreactor",
+        "shipment"
+      ]
+    },
+    "metric": {
+      "const": "temperature"
+    },
+    "threshold": {
+      "type": "number"
+    },
+    "value": {
+      "type": "number"
+    },
+    "status": {
+      "const": "active"
+    },
+    "consecutive_breach_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "alert_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_type": {
+      "const": "excursion_alert"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "acknowledged": {
+      "type": "boolean"
+    },
+    "acknowledged_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "incident_note": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "acknowledged_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "acknowledged": {
+            "const": true
+          }
+        },
+        "required": [
+          "acknowledged"
+        ]
+      },
+      "then": {
+        "required": [
+          "acknowledged_at"
+        ],
+        "properties": {
+          "acknowledged_by": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
 }

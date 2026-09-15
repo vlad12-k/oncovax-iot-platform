@@ -22,3 +22,6 @@ proof/
 *.secret
 *.secrets
 tmp/
+
+.venv/
+.pytest_cache/

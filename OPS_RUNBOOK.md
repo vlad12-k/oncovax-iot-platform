@@ -1,5 +1,7 @@
 # OncoVax Operator Quick Reference
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Purpose
 
 This file is a compact operator cheat sheet for routine verification, restart/recreate, and first-pass troubleshooting.
@@ -18,7 +20,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 ### 2.2 Public-safe ingress check (`/public-health`)
 
 ```bash
-curl -iS https://<live-domain>/public-health
+curl -iS https://<deployment-domain>/public-health
 ```
 
 Expected: HTTP 200 with `{"status":"ok"}`.
@@ -73,6 +75,6 @@ Primary rollback references:
 
 ## 7) Scope reminder
 
-- This cheat sheet is for a production-style hosted baseline.
+- This cheat sheet is for a self-hosted engineering baseline.
 - Telemetry in repository runtime is software-simulated.
 - This is not a certified clinical deployment runbook.

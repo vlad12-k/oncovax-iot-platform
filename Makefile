@@ -30,15 +30,21 @@ logs-prod:
 smoke:
 	./scripts/smoke_test.sh
 
-verify-local:
-	$(COMPOSE_DEV) up -d --build
-	@echo "Waiting for local services to become reachable..."
-	@for i in 1 2 3 4 5 6 7 8 9 10 11 12; do \
-		curl -fsS http://localhost:8086/health >/dev/null && break; \
-		sleep 2; \
-	done
-	@for i in 1 2 3 4 5 6 7 8 9 10 11 12; do \
-		curl -fsS http://localhost:8000/health >/dev/null && break; \
-		sleep 2; \
-	done
+PYTHON ?= python3
+
+.PHONY: test verify-static check-config
+
+test:
+	$(PYTHON) -m pytest -q
+
+check-config:
+	$(PYTHON) scripts/check_compose.py
+
+verify-static: test check-config
+	$(PYTHON) -m compileall -q services scripts tests
+	bash -n scripts/smoke_test.sh
+
+verify-local: verify-static
+	$(COMPOSE_DEV) up -d --build --wait --wait-timeout 180
 	./scripts/smoke_test.sh
+	$(PYTHON) scripts/verify_pipeline.py

@@ -1,214 +1,80 @@
 # OncoVax IoT Platform
 
-![OncoVax Logo](docs/assets/logo-final/oncovax-logo-lockup.svg)
+![OncoVax](docs/assets/logo-final/oncovax-logo-lockup.svg)
 
-OncoVax is an event-driven cold-storage monitoring platform baseline that demonstrates software-telemetry ingestion, threshold-based alerting, operational APIs, and observability in a hosted deployment context.
+OncoVax is an event-driven IoT monitoring platform for biotech cold-storage workflows. It ingests MQTT telemetry, detects temperature excursions, stores alert and acknowledgement records, and exposes FastAPI operator workflows and Grafana observability.
 
-The repository implements a production-style architecture (MQTT transport, worker processing, time-series storage, operational persistence, API/dashboard delivery, and ingress controls) while keeping scope boundaries explicit: telemetry is software-simulated, this is not certified clinical infrastructure, and additional hardening is required before full release-grade production treatment.
+**Deployment status:** the DigitalOcean hosted deployment was previously validated and intentionally decommissioned for cost control after the available cloud credits were exhausted. The repository retains configuration, screenshots, checksums, runbooks, and recovery guidance. Historical domains and recordings are archived evidence, not active service entrypoints. See the [deployment archive](docs/DEPLOYMENT_ARCHIVE.md).
 
-## What this project is
+The included device fleet is software-simulated. This engineering baseline supports evaluation of monitoring workflows relevant to regulated biotech environments; it has no clinical certification or validated regulatory compliance. Application authentication/RBAC, durable alert deduplication, and recovery assurance remain [hardening work](docs/HARDENING_ROADMAP.md).
 
-- A concrete implementation of an event-driven monitoring stack:
-  - simulator -> MQTT -> worker -> InfluxDB + MongoDB -> FastAPI/dashboard -> Grafana.
-- A hosted-baseline deployment model with documented ingress boundaries and operational checks.
-- A technical reference for operational behavior with conservative, evidence-based claims.
+## Capabilities and architecture
 
-## What this project is not
-
-- Not a physical medical-device fleet platform.
-- Not a certified clinical or regulated deployment.
-- Not an anonymous public operational dashboard deployment.
-- Not a claim of fully complete production hardening.
-
-## Key capabilities
-
-- Software-simulated telemetry ingestion through MQTT transport.
-- Threshold-based worker alert generation over incoming telemetry.
-- Split persistence model:
-  - InfluxDB for telemetry and alert-series time-series data.
-  - MongoDB for operational lifecycle/audit state.
-- Operational API and dashboard workflows for health, summary, alert visibility, and acknowledgement.
-- Production-like ingress model with public-safe versus protected operational route boundaries.
-- Grafana-backed observability for time-series telemetry and alert-signal interpretation.
-- Hosted baseline support across core services.
-- Atlas-backed operational persistence compatibility via `MONGO_URI`.
-
-## End-to-end workflow
-
-1. Simulator publishes software telemetry events.
-2. Mosquitto transports telemetry topics.
-3. Worker validates payloads and evaluates thresholds.
-4. InfluxDB stores telemetry and alert-series signals.
-5. MongoDB stores operational lifecycle/audit state.
-6. API/dashboard exposes operational views and acknowledgement interactions.
-7. Grafana provides observability views over InfluxDB time-series data.
-8. In production-like mode, nginx governs public-safe versus protected ingress surfaces.
-
-## Architecture
-
-The architecture is presented with **two diagrams** to separate runtime behavior from hosted deployment context.
-
-### 1) Runtime / service architecture
-
-![OncoVax Runtime Architecture](docs/assets/oncovax-architecture-diagram.svg)
-
-This diagram explains how the system works internally: telemetry ingestion, worker processing, persistence responsibilities, API/dashboard access paths, and observability flow.
-
-### 2) Hosted / infrastructure topology
-
-![OncoVax Hosted Infrastructure Topology](docs/assets/oncovax-hosted-infrastructure-topology.svg)
-
-This diagram explains hosted deployment context: live-domain ingress identity, DigitalOcean-style hosting substrate, VM/server boundary, external uptime-signal context, and Atlas-backed persistence compatibility boundary.
-
-Companion interpretation and legend notes: [`docs/architecture-diagram.md`](docs/architecture-diagram.md)
-
-## Hosted baseline and infrastructure roles
-
-### Hosted baseline in practice
-
-The hosted baseline runs on a Linux cloud VM/server boundary. That VM is the runtime boundary where ingress policy, service composition, restart behavior, and environment configuration are applied to the running stack.
-
-DigitalOcean-style hosting is deployment substrate context for this baseline. It describes where the workload is hosted, not an application-layer feature and not a provider-guarantee claim.
-
-The live domain is the ingress identity boundary for hosted operator and check access. In production-like topology (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`), nginx enforces route-level separation between public-safe and protected operational paths.
-
-External uptime monitoring is an availability-signal layer for hosted public endpoint reachability.
-
-It does **not** prove:
-
-- internal worker processing correctness
-- persistence integrity correctness
-- protected operational workflow correctness
-
-MongoDB Atlas compatibility is the managed persistence compatibility boundary for operational state through `MONGO_URI`. It represents supported persistence placement, not a claim of complete managed-service operational guarantees.
-
-## System components and responsibilities
-
-- **Simulator (`services/simulator/`)**: publishes software-generated telemetry.
-- **Orchestration adapter (`services/orchestration_adapter/`)**: bridges demo/runtime-control MQTT topics.
-- **Mosquitto**: MQTT broker for telemetry and control-topic transport.
-- **Worker (`services/worker/`)**: validates payloads, applies threshold logic, writes telemetry and alert lifecycle records.
-- **InfluxDB**: time-series telemetry and alert-series store.
-- **MongoDB**: operational lifecycle/audit persistence boundary used by API workflows.
-- **FastAPI + dashboard (`services/api/` + `services/web/`)**: health and operational APIs plus dashboard experience.
-- **Grafana (`grafana/`)**: InfluxDB-backed observability views.
-- **nginx ingress (`infra/nginx/nginx.conf`)**: route/auth boundary in production-like topology.
-
-## Deployment modes
-
-- **Local/dev** (`infra/docker-compose.dev.yml`)
-  - Includes simulator, orchestration adapter, Mosquitto, worker, API/UI, InfluxDB, MongoDB, Grafana, and Node-RED.
-  - Intended for local development and end-to-end runtime validation.
-
-- **Hosted baseline** (`infra/docker-compose.yml`)
-  - Core hosted stack: Mosquitto, worker, API, InfluxDB, MongoDB.
-  - Supports Atlas-backed persistence via `MONGO_URI`.
-
-- **Production-like ingress** (`infra/docker-compose.prod.yml` + nginx)
-  - Adds nginx ingress boundary, TLS mounting, protected routes, simulator, orchestration adapter, and Grafana.
-  - Aligns with hosted topology validation and ingress policy checks.
-
-See: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
-
-## Repository structure
-
-- `infra/` — Docker Compose topologies, ingress config, and environment templates.
-- `services/` — API, worker, simulator, and orchestration adapter service implementations.
-- `grafana/` — dashboard definitions and provisioning artifacts.
-- `docs/` — canonical architecture, deployment, observability, runbook, security, and evidence documentation.
-- `scripts/` — operational helper scripts, including smoke-test entrypoints.
-- `tests/` — repository verification and guardrail tests.
-- `demo/` — demo-facing runtime artifacts and scenario support assets.
-
-## Verification and proof surfaces
-
-Implementation-backed checks and proof surfaces include:
-
-- ingress public-safe liveness: `GET /public-health`
-- API liveness: `GET /health`
-- operational summary surface: `GET /summary`
-- operational alert visibility surface: `GET /alerts`
-- Grafana dashboards over InfluxDB time-series data
-- container/service logs across API, worker, simulator, ingress, and data services
-- runbook-driven restart, recovery, and rollback checks
-- claim-to-proof mapping in [`docs/EVIDENCE_MAP.md`](docs/EVIDENCE_MAP.md)
-
-Canonical validation entrypoints:
-
-```bash
-make verify-local
-./scripts/smoke_test.sh --prod <domain> <username> <password>
+```text
+Simulator → Mosquitto MQTT → Worker → InfluxDB → Grafana
+                                  → MongoDB → FastAPI + operator dashboard
 ```
 
-## Live hosted observability evidence (deployed baseline)
+- The worker normalizes and validates telemetry, evaluates temperature thresholds, and writes time-series and audit records.
+- The API provides health, alert retrieval, summary, filtering, and acknowledgement with an operator name and optional incident note.
+- MongoDB stores mutable alert lifecycle records; it is not an immutable compliance audit log. MongoDB Atlas is supported through `MONGO_URI`.
+- Grafana shows device metrics, ingest activity, and alert signals.
+- Docker Compose supplies local and self-hosted topologies. The nginx configuration supplies TLS and basic-auth ingress boundaries when provisioned on a host.
+- An optional Node-RED interface and orchestration adapter control simulator scenarios over MQTT.
 
-The following screenshots are from the live hosted Grafana baseline and provide visible supporting evidence for deployed observability behavior:
+![Runtime architecture](docs/assets/oncovax-architecture-diagram.svg)
 
-![Live hosted Grafana — Temperature by device](docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png)
-_Caption: Device-level temperature trends visible from the deployed hosted baseline._
+The [infrastructure diagram](docs/assets/oncovax-hosted-infrastructure-topology.svg) describes the archived hosting arrangement. [Architecture notes](docs/architecture-diagram.md) explain its boundaries.
 
-![Live hosted Grafana — Recent active alerts (last 50)](docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png)
-_Caption: Recent alert activity surface from the deployed hosted baseline._
+## Run and verify locally
 
-These visuals are supporting proof layers and should be interpreted together with API checks, logs, runbook verification, and configuration-backed runtime behavior.
+Prerequisites: Python 3.11+, Docker with Compose v2 supporting `up --wait`, and curl. Local Compose uses development credentials and publishes ports on loopback only.
 
-## Live walkthrough video
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+make verify-static
+make verify-local
+```
 
-A live hosted walkthrough of the deployed baseline is available here:  
-[Live hosted walkthrough video](https://youtu.be/Q5hKVtd-a3g)
+`verify-static` runs pytest, Python/shell syntax checks, and Compose configuration checks without starting services. `verify-local` first runs those checks, builds and starts the stack, waits for readiness, then verifies API health, database reachability, and an end-to-end telemetry/alert/acknowledgement round trip. It leaves containers running for inspection. Use `make down` to stop them while retaining data volumes.
 
-The walkthrough demonstrates hosted ingress behavior, API proof surfaces, and observability checks in the deployed baseline context.
+Local interfaces:
 
-This video is a supporting demonstration layer and should be interpreted alongside API checks, logs, runbook validation, and documented scope boundaries.
+- [Operator dashboard](http://localhost:8000/)
+- [API health](http://localhost:8000/health)
+- [Grafana](http://localhost:3000/) — development login `admin` / `adminadminadmin`
+- [Node-RED](http://localhost:1880/) — optional local control interface
 
-## Security and operational boundaries
+Grafana's InfluxDB datasource and dashboard are provisioned by Compose. Existing persistent Grafana users retain their previous passwords.
 
-Current baseline controls include:
+## Deployment lifecycle
 
-- ingress segmentation between public-safe and protected surfaces
-- basic-auth protections for operational and Grafana ingress surfaces in production-like mode
-- nginx rate limits on protected routes (including acknowledgement write paths)
-- runbook and recovery/rollback procedures
-- observability baseline through API checks, logs, InfluxDB, and Grafana where available
+| Configuration | Purpose | Current status |
+| --- | --- | --- |
+| `infra/docker-compose.dev.yml` | Full local simulator, processing, API and observability stack | Runnable locally; verify on your machine |
+| `infra/docker-compose.yml` | Core self-hosted services | Retained configuration; no active hosted service |
+| `infra/docker-compose.prod.yml` | Self-hosted services with nginx TLS ingress | Requires credentials, certificates, DNS and host provisioning |
 
-These are baseline controls, not complete production hardening.
+The `.prod.yml` filename is a compatibility convention, not a production-readiness claim. Only run remote smoke checks against a deployment you have provisioned and control; do not use the retired domain as a default test target. See [deployment instructions](docs/DEPLOYMENT.md).
 
-## Current maturity
+## Archived deployment evidence
 
-This repository represents a serious production-style hosted baseline with implemented runtime services, ingress boundaries, operational documentation, and verification paths.
+![Archived Grafana temperature trends](docs/assets/archived-hosted/archived-hosted-grafana-temperature-by-device.png)
 
-It is not yet fully release-grade production infrastructure. Additional hardening, deeper application-layer security controls, and environment-specific operational assurance are still required before full production treatment.
+The [hosted walkthrough recording](https://youtu.be/Q5hKVtd-a3g) and [screenshot catalog](demo/screenshots/README.md) record earlier sessions. Screenshots and uptime captures support historical observations; they do not establish current availability or certify the complete system.
 
-## Documentation map
+## Documentation
 
-- Overview: [`docs/OVERVIEW.md`](docs/OVERVIEW.md)
-- Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- Architecture diagrams: [`docs/architecture-diagram.md`](docs/architecture-diagram.md)
-- Data flow: [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md)
-- Deployment: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
-- Observability: [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md)
-- Operations runbook: [`docs/RUNBOOK.md`](docs/RUNBOOK.md)
-- Operator quick reference: [`OPS_RUNBOOK.md`](OPS_RUNBOOK.md)
-- Recovery/rollback: [`docs/RECOVERY_AND_ROLLBACK.md`](docs/RECOVERY_AND_ROLLBACK.md)
-- Security policy: [`SECURITY.md`](SECURITY.md)
-- Threat model: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)
-- Known limitations: [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md)
-- Evidence map: [`docs/EVIDENCE_MAP.md`](docs/EVIDENCE_MAP.md)
-- Final validation checklist: [`docs/FINAL_VALIDATION_CHECKLIST.md`](docs/FINAL_VALIDATION_CHECKLIST.md)
-- Production hardening roadmap: [`docs/PRODUCTION_HARDENING_DAY1_DAY5.md`](docs/PRODUCTION_HARDENING_DAY1_DAY5.md)
+- [Architecture](docs/ARCHITECTURE.md), [data flow](docs/DATA_FLOW.md), and [overview](docs/OVERVIEW.md)
+- [Deployment](docs/DEPLOYMENT.md) and [deployment archive](docs/DEPLOYMENT_ARCHIVE.md)
+- [Operational runbook](docs/RUNBOOK.md), [quick reference](OPS_RUNBOOK.md), and [recovery](docs/RECOVERY_AND_ROLLBACK.md)
+- [Observability](docs/OBSERVABILITY.md), [runtime walkthrough](docs/DEMO_WALKTHROUGH.md), and [scenarios](docs/DEMO_SCENARIOS.md)
+- [Evidence map](docs/EVIDENCE_MAP.md) and [release validation checklist](docs/FINAL_VALIDATION_CHECKLIST.md)
+- [Data contracts](schemas/README.md), [limitations](docs/KNOWN_LIMITATIONS.md), [security](SECURITY.md), and [threat model](docs/THREAT_MODEL.md)
+- [Hardening roadmap](docs/HARDENING_ROADMAP.md) and [release notes](docs/RELEASE_NOTES_v0.2.0.md)
 
-## Non-claims
+## License
 
-This repository does **not** claim:
-
-- telemetry from physical medical-device fleets
-- certified clinical or regulated deployment status
-- complete production hardening or complete security assurance
-
-Use this repository as a production-style engineering baseline with explicit operational boundaries and conservative claim discipline.
-
-## License and usage
-
-This repository is **source-available** and is **not** offered under a permissive open-source license.
-
-See [`LICENSE`](LICENSE) for legal terms and [`LICENSE_POLICY.md`](LICENSE_POLICY.md) for a plain-language summary.
+OncoVax is source-available under the existing [LICENSE](LICENSE); see the [usage summary](LICENSE_POLICY.md). Existing contributor and AI-assistance attribution remains in Git history.

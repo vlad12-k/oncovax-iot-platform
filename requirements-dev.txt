@@ -1,0 +1,8 @@
+-r services/api/requirements.txt
+-r services/worker/requirements.txt
+-r services/simulator/requirements.txt
+-r services/orchestration_adapter/requirements.txt
+pytest==8.3.5
+PyYAML==6.0.2
+httpx==0.28.1
+rfc3339-validator==0.1.4

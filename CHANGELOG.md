@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.0 — Product Baseline & Deployment Lifecycle Release
+
+Product-first documentation, archived hosting status, durable evidence names, implementation-backed contracts, and executable CI/local validation. See [release notes](docs/RELEASE_NOTES_v0.2.0.md).
+
 All notable changes to this repository are documented in this file.
 
 ## [Unreleased]

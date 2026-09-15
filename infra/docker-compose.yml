@@ -2,7 +2,7 @@
 # This file defines the core services shared across environments.
 # For local development (including Grafana and Node-RED), use:
 #   docker compose -f infra/docker-compose.dev.yml up -d
-# For a production-like deployment, see infra/docker-compose.prod.yml
+# For a TLS ingress deployment, see infra/docker-compose.prod.yml
 
 services:
   mosquitto:

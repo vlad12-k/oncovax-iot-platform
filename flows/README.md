@@ -12,6 +12,6 @@ This directory stores exported Node-RED flows used by the OncoVax demo environme
 - Do not commit credentials embedded in flow configuration.
 - Prefer environment variables for any endpoint/token references.
 
-## Phase A status
+## Runtime use
 
-Placeholder structure has been created. Runtime behavior is unchanged.
+The optional [Node-RED control flow](nodered/README.md) sends commands through the orchestration adapter. It is a local development interface.

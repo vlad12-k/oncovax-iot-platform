@@ -1,10 +1,12 @@
 # Architecture
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Architecture intent
 
-OncoVax is an event-driven cold-storage monitoring platform baseline implemented as a production-style repository architecture.
+OncoVax is an event-driven cold-storage monitoring platform baseline implemented as a service-based repository architecture.
 
-The architecture is designed to demonstrate a hosted operational baseline for telemetry ingestion, threshold-based alerting, API/UI operations, and observability. It is intentionally scoped as a serious engineering baseline rather than a fully hardened production environment.
+The architecture is designed to demonstrate a hosted operational baseline for telemetry ingestion, threshold-based alerting, API/UI operations, and observability. It is intentionally scoped as a engineering baseline with documented production-hardening gaps.
 
 Scope boundaries for this architecture:
 
@@ -46,11 +48,11 @@ The current architecture is composed of the following services and infrastructur
   - Observability dashboards backed by InfluxDB.
 
 - **nginx ingress (`infra/nginx/nginx.conf`)**
-  - Production-like ingress boundary for HTTPS routing, basic-auth protection, and route-level exposure controls.
+  - TLS ingress boundary for HTTPS routing, basic-auth protection, and route-level exposure controls.
 
 - **Orchestration adapter (`services/orchestration_adapter/`)**
   - Repository-implemented adapter for demo/runtime-control topic mapping via MQTT.
-  - Present in dev and production-like compose topologies.
+  - Present in dev and TLS ingress compose topologies.
 
 ## 3) Data and control paths
 
@@ -76,7 +78,7 @@ The current architecture is composed of the following services and infrastructur
 ### Observability path
 
 1. Grafana queries InfluxDB for telemetry and alert visualization.
-2. In production-like topology, Grafana is reached through protected nginx ingress routing.
+2. In TLS ingress topology, Grafana is reached through protected nginx ingress routing.
 
 ### Runtime/demo-control path (implemented)
 
@@ -92,12 +94,12 @@ The current architecture is composed of the following services and infrastructur
 
 ### Protected operational surfaces
 
-- Operational API/dashboard routes are behind nginx basic-auth in production-like ingress.
+- Operational API/dashboard routes are behind nginx basic-auth in TLS ingress.
 - Alert acknowledgement route patterns are separately protected and write-rate limited.
 
 ### Grafana boundary
 
-- Grafana is not an anonymous public surface in production-like topology.
+- Grafana is not an anonymous public surface in TLS ingress topology.
 - nginx applies basic-auth protection for Grafana host routing.
 
 ### Ingress-layer vs application-layer controls
@@ -135,12 +137,12 @@ The current architecture is composed of the following services and infrastructur
 - Core hosted stack for Mosquitto, worker, API, InfluxDB, and MongoDB.
 - Uses environment-file configuration and supports Atlas-backed persistence via `MONGO_URI`.
 
-### Production-like ingress path (`infra/docker-compose.prod.yml` + nginx)
+### TLS ingress path (`infra/docker-compose.prod.yml` + nginx)
 
 - Adds nginx reverse proxy and TLS certificate mounting.
 - Uses protected ingress routing for operational surfaces.
 - Exposes public-safe health path and authenticated operational paths.
-- Includes simulator, orchestration adapter, and Grafana with production-style restart behavior.
+- Includes simulator, orchestration adapter, and Grafana with service-based restart behavior.
 
 Environment behavior and risk posture differ materially across these deployment modes and must be validated per target environment.
 
@@ -152,4 +154,4 @@ This architecture intentionally does not claim the following:
 - Certified clinical or regulated infrastructure status.
 - Fully completed production hardening.
 
-Current architecture should be treated as a production-style hosted baseline with implemented controls and documented operational/security guidance, while recognizing additional hardening is required before full release-grade production treatment.
+Current architecture should be treated as a self-hosted engineering baseline with implemented controls and documented operational/security guidance, while recognizing additional hardening is required before production use.

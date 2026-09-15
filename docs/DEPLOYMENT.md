@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Deployment intent
 
 This document defines the canonical deployment model for the OncoVax repository baseline.
@@ -8,7 +10,7 @@ The repository supports three deployment patterns:
 
 - local/dev deployment
 - hosted baseline deployment
-- production-like ingress deployment using nginx
+- TLS ingress deployment using nginx
 
 Deployment support is practical and operationally useful, but it is not a claim of fully hardened production readiness.
 
@@ -22,7 +24,7 @@ Full local stack for development, testing, and operational workflow validation.
 
 Core hosted stack for MQTT transport, worker processing, API, and persistence services.
 
-### Production-like ingress path (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`)
+### TLS ingress path (`infra/docker-compose.prod.yml` + `infra/nginx/nginx.conf`)
 
 Hosted stack with nginx reverse proxy, TLS certificate mounting, and protected ingress routing for operational surfaces.
 
@@ -45,7 +47,7 @@ Services included:
 Exposure characteristics:
 
 - service ports are directly exposed for local iteration (`1883`, `8086`, `27017`, `8000`, `3000`, `1880`)
-- direct local access does not represent production-like ingress protections
+- direct local access does not represent TLS ingress protections
 
 Primary use:
 
@@ -70,7 +72,7 @@ Primary use:
 
 - baseline hosted deployment of canonical ingestion/processing/API path
 
-### Production-like ingress mode
+### TLS ingress mode
 
 Services included:
 
@@ -92,7 +94,7 @@ Exposure characteristics:
 
 Primary use:
 
-- production-style topology validation with protected operational ingress behavior
+- service-based topology validation with protected operational ingress behavior
 
 ## 4) Configuration model
 
@@ -100,7 +102,7 @@ Configuration is environment-variable driven.
 
 ### `.env` and environment variables
 
-- hosted baseline and production-like compose files use `env_file: .env`
+- hosted baseline and TLS ingress compose files use `env_file: .env`
 - use `infra/.env.example` as the configuration template
 - do not commit real credentials or private tokens
 
@@ -114,17 +116,17 @@ Configuration is environment-variable driven.
 
 - worker requires `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_BUCKET`, and `INFLUX_TOKEN`
 - dev compose initializes InfluxDB with explicit setup variables in compose
-- hosted and production-like deployment expect InfluxDB settings through `.env`
+- hosted and TLS ingress deployment expect InfluxDB settings through `.env`
 
 ### Grafana/admin configuration
 
 - dev compose sets Grafana admin credentials directly in compose for local use
-- production-like compose loads Grafana credentials and settings from `.env`
+- TLS ingress compose loads Grafana credentials and settings from `.env`
 - Grafana is an operational surface and should remain protected in hosted ingress deployments
 
 ### nginx, TLS, and basic-auth configuration
 
-Production-like ingress expects:
+TLS ingress expects:
 
 - valid nginx config at `infra/nginx/nginx.conf`
 - `.htpasswd` mounted for protected route access control
@@ -133,7 +135,7 @@ Production-like ingress expects:
 
 ## 5) Ingress and route exposure
 
-In production-like mode, route exposure is defined by nginx policy.
+In TLS ingress mode, route exposure is defined by nginx policy.
 
 ### Public-safe route
 
@@ -176,7 +178,7 @@ Use runbook-aligned checks after deployment and after operational changes.
 - `GET /summary` for operational data availability
 - `GET /alerts` for alert visibility checks
 
-### Ingress checks (production-like)
+### Ingress checks (TLS ingress)
 
 - `GET /public-health` without auth through nginx
 - authenticated `GET /summary` through nginx using basic-auth credentials
@@ -185,7 +187,7 @@ Use runbook-aligned checks after deployment and after operational changes.
 
 - local verification: `make verify-local`
 - smoke checks: `./scripts/smoke_test.sh`
-- production-like smoke checks: `./scripts/smoke_test.sh --prod <domain> <username> <password>`
+- TLS ingress smoke checks: `./scripts/smoke_test.sh --prod <domain> <username> <password>`
 
 Detailed operational procedures are maintained in:
 
@@ -204,5 +206,5 @@ Current limitations and dependencies:
 
 - telemetry remains software-simulated in repository runtime
 - deployment security and reliability depend strongly on operator-managed configuration quality
-- ingress protections are meaningful in production-like mode, but application-layer auth/RBAC remains incomplete (see `SECURITY.md`)
-- environment assumptions are not interchangeable across dev, hosted baseline, and production-like modes (see `docs/KNOWN_LIMITATIONS.md` and `docs/RUNBOOK.md`)
+- ingress protections are meaningful in TLS ingress mode, but application-layer auth/RBAC remains incomplete (see `SECURITY.md`)
+- environment assumptions are not interchangeable across dev, hosted baseline, and TLS ingress modes (see `docs/KNOWN_LIMITATIONS.md` and `docs/RUNBOOK.md`)

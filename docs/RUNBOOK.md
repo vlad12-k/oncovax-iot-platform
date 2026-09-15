@@ -1,5 +1,7 @@
 # Operations Runbook
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Runbook intent
 
 This document defines the canonical operational verification and recovery-oriented check path for the OncoVax repository baseline.
@@ -26,7 +28,7 @@ Hosted baseline:
 docker compose -f infra/docker-compose.yml ps
 ```
 
-Production-like ingress:
+TLS ingress:
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml ps
@@ -44,10 +46,10 @@ If any service is restarting or unhealthy, inspect logs before continuing with A
 
 ### 2.3 Public-safe ingress check (`/public-health`)
 
-In production-like ingress mode, validate public-safe route behavior through nginx:
+In TLS ingress mode, validate public-safe route behavior through nginx:
 
 ```bash
-curl -iS https://<live-domain>/public-health
+curl -iS https://<deployment-domain>/public-health
 ```
 
 Expected behavior:
@@ -65,7 +67,7 @@ curl -s http://localhost:8000/summary | python -m json.tool
 curl -s "http://localhost:8000/alerts?limit=20" | python -m json.tool
 ```
 
-Production-like internal checks from API container:
+TLS ingress internal checks from API container:
 
 ```bash
 docker exec oncovax-api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/health").read().decode())'
@@ -81,7 +83,7 @@ Local/dev logs:
 docker compose -f infra/docker-compose.dev.yml logs -f --tail=200
 ```
 
-Production-like targeted logs:
+TLS ingress targeted logs:
 
 ```bash
 docker logs --since=10m oncovax-nginx
@@ -111,13 +113,13 @@ make verify-local
 - Grafana is not included by default in this compose mode.
 - Operational validation relies on compose status, API checks, and logs.
 
-### 3.3 Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
+### 3.3 TLS ingress (`infra/docker-compose.prod.yml` + nginx)
 
 - Includes nginx ingress with TLS/basic-auth route controls.
 - Includes Grafana and orchestration adapter.
 - Uses public-safe ingress checks plus authenticated/protected operational checks.
 
-Canonical production-like smoke command:
+Canonical TLS ingress smoke command:
 
 ```bash
 ./scripts/smoke_test.sh --prod <domain> <username> <password>
@@ -134,7 +136,7 @@ The hosted baseline can use a live custom domain managed by operators.
 
 ### 4.2 Protected operational surfaces
 
-In production-like ingress policy:
+In TLS ingress policy:
 
 - Operational API/dashboard routes behind `location /` are protected by basic auth.
 - Alert acknowledgement routes are protected and write-rate limited.
@@ -214,7 +216,7 @@ Symptoms:
 Checks:
 
 - InfluxDB health and write activity
-- Grafana container health (production-like or dev where present)
+- Grafana container health (TLS ingress or dev where present)
 - dashboard time-window selection and data-source mapping
 
 Interpretation rule:
@@ -239,7 +241,7 @@ Checks:
 Operators remain responsible for deployment safety and correctness, including:
 
 - credential management (basic-auth, service credentials, token rotation)
-- TLS certificate and live domain configuration lifecycle
+- TLS certificate and deployment domain configuration lifecycle
 - firewall/perimeter exposure policy
 - secret hygiene (`.env`/runtime-secret handling, no committed real secrets)
 - validation discipline after restarts, config changes, or incident recovery
@@ -263,14 +265,14 @@ docker compose -f infra/docker-compose.dev.yml restart
 docker compose -f infra/docker-compose.dev.yml ps
 ```
 
-Production-like:
+TLS ingress:
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml restart
 docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-### 8.2 Force recreate (production-like)
+### 8.2 Force recreate (TLS ingress)
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml up -d --force-recreate
@@ -287,4 +289,4 @@ This runbook does not claim:
 - fully hardened production operations
 - clinical infrastructure operations certification
 
-The repository runbook is an operator-driven baseline for production-style operations with explicit scope and maturity limits.
+The repository runbook is an operator-driven baseline for service-based operations with explicit scope and maturity limits.

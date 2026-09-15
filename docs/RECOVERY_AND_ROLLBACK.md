@@ -1,12 +1,14 @@
 # Recovery and Rollback
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Document intent
 
 This document defines the canonical recovery and rollback model for the OncoVax repository baseline.
 
 It describes practical recovery actions, rollback scope, environment-specific differences, and required post-recovery validation.
 
-This is baseline operational guidance for a production-style hosted architecture. It is not a claim of fully hardened production assurance.
+This is baseline operational guidance for a service-based hosted architecture. It is not a claim of fully hardened production assurance.
 
 ## 2) Recovery principles
 
@@ -74,7 +76,7 @@ Rollback of configuration does not automatically restore:
 - recovery centers on service health, API checks, worker flow, and persistence connectivity
 - Atlas-backed persistence can be used via `MONGO_URI`
 
-### 4.3 Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
+### 4.3 TLS ingress (`infra/docker-compose.prod.yml` + nginx)
 
 - includes nginx ingress, TLS wiring, protected operational routes, and Grafana
 - recovery must validate both ingress behavior and internal API correctness
@@ -121,7 +123,7 @@ Validate internal API behavior after restart/recreate:
 
 ### 5.5 Ingress/public-health validation
 
-In production-like mode, validate:
+In TLS ingress mode, validate:
 
 - `GET /public-health` responds through nginx
 - protected operational routes still require valid credentials
@@ -171,7 +173,7 @@ After restart, recreate, or rollback, run a full validation sequence.
 
 ### 7.3 Public-safe ingress check
 
-- `GET /public-health` through live ingress (production-like mode)
+- `GET /public-health` through live ingress (TLS ingress mode)
 
 ### 7.4 Protected-route behavior
 

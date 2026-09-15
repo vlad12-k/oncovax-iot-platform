@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1460" height="920" viewBox="0 0 1460 920" role="img" aria-labelledby="title desc">
   <title id="title">OncoVax Hosted Infrastructure Topology</title>
-  <desc id="desc">Hosted topology showing live domain and uptime checks entering a DigitalOcean-style cloud VM running nginx and runtime services, with MongoDB Atlas as managed external persistence boundary and public-safe/protected route separation.</desc>
+  <desc id="desc">Archived hosted topology showing configured domain and uptime checks entering a DigitalOcean-style cloud VM running nginx and runtime services, with MongoDB Atlas as managed external persistence boundary and public-safe/protected route separation.</desc>
   <defs>
     <style>
       .bg { fill: #ffffff; }
@@ -35,7 +35,7 @@
   <text class="h2" x="313" y="208">Hosted VM / cloud server boundary (runtime + ingress workload)</text>
 
   <rect class="edge" x="320" y="235" width="860" height="72" rx="10" ry="10" />
-  <text class="h2" x="347" y="263">Live domain ingress boundary</text>
+  <text class="h2" x="347" y="263">Configured domain ingress boundary</text>
   <text class="small" x="347" y="284">Domain identity and TLS ingress route into hosted stack</text>
 
   <rect class="svc" x="350" y="345" width="210" height="96" rx="10" ry="10" />
@@ -84,7 +84,7 @@
   <text class="small" x="1292" y="590">compatibility boundary</text>
 
   <rect class="note" x="24" y="162" width="200" height="98" rx="10" ry="10" />
-  <text class="h2" x="45" y="196">Live domain</text>
+  <text class="h2" x="45" y="196">Configured domain</text>
   <text class="small" x="45" y="219">Public identity for</text>
   <text class="small" x="45" y="239">hosted ingress access</text>
 
