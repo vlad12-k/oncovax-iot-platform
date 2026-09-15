@@ -159,7 +159,7 @@ Residual risks that remain material:
 
 ### 7.1 Local/dev risk posture (`infra/docker-compose.dev.yml`)
 
-- broad direct port exposure for local iteration
+- loopback-only host port exposure for local iteration
 - includes additional dev/demo surfaces
 - hardcoded dev-oriented defaults exist in compose for local convenience
 - unsuitable as-is for internet-facing deployment

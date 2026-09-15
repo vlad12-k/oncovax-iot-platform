@@ -44,7 +44,7 @@ In TLS ingress mode, nginx exposes `GET /public-health` as a narrow public-safe 
 
 ### External uptime monitoring
 
-Operator-managed external uptime monitoring can continuously check public endpoint reachability for the hosted baseline domain.
+Operator-managed external uptime monitoring can continuously check public endpoint reachability for a provisioned hosted environment.
 
 ## 3) What Grafana shows
 
@@ -66,7 +66,7 @@ Specifically:
 - Grafana is not a substitute for API/runbook verification checks
 - Grafana is not a claim of enterprise-grade monitoring completeness
 
-Operational alert lifecycle and acknowledgement truth remains API/MongoDB backed.
+Operational alert lifecycle and acknowledgement truth remain API/MongoDB backed.
 
 ## 5) External uptime monitoring
 
@@ -74,7 +74,7 @@ External uptime monitoring in this repository context is used for public-safe in
 
 What it validates:
 
-- the live public endpoint is reachable from outside the deployment perimeter
+- the deployed public endpoint is reachable from outside the deployment perimeter when hosting is active
 - the public-safe health route responds as expected
 
 What it does not validate:
@@ -91,7 +91,7 @@ Observability behavior differs by deployment mode.
 
 ### Local/dev (`infra/docker-compose.dev.yml`)
 
-- includes InfluxDB and Grafana with direct local port exposure
+- includes InfluxDB and Grafana with loopback-only host port exposure
 - includes full local service visibility and local log inspection paths
 - useful for dashboard iteration and end-to-end telemetry/alert inspection
 

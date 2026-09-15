@@ -50,7 +50,7 @@ The project defines three primary deployment modes with different behavior and e
   - Core hosted reference stack for MQTT, worker, API, InfluxDB, and MongoDB.
 
 - **TLS ingress path (`infra/docker-compose.prod.yml` + nginx)**
-  - Adds reverse-proxy ingress, TLS certificate mounting, protected routes, and service-based service restart behavior.
+  - Adds reverse-proxy ingress, TLS certificate mounting, protected routes, and service restart behavior.
 
 Environment behavior differs materially across these modes. Security assumptions, exposure controls, and operational procedures must be validated for the specific target environment.
 
@@ -66,6 +66,6 @@ Current operational boundaries are explicit:
 
 ## 5) Current maturity
 
-The project demonstrates a serious service-based architecture with a working hosted baseline, documented deployment/runbook/security guidance, and practical baseline controls.
+The project demonstrates a serious service-based architecture with a previously validated hosted deployment baseline, documented deployment/runbook/security guidance, and practical baseline controls.
 
 At the same time, it should not be treated as validated production infrastructure without further hardening, stronger application-layer security controls, and environment-specific operational assurance.
