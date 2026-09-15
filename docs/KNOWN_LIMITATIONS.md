@@ -19,7 +19,8 @@ This document describes current, material limitations of the OncoVax IoT Platfor
 
 ## 3) Deployment limitations
 
-- A hosted baseline deployment is implemented, but hardening required for validated production operations is still incomplete.
+- A hosted deployment baseline has been implemented and previously validated, but hardening required for validated production operations is still incomplete.
+- The previously validated DigitalOcean deployment is intentionally decommissioned; retained configuration and evidence do not establish current hosted availability.
 - Security and reliability outcomes depend on operator-managed configuration quality (TLS certificates, credentials, firewall scope, domain configuration, and exposure boundaries).
 - Environment behavior differs materially across:
   - local/dev compose,
@@ -42,6 +43,6 @@ This document describes current, material limitations of the OncoVax IoT Platfor
 
 ## 6) Project maturity statement
 
-The project demonstrates a serious service-based architecture with a working hosted baseline, protected operational surfaces, and documented operational/security controls.
+The project demonstrates a serious service-based architecture with a previously validated hosted deployment baseline, protected operational surfaces, and documented operational/security controls.
 
 At the same time, it should not yet be treated as validated production infrastructure without additional hardening work, stronger application-layer security controls, and environment-specific operational assurance.

@@ -1,26 +1,26 @@
 # Simulator Service
 
-This directory contains an additive simulator runtime at `main.py` that continuously publishes realistic, multi-device telemetry to MQTT.
+This directory contains the simulator runtime at `main.py`, which continuously generates and publishes configurable multi-device telemetry to MQTT.
 
-`services/simulator/simulator.py` remains untouched for backward compatibility.
+`services/simulator/simulator.py` is retained for backward compatibility.
 
 ## Files
 
 - `main.py` — JSON-driven multi-device simulator
-- `devices.json` — expanded fleet catalog and baseline telemetry profiles
+- `devices.json` — fleet catalog and baseline telemetry profiles
 - `scenarios.json` — scenario mode definitions and demo profile defaults
 - `requirements.txt` — Python dependencies
 
 ## Fleet model
 
-The simulator now ships with a richer fleet (16 devices total) covering all target asset types:
+The simulator ships with a 16-device fleet covering four configured asset types:
 
 - 4 × vaccine fridge
 - 4 × transport box
 - 4 × clinic freezer
 - 4 × warehouse cold room
 
-Each device includes metadata suitable for demo dashboards:
+Each device configuration includes metadata used by the simulator:
 
 - `device_id`
 - `asset_type`
@@ -30,6 +30,8 @@ Each device includes metadata suitable for demo dashboards:
 - `firmware_version`
 - `status`
 - `location` (`lat`/`lon`)
+
+The catalog-level `status` describes the configured device entry. The emitted telemetry `status` field represents the simulator's current runtime/scenario state.
 
 ## Telemetry payload format
 
@@ -128,7 +130,8 @@ To stop gracefully, press `Ctrl+C` (SIGINT) or send SIGTERM.
 ## Notes for pipeline visibility
 
 This simulator publishes to `oncovax/telemetry/simulator` by default to avoid accidental interference.
-If you want existing worker ingestion, point topic to the worker-consumed topic explicitly:
+
+If you want existing worker ingestion, point the simulator to the worker-consumed topic explicitly:
 
 ```bash
 --mqtt-topic oncovax/telemetry
@@ -136,10 +139,10 @@ If you want existing worker ingestion, point topic to the worker-consumed topic 
 
 That routing choice is operational and should be made intentionally per environment.
 
-For runtime compatibility, the safest demo approach is:
+For compatibility with the dedicated simulator topic:
 
-1. Keep simulator default topic (`oncovax/telemetry/simulator`)
-2. Run worker with explicit compatibility subscription enabled:
+1. Keep the simulator default topic (`oncovax/telemetry/simulator`).
+2. Run the worker with the compatibility subscription enabled:
 
 ```bash
 MQTT_TOPIC=oncovax/telemetry \
@@ -147,10 +150,10 @@ MQTT_SIMULATOR_COMPAT_TOPIC=oncovax/telemetry/simulator \
 python3 -m services.worker.worker
 ```
 
-This preserves legacy ingestion topic behavior while allowing simulator-driven ingestion in a controlled way.
+This preserves the canonical ingestion topic while allowing simulator-driven ingestion through the compatibility subscription.
 
-## Demo-control contract reference (B2c)
+## Demo-control contract reference
 
-For Node-RED demo-control MQTT contract details (topics and required command fields), see:
+For Node-RED demo-control MQTT contract details, including topics and required command fields, see:
 
 - `flows/nodered/README.md`

@@ -46,7 +46,7 @@ Services included:
 
 Exposure characteristics:
 
-- service ports are directly exposed for local iteration (`1883`, `8086`, `27017`, `8000`, `3000`, `1880`)
+- development service ports are host-published on loopback only (`127.0.0.1`) for local iteration (`1883`, `8086`, `27017`, `8000`, `3000`, `1880`)
 - direct local access does not represent TLS ingress protections
 
 Primary use:
@@ -65,8 +65,10 @@ Services included:
 
 Exposure characteristics:
 
-- core service ports are exposed by compose for hosted operation
-- no nginx ingress boundary in this mode by default
+- core service ports are host-published by compose for hosted operation (`1883`, `8086`, `27017`, `8000`)
+- these published ports are not restricted to loopback by the base compose configuration
+- no nginx ingress boundary is present in this mode by default
+- internet-facing use therefore requires operator-managed firewall/perimeter controls, or use of the TLS ingress topology where protected HTTP ingress is required
 
 Primary use:
 
@@ -155,6 +157,7 @@ In TLS ingress mode, route exposure is defined by nginx policy.
 ### Environment note
 
 - direct API access in local/dev or base hosted mode does not provide the same route protection model as nginx ingress mode
+- local/dev host-published ports are restricted to loopback, while the base hosted compose publishes core service ports without that loopback restriction
 
 ## 6) Hosted baseline guidance
 
@@ -164,9 +167,12 @@ Key properties:
 
 - canonical MQTT -> worker -> InfluxDB + MongoDB/API path is preserved
 - Atlas-backed operational persistence is supported through `MONGO_URI`
-- domain, TLS certificate lifecycle, firewall scope, and credential policy are operator-managed
+- the base hosted compose publishes core service ports without an nginx ingress boundary
+- domain, TLS certificate lifecycle, firewall scope, network exposure, and credential policy are operator-managed
 
 Hosted baseline should be treated as an operational reference baseline, not as a claim of full production hardening.
+
+For an internet-facing deployment, restrict host-level exposure appropriately and use the TLS ingress topology where protected HTTP ingress is required.
 
 ## 7) Operational validation
 
@@ -206,6 +212,7 @@ Current limitations and dependencies:
 
 - telemetry remains software-simulated in repository runtime
 - deployment security and reliability depend strongly on operator-managed configuration quality
+- base hosted mode publishes core service ports without the nginx ingress protection model
 - ingress protections are meaningful in TLS ingress mode, but application-layer auth/RBAC remains incomplete (see `SECURITY.md`)
 - environment assumptions are not interchangeable across dev, hosted baseline, and TLS ingress modes (see `docs/KNOWN_LIMITATIONS.md` and `docs/RUNBOOK.md`)
 

@@ -49,7 +49,7 @@ If any service is restarting or unhealthy, inspect logs before continuing with A
 In TLS ingress mode, validate public-safe route behavior through nginx:
 
 ```bash
-curl -iS https://<deployment-domain>/public-health
+curl -iSfS https://<deployment-domain>/public-health
 ```
 
 Expected behavior:
@@ -62,9 +62,9 @@ Expected behavior:
 Local/dev or hosted baseline direct checks:
 
 ```bash
-curl -s http://localhost:8000/health
-curl -s http://localhost:8000/summary | python -m json.tool
-curl -s "http://localhost:8000/alerts?limit=20" | python -m json.tool
+curl -fsS http://localhost:8000/health
+curl -fsS http://localhost:8000/summary | python -m json.tool
+curl -fsS "http://localhost:8000/alerts?limit=20" | python -m json.tool
 ```
 
 TLS ingress internal checks from API container:
@@ -97,7 +97,7 @@ docker logs --since=10m oncovax-simulator
 ### 3.1 Local/dev (`infra/docker-compose.dev.yml`)
 
 - Includes full local stack (including Grafana and Node-RED).
-- Uses direct local port exposure for operational checks.
+- Uses loopback-only host port exposure for operational checks.
 - Best for local end-to-end validation and troubleshooting.
 
 Canonical local verification entrypoint:
@@ -127,7 +127,7 @@ Canonical TLS ingress smoke command:
 
 ## 4) Ingress and domain checks
 
-The hosted baseline can use a live custom domain managed by operators.
+A provisioned hosted environment can use an operator-managed deployment domain.
 
 ### 4.1 Public-safe route behavior
 
@@ -144,7 +144,7 @@ In TLS ingress policy:
 
 ### 4.3 Ingress validation sequence
 
-1. Confirm domain resolves and TLS ingress responds.
+1. Confirm the configured domain resolves and TLS ingress responds.
 2. Confirm `/public-health` returns expected liveness response.
 3. Confirm protected operational routes require valid credentials.
 4. Confirm internal API checks still pass.

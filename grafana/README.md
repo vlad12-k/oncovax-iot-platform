@@ -59,16 +59,16 @@ Grafana is **not** a substitute for:
 
 ### Local/dev (`infra/docker-compose.dev.yml`)
 
-- Grafana is included and directly reachable on local port `3000`
+- Grafana is included and reachable through the loopback-bound local port `3000`
 - Useful for dashboard iteration and local runtime signal inspection
-- Direct local access does not represent TLS ingress ingress protections
+- Direct local access does not represent TLS ingress protections
 
 ### Hosted baseline (`infra/docker-compose.yml`)
 
 - Core hosted baseline excludes Grafana by default
 - Observability in this mode relies on API checks, logs, and operator-managed monitoring integrations
 
-### TLS ingress ingress (`infra/docker-compose.prod.yml` + nginx)
+### TLS ingress (`infra/docker-compose.prod.yml` + nginx)
 
 - Grafana is included and mounted with repo-controlled provisioning/dashboards
 - Grafana is exposed through nginx host routing (`grafana.<domain>`) and protected with basic-auth

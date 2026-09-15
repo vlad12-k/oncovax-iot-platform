@@ -12,7 +12,7 @@ This is baseline operational guidance for a service-based hosted architecture. I
 
 ## 2) Recovery principles
 
-### 2.1 Restart first, diagnose second, recreate only when needed
+### 2.1 Diagnose first, restart when appropriate, recreate only when needed
 
 Use the least disruptive action first:
 
@@ -66,7 +66,7 @@ Rollback of configuration does not automatically restore:
 
 ### 4.1 Local/dev (`infra/docker-compose.dev.yml`)
 
-- broad direct service port exposure
+- loopback-only host port exposure for development services
 - includes additional dev/demo tooling surfaces
 - recovery is typically container-level and local-compose driven
 
@@ -173,7 +173,7 @@ After restart, recreate, or rollback, run a full validation sequence.
 
 ### 7.3 Public-safe ingress check
 
-- `GET /public-health` through live ingress (TLS ingress mode)
+- `GET /public-health` through the deployed ingress (TLS ingress mode)
 
 ### 7.4 Protected-route behavior
 
