@@ -38,7 +38,7 @@ make verify-static
 make verify-local
 ```
 
-`verify-static` runs pytest, Python/shell syntax checks, and Compose configuration checks without starting services. `verify-local` first runs those checks, builds and starts the stack, waits for readiness, then verifies API health, database reachability, and an end-to-end telemetry/alert/acknowledgement round trip. It leaves containers running for inspection. Use `make down` to stop them while retaining data volumes.
+`verify-static` runs pytest, Python/shell syntax checks, and Compose configuration checks without starting services. `verify-local` first runs those checks, builds and starts the stack, waits for readiness, then verifies API health, database reachability, and an end-to-end telemetry/alert/acknowledgement round trip. It also checks nginx syntax using disposable certificates, without contacting the historical domain. It leaves containers running for inspection. Use `make down` to stop them while retaining data volumes.
 
 Local interfaces:
 

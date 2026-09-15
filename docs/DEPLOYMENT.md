@@ -208,3 +208,9 @@ Current limitations and dependencies:
 - deployment security and reliability depend strongly on operator-managed configuration quality
 - ingress protections are meaningful in TLS ingress mode, but application-layer auth/RBAC remains incomplete (see `SECURITY.md`)
 - environment assumptions are not interchangeable across dev, hosted baseline, and TLS ingress modes (see `docs/KNOWN_LIMITATIONS.md` and `docs/RUNBOOK.md`)
+
+## Ingress health and configuration checks
+
+`GET /public-health` is available on HTTP and HTTPS. The HTTP path allows the container healthcheck to reach the API through loopback without following a hostname redirect. Other HTTP paths redirect to HTTPS.
+
+`./scripts/check_nginx.sh` validates nginx syntax using disposable certificates and local hostname mappings. It does not contact the retired domain and does not validate real DNS, certificate trust, or authenticated runtime behavior.

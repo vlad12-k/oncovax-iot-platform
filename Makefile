@@ -42,9 +42,10 @@ check-config:
 
 verify-static: test check-config
 	$(PYTHON) -m compileall -q services scripts tests
-	bash -n scripts/smoke_test.sh
+	bash -n scripts/smoke_test.sh scripts/check_nginx.sh
 
 verify-local: verify-static
 	$(COMPOSE_DEV) up -d --build --wait --wait-timeout 180
 	./scripts/smoke_test.sh
 	$(PYTHON) scripts/verify_pipeline.py
+	./scripts/check_nginx.sh
