@@ -1,5 +1,7 @@
 # Observability Guide
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Observability intent
 
 This document defines the canonical observability model for the OncoVax repository baseline.
@@ -38,7 +40,7 @@ These checks validate operational behavior that dashboards alone do not fully pr
 
 ### nginx public-health ingress visibility
 
-In production-like ingress mode, nginx exposes `GET /public-health` as a narrow public-safe liveness route.
+In TLS ingress mode, nginx exposes `GET /public-health` as a narrow public-safe liveness route.
 
 ### External uptime monitoring
 
@@ -99,7 +101,7 @@ Observability behavior differs by deployment mode.
 - does not include Grafana in this compose mode by default
 - relies on API checks, container health/status, logs, and operator-managed monitoring integrations
 
-### Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
+### TLS ingress (`infra/docker-compose.prod.yml` + nginx)
 
 - includes InfluxDB and Grafana
 - nginx provides ingress boundaries, including public-safe `GET /public-health`

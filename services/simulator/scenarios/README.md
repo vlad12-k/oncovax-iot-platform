@@ -1,5 +1,3 @@
-# Simulator Scenarios
+# Simulator configuration
 
-This directory contains scenario configuration templates for telemetry simulation.
-
-This directory currently provides scenario templates only; runtime simulator behavior is controlled by existing simulator code.
+The runtime loads [`../scenarios.json`](../scenarios.json) and [`../devices.json`](../devices.json). The simulator implementation and `runtime_control.py` apply those profiles and MQTT runtime controls. This subdirectory contains no runtime-loaded configuration. See [simulator controls](../README.md).

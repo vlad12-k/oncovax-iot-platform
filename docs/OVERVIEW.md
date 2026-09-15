@@ -1,10 +1,12 @@
 # Platform Overview
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Platform summary
 
 OncoVax is an event-driven cold-storage monitoring baseline that models telemetry ingestion, alert generation, operational APIs, and observability in a hosted deployment context.
 
-The repository implements a production-style architecture (MQTT transport, worker-side processing, time-series storage, operational persistence, API/UI surfaces, and ingress controls) while remaining explicit about scope and maturity boundaries.
+The repository implements a service-based architecture (MQTT transport, worker-side processing, time-series storage, operational persistence, API/UI surfaces, and ingress controls) while remaining explicit about scope and maturity boundaries.
 
 ## 2) Core components
 
@@ -34,7 +36,7 @@ The current repository includes the following core components and responsibiliti
 - **Grafana (`grafana/` + compose wiring)**
   - Provides observability dashboards backed by InfluxDB.
 
-- **nginx ingress (`infra/nginx/nginx.conf`, production-like compose path)**
+- **nginx ingress (`infra/nginx/nginx.conf`, TLS ingress compose path)**
   - Provides HTTPS routing, basic-auth protection of operational surfaces, and route-level exposure boundaries.
 
 ## 3) Deployment modes
@@ -47,8 +49,8 @@ The project defines three primary deployment modes with different behavior and e
 - **Hosted baseline (`infra/docker-compose.yml`)**
   - Core hosted reference stack for MQTT, worker, API, InfluxDB, and MongoDB.
 
-- **Production-like ingress path (`infra/docker-compose.prod.yml` + nginx)**
-  - Adds reverse-proxy ingress, TLS certificate mounting, protected routes, and production-style service restart behavior.
+- **TLS ingress path (`infra/docker-compose.prod.yml` + nginx)**
+  - Adds reverse-proxy ingress, TLS certificate mounting, protected routes, and service-based service restart behavior.
 
 Environment behavior differs materially across these modes. Security assumptions, exposure controls, and operational procedures must be validated for the specific target environment.
 
@@ -64,6 +66,6 @@ Current operational boundaries are explicit:
 
 ## 5) Current maturity
 
-The project demonstrates a serious production-style architecture with a working hosted baseline, documented deployment/runbook/security guidance, and practical baseline controls.
+The project demonstrates a serious service-based architecture with a working hosted baseline, documented deployment/runbook/security guidance, and practical baseline controls.
 
-At the same time, it should not be treated as fully release-grade production infrastructure without further hardening, stronger application-layer security controls, and environment-specific operational assurance.
+At the same time, it should not be treated as validated production infrastructure without further hardening, stronger application-layer security controls, and environment-specific operational assurance.

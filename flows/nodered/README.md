@@ -1,4 +1,4 @@
-# Node-RED Demo Control Flow (Phase B2c)
+# Node-RED Demo Control Flow
 
 This directory contains an **optional, dev/demo-only** Node-RED flow artifact for demo orchestration controls.
 

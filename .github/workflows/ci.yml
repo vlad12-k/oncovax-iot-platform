@@ -1,60 +1,39 @@
-name: CI (sanity)
+name: Release validation
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, 'release/**']
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  sanity:
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Basic repo checks
-        run: |
-          test -f README.md
-          test -f SECURITY.md
-          test -d docs
-          test -d infra
-          test -f docs/ARCHITECTURE.md
-          test -f docs/OVERVIEW.md
-          test -f docs/RUNBOOK.md
-          test -f docs/THREAT_MODEL.md
-          test -f docs/DEPLOYMENT.md
-          test -f docs/PRODUCTION_HARDENING_DAY1_DAY5.md
-          test -f docs/DATA_FLOW.md
-          test -f docs/DEMO_SCENARIOS.md
-          test -f docs/RECOVERY_AND_ROLLBACK.md
-          test -f docs/KNOWN_LIMITATIONS.md
-          test -f flows/README.md
-          test -d flows/nodered
-          test -f grafana/README.md
-          test -d grafana/dashboards
-          test -f schemas/telemetry.schema.json
-          test -f schemas/alert.schema.json
-          test -f schemas/audit_event.schema.json
-          test -f schemas/device_metadata.schema.json
-          test -d services/simulator/scenarios
-          test -f infra/.env.example
-          test -f infra/docker-compose.yml
-          test -f infra/docker-compose.dev.yml
-          test -f infra/docker-compose.prod.yml
-          test -f infra/nginx/nginx.conf
-          test -f services/api/main.py
-          test -f services/api/config.py
-          test -f services/api/models.py
-          test -f services/web/index.html
-          test -f services/web/styles.css
-          test -f services/web/app.js
-      - name: Python syntax check
-        run: |
-          python3 -m py_compile services/api/main.py
-          python3 -m py_compile services/api/config.py
-          python3 -m py_compile services/api/models.py
-          python3 -m py_compile services/api/routes/alerts.py
-          python3 -m py_compile services/api/routes/health.py
-          python3 -m py_compile services/worker/worker.py
-          python3 -m py_compile services/simulator/simulator.py
-          python3 -m py_compile services/simulator/main.py
-          python3 -m py_compile services/simulator/runtime_control.py
-          python3 -m py_compile services/orchestration_adapter/main.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: make verify-static PYTHON=python
+
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: make verify-local PYTHON=python
+      - name: Runtime diagnostics
+        if: failure()
+        run: docker compose -f infra/docker-compose.dev.yml logs --no-color --tail=100
+      - name: Stop validation stack
+        if: always()
+        run: docker compose -f infra/docker-compose.dev.yml down

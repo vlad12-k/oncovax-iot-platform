@@ -3,7 +3,7 @@ services:
     image: eclipse-mosquitto:2
     container_name: mosquitto
     ports:
-      - "1883:1883"
+      - "127.0.0.1:1883:1883"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
@@ -12,7 +12,7 @@ services:
     image: influxdb:2.7
     container_name: influxdb
     ports:
-      - "8086:8086"
+      - "127.0.0.1:8086:8086"
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
@@ -28,7 +28,7 @@ services:
     image: mongo:7
     container_name: mongodb
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
     restart: unless-stopped
@@ -39,7 +39,7 @@ services:
       dockerfile: services/api/Dockerfile
     container_name: oncovax-api
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - MONGO_URI=mongodb://mongodb:27017
       - MONGO_DB=oncovax
@@ -57,7 +57,7 @@ services:
     image: nodered/node-red:3.1
     container_name: nodered
     ports:
-      - "1880:1880"
+      - "127.0.0.1:1880:1880"
     environment:
       - TZ=UTC
     volumes:
@@ -126,13 +126,17 @@ services:
     image: grafana/grafana:10.4.0
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=adminadminadmin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - INFLUX_TOKEN=dev-token-change-me
     volumes:
       - grafana_data:/var/lib/grafana
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
     restart: unless-stopped
     depends_on:
       - influxdb

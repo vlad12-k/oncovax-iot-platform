@@ -1,4 +1,4 @@
-# Simulator Service (Phase B)
+# Simulator Service
 
 This directory contains an additive simulator runtime at `main.py` that continuously publishes realistic, multi-device telemetry to MQTT.
 
@@ -136,7 +136,7 @@ If you want existing worker ingestion, point topic to the worker-consumed topic 
 
 That routing choice is operational and should be made intentionally per environment.
 
-For Phase B2a compatibility, the safest demo approach is:
+For runtime compatibility, the safest demo approach is:
 
 1. Keep simulator default topic (`oncovax/telemetry/simulator`)
 2. Run worker with explicit compatibility subscription enabled:

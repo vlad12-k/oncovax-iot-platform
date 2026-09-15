@@ -6,7 +6,7 @@ This document defines a practical threat model for the OncoVax repository baseli
 
 It describes security-relevant boundaries, realistic threat categories, current mitigations, and known residual risks for the implemented architecture.
 
-The model reflects a production-style hosted baseline and production-like ingress pattern, not fully hardened production assurance.
+The model reflects a self-hosted engineering baseline and TLS ingress pattern, not fully hardened production assurance.
 
 ## 2) System boundaries
 
@@ -20,8 +20,8 @@ The current threat model covers these implemented system components and infrastr
 - API service (`services/api/`)
 - dashboard/UI (`services/web/` served by API)
 - Grafana (`grafana/`)
-- nginx ingress (`infra/nginx/nginx.conf` in production-like mode)
-- live domain and external uptime monitoring as operator-managed infrastructure context
+- nginx ingress (`infra/nginx/nginx.conf` in TLS ingress mode)
+- deployment domain and external uptime monitoring as operator-managed infrastructure context
 
 Scope notes:
 
@@ -32,7 +32,7 @@ Scope notes:
 
 ### 3.1 Public-safe route boundary
 
-In production-like ingress mode, nginx exposes `GET /public-health` without basic auth as a narrow liveness route.
+In TLS ingress mode, nginx exposes `GET /public-health` without basic auth as a narrow liveness route.
 
 This path is intentionally limited and should not be treated as a complete security or correctness boundary by itself.
 
@@ -134,7 +134,7 @@ Potential impact:
 The repository currently provides these baseline mitigations:
 
 - basic-auth protection for protected API/dashboard routes and Grafana (nginx policy)
-- TLS scaffolding in production-like ingress path (certificate mounts and HTTPS routing)
+- TLS scaffolding in TLS ingress path (certificate mounts and HTTPS routing)
 - nginx rate limiting on selected protected/write paths:
   - general protected traffic (`oncovax_general_limit`)
   - acknowledgement write route (`oncovax_write_limit`)
@@ -153,7 +153,7 @@ Residual risks that remain material:
 - dependence on operator-managed perimeter/domain/TLS/firewall correctness
 - `public-health` reachability does not prove full internal service correctness
 - observability stack is not a full enterprise detection/response platform
-- environment-specific risk differences can create unsafe assumption carryover across dev/hosted/production-like modes
+- environment-specific risk differences can create unsafe assumption carryover across dev/hosted/TLS ingress modes
 
 ## 7) Environment differences
 
@@ -170,7 +170,7 @@ Residual risks that remain material:
 - operator controls (firewall/perimeter/credentials) are primary risk reducers
 - supports Atlas-backed persistence with associated credential and network posture responsibilities
 
-### 7.3 Production-like ingress risk posture (`infra/docker-compose.prod.yml` + nginx)
+### 7.3 TLS ingress risk posture (`infra/docker-compose.prod.yml` + nginx)
 
 - adds ingress segmentation, TLS scaffolding, and basic-auth route protection
 - includes selected nginx rate limits on protected/write paths

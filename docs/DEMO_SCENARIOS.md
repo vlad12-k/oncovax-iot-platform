@@ -1,5 +1,7 @@
 # Demo Scenarios
 
+> Hosting lifecycle: DigitalOcean was previously validated and intentionally decommissioned for cost control after cloud credits were exhausted. Hosted commands below are for a newly provisioned environment under your control; historical domains are not active service entrypoints.
+
 ## 1) Document intent
 
 This document lists canonical demo scenarios for the current OncoVax repository baseline.
@@ -40,7 +42,7 @@ Use these principles when selecting scenarios:
 ### Scenario E: Protected operational surface posture
 
 - Show that operational API/dashboard routes are protected by ingress policy.
-- Show that Grafana operational access is protected in production-like topology.
+- Show that Grafana operational access is protected in TLS ingress topology.
 
 ### Scenario F: Restart/recovery validation path
 
@@ -49,7 +51,7 @@ Use these principles when selecting scenarios:
 
 ### Scenario G: Hosted baseline and operator-managed infrastructure context
 
-- Frame hosted baseline characteristics: live domain model, TLS ingress, protected routes, and Atlas-backed persistence compatibility.
+- Frame hosted baseline characteristics: deployment domain model, TLS ingress, protected routes, and Atlas-backed persistence compatibility.
 - Keep focus on implemented operator-managed infrastructure boundaries.
 
 ## 4) What each scenario proves

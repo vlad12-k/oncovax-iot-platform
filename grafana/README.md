@@ -61,14 +61,14 @@ Grafana is **not** a substitute for:
 
 - Grafana is included and directly reachable on local port `3000`
 - Useful for dashboard iteration and local runtime signal inspection
-- Direct local access does not represent production-like ingress protections
+- Direct local access does not represent TLS ingress ingress protections
 
 ### Hosted baseline (`infra/docker-compose.yml`)
 
 - Core hosted baseline excludes Grafana by default
 - Observability in this mode relies on API checks, logs, and operator-managed monitoring integrations
 
-### Production-like ingress (`infra/docker-compose.prod.yml` + nginx)
+### TLS ingress ingress (`infra/docker-compose.prod.yml` + nginx)
 
 - Grafana is included and mounted with repo-controlled provisioning/dashboards
 - Grafana is exposed through nginx host routing (`grafana.<domain>`) and protected with basic-auth
@@ -98,3 +98,7 @@ Grafana is **not** a substitute for:
 - Recovery/rollback: `docs/RECOVERY_AND_ROLLBACK.md`
 - Evidence boundaries: `docs/EVIDENCE_MAP.md`
 - Security and threat boundaries: `SECURITY.md`, `docs/THREAT_MODEL.md`
+
+## Deployment lifecycle
+
+The DigitalOcean deployment is decommissioned. Historical captures and dashboard URLs are archived observations. The dashboard UID is retained for import compatibility. Local Compose provisions the datasource and dashboard automatically.

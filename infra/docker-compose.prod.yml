@@ -1,8 +1,8 @@
-# OncoVax IoT Platform – Production-like Docker Compose
+# OncoVax IoT Platform – TLS ingress Docker Compose
 #
 # Intended for use on a DigitalOcean Droplet or similar Linux host.
 # Differences from docker-compose.dev.yml:
-#   - Grafana and Node-RED are NOT included (use dev stack for those)
+#   - Grafana is included; Node-RED remains local/dev only
 #   - nginx reverse proxy added (TLS-ready)
 #   - all credentials via env_file only (no hardcoded values)
 #   - API port not directly exposed (nginx handles ingress)

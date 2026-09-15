@@ -22,7 +22,7 @@ Purpose:
 Interpretation notes:
 
 - Runtime flow is centered on `simulator/orchestration-adapter -> Mosquitto -> worker -> InfluxDB + MongoDB`.
-- API/dashboard and Grafana are operator-facing surfaces behind ingress controls in production-like topology.
+- API/dashboard and Grafana are operator-facing surfaces behind ingress controls in TLS ingress topology.
 - Public-safe ingress exposure is narrow (`GET /public-health`), while operational surfaces remain protected.
 
 ## Diagram 2: Hosted / infrastructure topology
@@ -32,7 +32,7 @@ Interpretation notes:
 Purpose:
 
 - shows where the runtime stack is hosted
-- shows live-domain ingress identity and uptime-check context
+- shows deployment-domain ingress identity and uptime-check context
 - shows managed persistence compatibility boundary (MongoDB Atlas) relative to hosted runtime
 
 Interpretation notes:

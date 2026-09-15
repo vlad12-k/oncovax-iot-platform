@@ -1,10 +1,10 @@
-# Production Hardening Roadmap (Day 1 to Day 5)
+# Production Hardening Roadmap
 
 ## 1) Document intent
 
 This document is the canonical staged hardening roadmap for the current OncoVax repository baseline.
 
-It defines practical hardening priorities for a production-style hosted baseline and clarifies the difference between:
+It defines practical hardening priorities for a self-hosted engineering baseline and clarifies the difference between:
 
 - controls already represented in the repository baseline
 - additional hardening work that remains roadmap work
@@ -16,12 +16,12 @@ Roadmap items in this document are planning targets, not proof of completed cont
 The current repository baseline already represents the following controls and operational patterns:
 
 - ingress separation between a narrow public-safe route and protected operational surfaces
-- protected operational API/dashboard and Grafana surfaces in production-like ingress policy
+- protected operational API/dashboard and Grafana surfaces in TLS ingress policy
 - TLS and domain ingress scaffolding in nginx-based topology
 - selected nginx request limiting on protected and write-sensitive paths
 - runbook, recovery/rollback, and final-validation checklist documentation
 - observability baseline through InfluxDB, Grafana (where present), API checks, and log inspection guidance
-- hosted baseline deployment model with production-like topology variant and Atlas-compatible operational persistence
+- hosted baseline deployment model with TLS ingress topology variant and Atlas-compatible operational persistence
 
 These controls are meaningful baseline protections. They do not, by themselves, establish full production hardening.
 
@@ -35,60 +35,60 @@ Additional hardening remains necessary because current baseline limits are expli
 - observability and incident-detection maturity is useful but not exhaustive
 - recovery and rollback remain operator-driven procedures requiring disciplined execution
 
-## 4) Day 1 to Day 5 staged roadmap
+## 4) Hardening priorities
 
-### Day 1 — Ingress, domain, TLS, and route-protection verification
+### Ingress, domain, TLS, and route-protection verification
 
 - **Objective**
   - Verify that live ingress behavior matches documented public-safe vs protected boundaries.
 - **What it improves**
   - Reduces immediate exposure risk from route-policy drift and TLS/domain misconfiguration.
   - Confirms protected operational surfaces remain access-controlled.
-- **What remains out of scope after Day 1**
+- **What remains out of scope after this work**
   - Full application-layer auth/RBAC maturity.
   - Full production security assurance.
 
-### Day 2 — Perimeter controls and secret-hygiene tightening
+### Perimeter controls and secret-hygiene tightening
 
 - **Objective**
   - Tighten firewall/perimeter exposure and improve operational credential/secret handling discipline.
 - **What it improves**
   - Shrinks avoidable attack surface from overly broad network exposure.
   - Lowers operational risk from weak credential and secret-handling practices.
-- **What remains out of scope after Day 2**
+- **What remains out of scope after this work**
   - Centralized enterprise secrets-management guarantees.
   - Formal compliance or certification outcomes.
 
-### Day 3 — Application auth maturity and rate-limit posture review
+### Application auth maturity and rate-limit posture review
 
 - **Objective**
   - Prioritize first-class application-layer auth/authorization controls and review ingress rate-limit adequacy.
 - **What it improves**
   - Reduces over-reliance on ingress-only controls.
   - Improves control depth for protected operational workflows.
-- **What remains out of scope after Day 3**
+- **What remains out of scope after this work**
   - Complete end-to-end identity/governance maturity.
   - Proof of comprehensive abuse-resistance across all workloads.
 
-### Day 4 — Monitoring, alerting, and operational-visibility improvements
+### Monitoring, alerting, and operational-visibility improvements
 
 - **Objective**
   - Improve monitoring signal quality, alerting discipline, and runbook-linked observability interpretation.
 - **What it improves**
   - Improves detection speed and operator confidence in diagnosing degradation.
   - Reduces false confidence from single-surface checks (for example uptime-only or dashboard-only conclusions).
-- **What remains out of scope after Day 4**
+- **What remains out of scope after this work**
   - Full enterprise-grade detection and response coverage.
   - Elimination of all monitoring blind spots.
 
-### Day 5 — Recovery validation, resilience testing, and release-discipline checks
+### Recovery validation, resilience testing, and release-discipline checks
 
 - **Objective**
   - Validate restart/recovery/rollback workflows through repeatable drills and tighten release-change validation discipline.
 - **What it improves**
   - Improves operational readiness for service disruption and misconfiguration recovery.
   - Strengthens confidence that documented procedures work under realistic failure and rollback scenarios.
-- **What remains out of scope after Day 5**
+- **What remains out of scope after this work**
   - Guaranteed prevention of incidents.
   - Guaranteed complete data/service restoration in all failure classes.
 

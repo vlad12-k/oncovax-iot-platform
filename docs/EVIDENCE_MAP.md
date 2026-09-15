@@ -1,192 +1,23 @@
 # Evidence Map
 
-## 1) Document intent
+Evidence is scoped to source behavior, repeatable local checks, or historical hosting observations. A passing static check does not establish runtime availability.
 
-This document maps repository-level claims to concrete proof surfaces in the current OncoVax baseline.
+| Claim | Source / verification | Boundary |
+| --- | --- | --- |
+| Canonical telemetry validation and excursion evaluation | [worker](../services/worker/worker.py), [contract tests](../tests/test_data_contracts.py) | Simulated inputs; no physical-device certification |
+| Alert persistence and acknowledgement | `make verify-local`, [API routes](../services/api/routes/alerts.py) | Mutable MongoDB records; no immutable audit-log guarantee |
+| Simulator runtime controls | [controller tests](../tests/test_simulator_runtime_control.py), [adapter tests](../tests/test_orchestration_adapter.py) | MQTT control plane is intended for controlled environments |
+| Dashboard queries and datasource wiring | [observability tests](../tests/test_observability_artifacts.py), [Grafana guide](../grafana/README.md) | Query presence alone does not prove populated panels |
+| TLS ingress separation | [deployment tests](../tests/test_deployment_contract.py), [nginx configuration](../infra/nginx/nginx.conf) | Certificates, secrets, DNS and a running host are required |
+| Archived hosting observations | [deployment archive](DEPLOYMENT_ARCHIVE.md), [screenshot catalog](../demo/screenshots/README.md) | Historical only; hosting was decommissioned |
+| Archive file integrity | [evidence tests](../tests/test_evidence_integrity.py) | Checksums detect file changes, not truth of pictured claims |
+| Repeatable release verification | [Makefile](../Makefile), [CI](../.github/workflows/ci.yml), [checklist](FINAL_VALIDATION_CHECKLIST.md) | Record skipped checks explicitly |
 
-Its purpose is to keep project positioning conservative, technically accurate, and evidence-backed.
+## Reproduction
 
-## 2) How to read the evidence map
+1. Install the development requirements and run `make verify-static`.
+2. Start Docker and run `make verify-local` for a fresh end-to-end probe.
+3. Follow the [walkthrough](DEMO_WALKTHROUGH.md) to inspect Grafana and runtime control reactions.
+4. Validate ingress only on a newly provisioned host under your control.
 
-Each claim is documented with:
-
-- **Claim**: what can be credibly stated from the current repository baseline.
-- **Proof surface(s)**: where evidence exists (code, config, docs, checks).
-- **What is demonstrated**: the specific behavior the evidence supports.
-- **What is not demonstrated**: boundaries that remain outside the proof.
-
-Use the map as a truth-boundary reference. If a statement is not supported by these proof surfaces, do not present it as established.
-
-## 3) Canonical evidence map
-
-### Claim A: A production-style hosted baseline exists
-
-- **Proof surface(s)**
-  - `README.md`
-  - `docs/DEPLOYMENT.md`
-  - `infra/docker-compose.yml`
-  - `infra/docker-compose.prod.yml`
-  - Supporting visuals: `docs/assets/live-hosted/` screenshots (hosted runtime observability context)
-- **What is demonstrated**
-  - Implemented deployment patterns exist for hosted baseline and production-like ingress topology.
-  - Core service topology and operator-managed deployment context are documented and implemented.
-- **What is not demonstrated**
-  - Fully hardened production readiness.
-  - Formal production assurance or certification.
-
-### Claim B: Event-driven ingestion and processing architecture is implemented
-
-- **Proof surface(s)**
-  - `README.md`
-  - `docs/ARCHITECTURE.md`
-  - `docs/DATA_FLOW.md`
-  - `docs/architecture-diagram.md`
-- **What is demonstrated**
-  - Implemented pipeline structure: simulator -> MQTT -> worker -> InfluxDB/MongoDB -> API/dashboard/Grafana.
-  - Separation of time-series and operational persistence responsibilities.
-- **What is not demonstrated**
-  - Physical-device fleet ingestion proof.
-  - Hardware lifecycle management capability.
-
-### Claim C: A public-safe ingress route is implemented
-
-- **Proof surface(s)**
-  - `infra/nginx/nginx.conf` (`location = /public-health`)
-  - `docs/DEPLOYMENT.md`
-  - `docs/RUNBOOK.md`
-  - `scripts/smoke_test.sh`
-- **What is demonstrated**
-  - `/public-health` is exposed through ingress as a narrow liveness route without basic auth.
-  - The route is part of documented smoke/verification workflows.
-- **What is not demonstrated**
-  - Full internal service correctness.
-  - Complete platform health or security posture.
-
-### Claim D: Protected operational surfaces are implemented
-
-- **Proof surface(s)**
-  - `infra/nginx/nginx.conf`
-  - `infra/docker-compose.prod.yml`
-  - `SECURITY.md`
-  - `docs/THREAT_MODEL.md`
-- **What is demonstrated**
-  - Operational API/dashboard routes and Grafana are protected by ingress basic-auth policy in production-like mode.
-  - Route-level protections and selected rate limits are configured.
-- **What is not demonstrated**
-  - Complete application-layer authentication/authorization maturity.
-  - End-to-end security assurance.
-
-### Claim E: Operational API surfaces are implemented
-
-- **Proof surface(s)**
-  - `README.md`
-  - `docs/RUNBOOK.md`
-  - `OPS_RUNBOOK.md`
-  - API route checks: `/health`, `/summary`, `/alerts`, acknowledgement workflow references
-  - Supporting visuals: `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png` (alert activity context)
-- **What is demonstrated**
-  - API endpoints exist for liveness and operational alert workflow visibility.
-  - Operational checks are documented for direct/local and production-like contexts.
-- **What is not demonstrated**
-  - Complete API governance/security model maturity.
-  - Comprehensive SLA-backed production API operations.
-
-### Claim F: Observability stack is implemented
-
-- **Proof surface(s)**
-  - `docs/OBSERVABILITY.md`
-  - `infra/docker-compose.prod.yml` (Grafana + InfluxDB)
-  - `README.md`
-  - `grafana/` artifacts and provisioning references
-  - Supporting visuals (preferred visual layer for deployed baseline): `docs/assets/live-hosted/live-hosted-grafana-temperature-by-device.png`, `docs/assets/live-hosted/live-hosted-grafana-recent-active-alerts-last-50.png`, and related panels in `docs/assets/live-hosted/`
-- **What is demonstrated**
-  - InfluxDB-backed telemetry and alert-series visibility via Grafana is implemented.
-  - Observability interpretation boundaries are explicitly documented.
-  - Live hosted screenshots provide conservative visual confirmation of deployed-baseline dashboard signal visibility.
-- **What is not demonstrated**
-  - Exhaustive enterprise monitoring coverage.
-  - Dashboard-only proof of full operational correctness.
-
-### Claim G: Restart/recovery/runbook discipline is documented and demonstrable
-
-- **Proof surface(s)**
-  - `docs/RUNBOOK.md`
-  - `OPS_RUNBOOK.md`
-  - `docs/RECOVERY_AND_ROLLBACK.md`
-  - `scripts/smoke_test.sh`
-- **What is demonstrated**
-  - Canonical verification, restart, recreate, and rollback procedures are documented.
-  - Post-change validation sequences are defined for ingress, API, logs, and observability checks.
-- **What is not demonstrated**
-  - Zero-touch autonomous operations.
-  - Guaranteed full restoration in all failure scenarios.
-
-### Claim H: Atlas-backed persistence compatibility exists
-
-- **Proof surface(s)**
-  - `README.md`
-  - `docs/DEPLOYMENT.md`
-  - `docs/ARCHITECTURE.md`
-  - `docs/DATA_FLOW.md`
-- **What is demonstrated**
-  - `MONGO_URI`-based Atlas-backed operational persistence is supported in hosted baseline guidance.
-  - API/worker operational persistence model is documented with Atlas-compatible configuration.
-- **What is not demonstrated**
-  - Atlas-side operational guarantees independent of operator configuration.
-  - Managed-database governance/certification outcomes.
-
-### Claim I: Live custom-domain ingress model exists as hosted baseline context
-
-- **Proof surface(s)**
-  - `infra/nginx/nginx.conf` (`oncovax.live`, TLS certificate paths)
-  - `docs/DEPLOYMENT.md`
-  - `docs/RUNBOOK.md`
-  - Supporting visuals: live hosted Grafana panels in `docs/assets/live-hosted/` (deployed runtime context only)
-- **What is demonstrated**
-  - Live-domain/TLS ingress wiring model is implemented and documented.
-  - Public-safe and protected route behavior is explicitly separated in ingress policy.
-- **What is not demonstrated**
-  - Universal correctness across all operator environments.
-  - Fully complete internet-facing hardening.
-
-### Claim J: External uptime monitoring exists as an availability signal layer
-
-- **Proof surface(s)**
-  - `docs/OBSERVABILITY.md`
-  - `docs/RUNBOOK.md`
-  - `docs/DEMO_WALKTHROUGH.md`
-- **What is demonstrated**
-  - External uptime checks are treated as one operational signal for public endpoint reachability.
-  - Documentation clearly scopes uptime monitoring to availability signaling.
-- **What is not demonstrated**
-  - End-to-end correctness of internal processing and persistence.
-  - Complete incident detection across all failure modes.
-
-## 4) Explicit non-evidence boundaries
-
-The current repository baseline does **not** provide evidence for:
-
-- certified clinical or regulated deployment status
-- physical medical device fleet integration proof
-- complete production hardening proof
-- complete security assurance proof
-- full internal correctness from public endpoint liveness alone
-
-Screenshot-specific boundary reminder:
-
-- Live hosted screenshots in `docs/assets/live-hosted/` are supporting visual evidence only.
-- They strengthen hosted-runtime observability claims, but they are not sole proof.
-- They do not establish full production hardening status or clinical/regulatory certification.
-
-These boundaries must be stated explicitly in walkthroughs and documentation reviews.
-
-## 5) Usage guidance
-
-Use this document as a conservative claim-control reference:
-
-- during walkthroughs, pair each claim with its listed proof surface before stating it
-- during documentation review, reject statements that exceed documented proof boundaries
-- keep claims implementation-backed and environment-aware
-- use this file together with `README.md`, `docs/DEMO_WALKTHROUGH.md`, and `docs/DEMO_SCENARIOS.md` to maintain consistent, credible project positioning
-
-Treat this evidence map as a maintained truth boundary for the repository baseline, not as a marketing summary.
+External uptime monitoring establishes endpoint reachability for the recorded period. It does not establish processing correctness, data integrity, access control, or ongoing uptime after shutdown.

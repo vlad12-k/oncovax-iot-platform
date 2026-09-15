@@ -1,17 +1,56 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "OncoVax Alert",
+  "title": "OncoVax excursion alert",
+  "description": "Worker-generated temperature excursion before persistence. Baseline contract verified against worker output by tests; runtime enforcement currently applies to telemetry only.",
   "type": "object",
-  "description": "Placeholder alert schema for documentation/contract alignment",
-  "required": ["alert_id", "event_type", "time", "device_id", "status"],
+  "required": [
+    "ts",
+    "device_id",
+    "asset_type",
+    "metric",
+    "threshold",
+    "value",
+    "status",
+    "consecutive_breach_count",
+    "message"
+  ],
   "properties": {
-    "alert_id": { "type": "string", "minLength": 1 },
-    "event_type": { "type": "string", "minLength": 1 },
-    "time": { "type": "string", "format": "date-time" },
-    "device_id": { "type": "string", "minLength": 1 },
-    "asset_type": { "type": "string" },
-    "status": { "type": "string", "minLength": 1 },
-    "message": { "type": "string" }
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_type": {
+      "enum": [
+        "coldstorage",
+        "cleanroom",
+        "bioreactor",
+        "shipment"
+      ]
+    },
+    "metric": {
+      "const": "temperature"
+    },
+    "threshold": {
+      "type": "number"
+    },
+    "value": {
+      "type": "number"
+    },
+    "status": {
+      "const": "active"
+    },
+    "consecutive_breach_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 if [[ "${1:-}" == "--prod" ]]; then
   DOMAIN="${2:-}"
@@ -12,11 +12,11 @@ if [[ "${1:-}" == "--prod" ]]; then
   fi
 
   echo "[smoke] checking public health through nginx"
-  curl -s "https://$DOMAIN/public-health"
+  curl --fail --silent --show-error --max-time 15 --retry 12 --retry-connrefused --retry-delay 2 "https://$DOMAIN/public-health"
 
   echo
   echo "[smoke] checking authenticated summary through nginx"
-  curl -s -u "$USERNAME:$PASSWORD" "https://$DOMAIN/summary"
+  curl --fail --silent --show-error --max-time 15 --retry 12 --retry-connrefused --retry-delay 2 -u "$USERNAME:$PASSWORD" "https://$DOMAIN/summary"
 
   echo
   echo "[smoke] done (prod)"
@@ -28,15 +28,15 @@ docker ps --format "table {{.Names}}\t{{.Status}}" | sed -n '1,10p'
 
 echo
 echo "[smoke] checking InfluxDB health"
-curl -s http://localhost:8086/health
+curl --fail --silent --show-error --max-time 15 --retry 12 --retry-connrefused --retry-delay 2 http://localhost:8086/health
 
 echo
 echo "[smoke] checking Grafana login page"
-curl -I -s http://localhost:3000/login | head -n 1
+curl --fail --silent --show-error --max-time 15 --retry 12 --retry-connrefused --retry-delay 2 -I http://localhost:3000/login | head -n 1
 
 echo
 echo "[smoke] checking API health"
-curl -s http://localhost:8000/health
+curl --fail --silent --show-error --max-time 15 --retry 12 --retry-connrefused --retry-delay 2 http://localhost:8000/health
 
 echo
 echo "[smoke] checking MongoDB container"
